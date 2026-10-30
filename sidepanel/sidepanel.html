@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RAG Moderation</title>
+    <link rel="stylesheet" href="sidepanel.css" />
+  </head>
+  <body>
+    <div id="location-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-card">
+        <h2 id="modal-title">Confirm feed location</h2>
+        <p class="muted">Moderation uses this state/region for location alignment (e.g. Oregon feed).</p>
+        <label for="modal-location">Your location</label>
+        <input id="modal-location" type="text" autocomplete="address-level1" value="Oregon" />
+        <p id="modal-error" class="error hidden"></p>
+        <button type="button" id="modal-save" class="primary">Save and continue</button>
+      </div>
+    </div>
+
+    <header>
+      <h1>RAG Moderation</h1>
+      <p id="connection-badge" class="badge muted">Connecting…</p>
+    </header>
+
+    <main id="main-panel" class="blocked" aria-hidden="true">
+      <label for="user-location">Feed location</label>
+      <input id="user-location" type="text" autocomplete="address-level1" />
+
+      <label for="content">Content to moderate</label>
+      <textarea id="content" rows="6" placeholder="Paste post or comment text…"></textarea>
+
+      <details>
+        <summary>Post context (optional)</summary>
+        <textarea id="post-context" rows="4" placeholder="Original post or thread context for reply moderation…"></textarea>
+      </details>
+
+      <div class="row">
+        <label for="analysis-type">Analysis</label>
+        <select id="analysis-type">
+          <option value="quick" selected>Quick</option>
+          <option value="detailed">Detailed</option>
+        </select>
+      </div>
+
+      <div class="row checkbox-row">
+        <input id="bad-words-enabled" type="checkbox" checked />
+        <label for="bad-words-enabled">Bad Words pre-screen (via Universal)</label>
+      </div>
+
+      <div class="actions">
+        <button type="button" id="moderate-btn" class="primary">Moderate</button>
+        <button type="button" id="clear-btn">Clear content</button>
+      </div>
+
+      <p id="status" class="status muted" aria-live="polite"></p>
+
+      <section id="results" class="results hidden" aria-live="polite"></section>
+    </main>
+
+    <script type="module" src="sidepanel.js"></script>
+  </body>
+</html>
