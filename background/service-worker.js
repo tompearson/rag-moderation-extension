@@ -1,5 +1,5 @@
 import { resolveApiConfig } from '../lib/envProfiles.js';
-import { ensureHostPermission } from '../lib/permissions.js';
+import { hasHostPermission } from '../lib/permissions.js';
 import { postModerate } from '../lib/moderateClient.js';
 import { loadSettings, hasValidUserLocation } from '../lib/userSettings.js';
 
@@ -21,9 +21,11 @@ async function runModeration(settings, payload) {
     throw new Error('Invalid API origin. Check Options → environment profile.');
   }
 
-  const granted = await ensureHostPermission(api.apiOrigin);
+  const granted = await hasHostPermission(api.apiOrigin);
   if (!granted) {
-    throw new Error(`Host permission denied for ${api.apiOrigin}. Grant access in the extension prompt or Options.`);
+    throw new Error(
+      `Host permission required for ${api.apiOrigin}. Click Moderate again and allow access, or use Options → Grant host permission.`,
+    );
   }
 
   const body = {

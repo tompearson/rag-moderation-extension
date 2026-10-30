@@ -5,6 +5,7 @@ import {
   DEFAULT_USER_LOCATION,
 } from '../lib/userSettings.js';
 import { resolveApiConfig } from '../lib/envProfiles.js';
+import { ensureHostPermission } from '../lib/permissions.js';
 import {
   decisionClass,
   formatReportCategory,
@@ -181,6 +182,17 @@ moderateBtn.addEventListener('click', async () => {
   if (!hasValidUserLocation(settings.userLocation)) {
     showModal(true);
     setStatus('Confirm your feed location first.', true);
+    return;
+  }
+
+  const api = resolveApiConfig(settings.envProfileId, settings.customApiOrigin);
+  if (!api.apiOrigin) {
+    setStatus('Invalid API origin. Set Options → environment profile.', true);
+    return;
+  }
+  const permitted = await ensureHostPermission(api.apiOrigin);
+  if (!permitted) {
+    setStatus(`Host permission denied for ${api.apiOrigin}. Allow access in the prompt or Options.`, true);
     return;
   }
 
