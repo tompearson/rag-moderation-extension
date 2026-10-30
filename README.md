@@ -28,11 +28,11 @@ Right-click extension icon → **Options**, or open from `chrome://extensions`.
 
 ## Environment profiles
 
-| Profile | Default origin |
-|---------|----------------|
-| Local | `http://127.0.0.1:3001` |
-| Production | `https://www.airesearchdog.net` |
-| Custom | User-entered `https://host` |
+| Profile | API origin | Notes |
+|---------|------------|--------|
+| **Production** (default) | `https://www.airesearchdog.net` | Fresh install / factory reset |
+| Local | `http://127.0.0.1:3001` | Same machine as Universal dev server |
+| Custom | User-entered `https://host` | |
 
 Host access uses `optional_host_permissions` + runtime grant before the first moderate.
 
