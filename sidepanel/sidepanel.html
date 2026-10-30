@@ -5,14 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>RAG Moderation</title>
     <link rel="stylesheet" href="sidepanel.css" />
+    <link rel="stylesheet" href="../lib/statePicker.css" />
   </head>
   <body>
     <div id="location-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div class="modal-card">
         <h2 id="modal-title">Confirm feed location</h2>
         <p class="muted">Moderation uses this state for location alignment (e.g. Oregon feed).</p>
-        <label for="modal-location">Your state</label>
-        <select id="modal-location"></select>
+        <label for="modal-location-trigger">Your state</label>
+        <div id="modal-location" class="state-picker-host"></div>
         <p id="modal-error" class="error hidden"></p>
         <button type="button" id="modal-save" class="primary">Save and continue</button>
       </div>
@@ -27,10 +28,15 @@
     </header>
 
     <main id="main-panel" class="blocked" aria-hidden="true">
-      <label for="user-location">Feed location</label>
-      <select id="user-location"></select>
+      <label for="user-location-trigger">Feed location</label>
+      <div id="user-location" class="state-picker-host"></div>
 
-      <label for="content">Content to moderate</label>
+      <div class="field-header">
+        <label for="content">Content to moderate</label>
+        <button type="button" id="paste-content-btn" class="small-btn" title="Paste from clipboard">
+          Paste
+        </button>
+      </div>
       <textarea id="content" rows="6" placeholder="Paste post or comment text…"></textarea>
 
       <details>
@@ -54,6 +60,12 @@
       <div class="actions">
         <button type="button" id="moderate-btn" class="primary">Moderate</button>
         <button type="button" id="clear-btn">Clear content</button>
+      </div>
+
+      <div id="moderation-progress" class="moderation-progress hidden" aria-live="polite">
+        <span id="moderation-elapsed" class="elapsed">0.0s</span>
+        <span id="moderation-limit" class="muted"></span>
+        <button type="button" id="abort-moderate-btn" class="small-btn danger-outline" disabled>Stop</button>
       </div>
 
       <p id="status" class="status muted" aria-live="polite"></p>

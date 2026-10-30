@@ -24,9 +24,10 @@
 
 | # | Step | Expected |
 |---|------|----------|
-| 1 | First open side panel | Location modal; state dropdown with Oregon selected |
-| 2 | Save location (pick a state) | Main UI enabled; **Feed location** dropdown persists after close/reopen |
-| 2b | Change **Feed location** dropdown (e.g. Texas) | Saves immediately; next moderate uses new state |
+| 1 | First open side panel | Location modal; state picker with Oregon selected |
+| 2 | Save location (pick a state) | Main UI enabled; **Feed location** picker persists after close/reopen |
+| 2b | Change **Feed location** (e.g. Texas) | Saves immediately; next moderate uses new state |
+| 2c | Options → Feed location state list | Scroll (wheel/trackpad) and keyboard (↑↓ Enter) work; list stays aligned if page scrolls (Chrome Win/macOS/Linux) |
 | 3 | Options → Local profile | Badge shows `Local dev · http://127.0.0.1:3001` |
 | 4 | Moderate benign text | `Keep` or valid decision; `moderationMode: rag`; `ragSources` array |
 | 5 | Options → Reset location | Modal appears again on side panel |

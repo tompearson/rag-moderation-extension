@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>RAG Moderation — Options</title>
     <link rel="stylesheet" href="options.css" />
+    <link rel="stylesheet" href="../lib/statePicker.css" />
   </head>
   <body>
     <h1>Options</h1>
@@ -27,6 +28,23 @@
     </section>
 
     <section>
+      <h2>Moderation request</h2>
+      <label for="moderate-timeout-sec">Timeout (seconds)</label>
+      <input
+        id="moderate-timeout-sec"
+        type="number"
+        min="15"
+        max="300"
+        step="1"
+        inputmode="numeric"
+      />
+      <p class="muted">
+        Default 45. Saved when you change this field. The side panel stops waiting at this limit; use
+        <strong>Stop</strong> to cancel sooner.
+      </p>
+    </section>
+
+    <section>
       <h2>Moderation identity (dev)</h2>
       <label for="moderator-id">moderatorId</label>
       <input id="moderator-id" type="text" />
@@ -38,13 +56,25 @@
 
     <section>
       <h2>Feed location</h2>
-      <label for="opt-location">State</label>
-      <select id="opt-location"></select>
+      <label for="opt-location-trigger">State</label>
+      <p class="muted">
+        Open the list, then scroll (wheel or trackpad) or use arrow keys and Enter to pick a state.
+      </p>
+      <div id="opt-location" class="state-picker-host"></div>
       <div class="actions">
         <button type="button" id="save" class="primary">Save</button>
         <button type="button" id="reset-location" class="danger">Reset location (show first-run dialog)</button>
       </div>
       <p id="save-status" class="status muted" aria-live="polite"></p>
+    </section>
+
+    <section>
+      <h2>Reset extension</h2>
+      <p class="muted">
+        Clears saved settings, sets profile to <strong>Production</strong>, and revokes granted API host
+        permissions. Side panel draft text is not cleared.
+      </p>
+      <button type="button" id="factory-reset" class="danger">Reset to clean state…</button>
     </section>
 
     <script type="module" src="options.js"></script>

@@ -1,19 +1,25 @@
 import { resolveApiConfig } from '../lib/envProfiles.js';
 import { hasHostPermission } from '../lib/permissions.js';
 import { postModerate } from '../lib/moderateClient.js';
-import { loadSettings, hasValidUserLocation } from '../lib/userSettings.js';
+import { loadSettings, isFeedLocationConfirmed } from '../lib/userSettings.js';
+import { moderateTimeoutMs } from '../lib/moderationTimeout.js';
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {});
 });
 
+/** @type {Map<string, AbortController>} */
+const activeModerations = new Map();
+
 /**
  * @param {import('../lib/userSettings.js').loadSettings extends () => Promise<infer T> ? T : never} settings
  * @param {object} payload
+ * @param {string} requestId
+ * @param {AbortSignal} signal
  */
-async function runModeration(settings, payload) {
-  if (!hasValidUserLocation(settings.userLocation)) {
-    throw new Error('Set your feed location before moderating.');
+async function runModeration(settings, payload, requestId, signal) {
+  if (!isFeedLocationConfirmed(settings)) {
+    throw new Error('Confirm your feed location in the side panel before moderating.');
   }
 
   const api = resolveApiConfig(settings.envProfileId, settings.customApiOrigin);
@@ -42,17 +48,35 @@ async function runModeration(settings, payload) {
     body.postContext = String(payload.postContext).trim().slice(0, 8000);
   }
 
-  const result = await postModerate(api.moderateUrl, body);
+  const timeoutMs = moderateTimeoutMs(settings.moderateTimeoutSec);
+  const result = await postModerate(api.moderateUrl, body, { signal, timeoutMs });
   return { result, api };
 }
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message?.type === 'MODERATE_ABORT') {
+    const id = message.requestId;
+    if (typeof id === 'string') activeModerations.get(id)?.abort();
+    sendResponse({ ok: true });
+    return false;
+  }
+
   if (message?.type !== 'MODERATE') return false;
+
+  const requestId =
+    typeof message.requestId === 'string' && message.requestId ? message.requestId : crypto.randomUUID();
+  const controller = new AbortController();
+  activeModerations.set(requestId, controller);
 
   (async () => {
     try {
       const settings = await loadSettings();
-      const { result, api } = await runModeration(settings, message.payload || {});
+      const { result, api } = await runModeration(
+        settings,
+        message.payload || {},
+        requestId,
+        controller.signal,
+      );
       sendResponse({
         ok: true,
         result,
@@ -67,6 +91,8 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         ok: false,
         error: err instanceof Error ? err.message : String(err),
       });
+    } finally {
+      activeModerations.delete(requestId);
     }
   })();
 

@@ -2,13 +2,14 @@ import {
   loadSettings,
   saveUserLocation,
   hasValidUserLocation,
+  isFeedLocationConfirmed,
 } from '../lib/userSettings.js';
 import {
   DEFAULT_USER_LOCATION,
   canonicalUsState,
   resolveStoredUserLocation,
-  populateStateSelect,
 } from '../lib/usStates.js';
+import { createStatePicker } from '../lib/statePicker.js';
 import { resolveApiConfig } from '../lib/envProfiles.js';
 import { ensureHostPermission } from '../lib/permissions.js';
 import { toggleOptionsPage } from '../lib/optionsPage.js';
@@ -21,27 +22,46 @@ import {
 } from '../lib/formatters.js';
 
 const modal = document.getElementById('location-modal');
-const modalSelect = /** @type {HTMLSelectElement} */ (document.getElementById('modal-location'));
 const modalError = document.getElementById('modal-error');
 const modalSave = document.getElementById('modal-save');
 const mainPanel = document.getElementById('main-panel');
 const connectionBadge = document.getElementById('connection-badge');
-const locationSelect = /** @type {HTMLSelectElement} */ (document.getElementById('user-location'));
+const modalLocationPicker = createStatePicker(document.getElementById('modal-location'), {
+  initialValue: DEFAULT_USER_LOCATION,
+  triggerId: 'modal-location-trigger',
+});
+const locationPicker = createStatePicker(document.getElementById('user-location'), {
+  initialValue: DEFAULT_USER_LOCATION,
+  triggerId: 'user-location-trigger',
+});
 const contentInput = /** @type {HTMLTextAreaElement} */ (document.getElementById('content'));
+const pasteContentBtn = document.getElementById('paste-content-btn');
 const postContextInput = /** @type {HTMLTextAreaElement} */ (document.getElementById('post-context'));
 const analysisSelect = /** @type {HTMLSelectElement} */ (document.getElementById('analysis-type'));
 const badWordsCheckbox = /** @type {HTMLInputElement} */ (document.getElementById('bad-words-enabled'));
 const moderateBtn = document.getElementById('moderate-btn');
 const clearBtn = document.getElementById('clear-btn');
 const optionsBtn = document.getElementById('options-btn');
+const moderationProgress = document.getElementById('moderation-progress');
+const moderationElapsed = document.getElementById('moderation-elapsed');
+const moderationLimit = document.getElementById('moderation-limit');
+const abortModerateBtn = document.getElementById('abort-moderate-btn');
 const statusEl = document.getElementById('status');
 const resultsEl = document.getElementById('results');
 
-populateStateSelect(modalSelect, DEFAULT_USER_LOCATION);
-populateStateSelect(locationSelect, DEFAULT_USER_LOCATION);
+/** @type {ReturnType<typeof setInterval> | null} */
+let moderationElapsedTimer = null;
+/** @type {string | null} */
+let activeModerationRequestId = null;
 
-function setSelectValue(selectEl, value) {
-  populateStateSelect(selectEl, value);
+function setPickerValues(value) {
+  const resolved = resolveStoredUserLocation(value);
+  modalLocationPicker.setValue(resolved);
+  locationPicker.setValue(resolved);
+}
+
+function statePickerBusy() {
+  return modalLocationPicker.isListOpen() || locationPicker.isListOpen();
 }
 
 function showModal(show) {
@@ -49,7 +69,7 @@ function showModal(show) {
   if (show) {
     mainPanel.classList.add('blocked');
     mainPanel.setAttribute('aria-hidden', 'true');
-    modalSelect.focus();
+    modalLocationPicker.focus();
   } else {
     mainPanel.classList.remove('blocked');
     mainPanel.setAttribute('aria-hidden', 'false');
@@ -90,63 +110,55 @@ async function initLocationUi() {
   await maybeMigrateStoredLocation(settings);
   const refreshed = await loadSettings();
 
-  if (!hasValidUserLocation(refreshed.userLocation)) {
-    setSelectValue(modalSelect, DEFAULT_USER_LOCATION);
-    setSelectValue(locationSelect, DEFAULT_USER_LOCATION);
+  if (!isFeedLocationConfirmed(refreshed)) {
+    setPickerValues(refreshed.userLocation);
     showModal(true);
     return;
   }
 
-  setSelectValue(locationSelect, refreshed.userLocation);
-  setSelectValue(modalSelect, refreshed.userLocation);
+  setPickerValues(refreshed.userLocation);
   showModal(false);
 }
 
 modalSave.addEventListener('click', async () => {
   setModalError('');
-  const selected = modalSelect.value;
+  modalLocationPicker.closeList();
+  const selected = modalLocationPicker.getValue();
   try {
     await saveUserLocation(selected, { onboarding: true });
-    setSelectValue(locationSelect, selected);
+    locationPicker.setValue(selected);
     showModal(false);
   } catch (err) {
     setModalError(err instanceof Error ? err.message : String(err));
   }
 });
 
-modalSelect.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    modalSave.click();
-  }
-});
-
-locationSelect.addEventListener('change', async () => {
-  const selected = locationSelect.value;
+locationPicker.onChange(async (selected) => {
   const settings = await loadSettings();
   if (settings.userLocation === selected) return;
   try {
     await saveUserLocation(selected, { onboarding: settings.locationOnboardingComplete });
   } catch {
-    setSelectValue(locationSelect, settings.userLocation);
+    locationPicker.setValue(settings.userLocation || DEFAULT_USER_LOCATION);
   }
 });
 
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== 'local') return;
-  if (changes.userLocation && document.activeElement !== locationSelect) {
+  if (changes.userLocation && !statePickerBusy()) {
     const next = changes.userLocation.newValue;
-    if (hasValidUserLocation(next)) {
-      setSelectValue(locationSelect, next);
-      setSelectValue(modalSelect, next);
-    }
+    if (hasValidUserLocation(next)) setPickerValues(next);
   }
   if (changes.envProfileId || changes.customApiOrigin) {
     refreshConnectionBadge().catch(() => {});
   }
-  if (changes.userLocation && !hasValidUserLocation(changes.userLocation.newValue)) {
-    setSelectValue(modalSelect, DEFAULT_USER_LOCATION);
-    showModal(true);
+  if (changes.userLocation || changes.locationOnboardingComplete) {
+    loadSettings().then((s) => {
+      if (!isFeedLocationConfirmed(s)) {
+        if (!statePickerBusy()) setPickerValues(s.userLocation);
+        showModal(true);
+      }
+    }).catch(() => {});
   }
 });
 
@@ -155,10 +167,97 @@ function setStatus(msg, isError = false) {
   statusEl.classList.toggle('error', isError);
 }
 
+/**
+ * @param {number} timeoutSec
+ */
+function startModerationProgress(timeoutSec) {
+  moderationProgress.classList.remove('hidden');
+  moderationLimit.textContent = `/ ${timeoutSec}s max`;
+  moderationElapsed.textContent = '0.0s';
+  const started = performance.now();
+  if (moderationElapsedTimer) clearInterval(moderationElapsedTimer);
+  moderationElapsedTimer = setInterval(() => {
+    const sec = (performance.now() - started) / 1000;
+    moderationElapsed.textContent = `${sec.toFixed(1)}s`;
+  }, 100);
+  abortModerateBtn.disabled = false;
+  moderateBtn.disabled = true;
+}
+
+function stopModerationProgress() {
+  if (moderationElapsedTimer) {
+    clearInterval(moderationElapsedTimer);
+    moderationElapsedTimer = null;
+  }
+  moderationProgress.classList.add('hidden');
+  activeModerationRequestId = null;
+  moderateBtn.disabled = false;
+  abortModerateBtn.disabled = true;
+}
+
+/**
+ * @param {string} label
+ * @param {string} bodyId
+ * @param {string} plainText
+ */
+function copyBlockSection(label, bodyId, plainText) {
+  const body = escapeHtml(plainText);
+  return `
+    <div class="copy-block">
+      <div class="copy-block-header">
+        <span class="copy-block-label">${escapeHtml(label)}</span>
+        <button type="button" class="copy-btn" data-for="${bodyId}" aria-label="Copy ${escapeHtml(label)} to clipboard">Copy</button>
+      </div>
+      <p class="copy-block-body" id="${bodyId}">${body}</p>
+    </div>
+  `;
+}
+
+async function copyElementTextToClipboard(elementId, button) {
+  const el = document.getElementById(elementId);
+  const text = el?.textContent?.trim() ?? '';
+  if (!text) {
+    setStatus('Nothing to copy.', true);
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+  if (button instanceof HTMLButtonElement) {
+    const prev = button.textContent;
+    button.textContent = 'Copied';
+    button.disabled = true;
+    setTimeout(() => {
+      button.textContent = prev;
+      button.disabled = false;
+    }, 1500);
+  }
+}
+
+resultsEl.addEventListener('click', (e) => {
+  const btn = /** @type {HTMLElement} */ (e.target)?.closest?.('.copy-btn');
+  if (!btn || !resultsEl.contains(btn)) return;
+  const forId = btn.getAttribute('data-for');
+  if (!forId) return;
+  copyElementTextToClipboard(forId, btn).catch((err) => {
+    setStatus(err instanceof Error ? err.message : String(err), true);
+  });
+});
+
 function renderResults(result) {
   const decision = String(result.decision || 'Unknown');
-  const reason = escapeHtml(String(result.reason || ''));
-  const breakdown = escapeHtml(String(result.decisionBreakdown || ''));
+  const reasonPlain = String(result.reason || '');
+  const breakdownPlain = String(result.decisionBreakdown || '');
   const category = formatReportCategory(result.reportCategory);
   const revision = escapeHtml(String(result.suggestedRevision || ''));
   const mode = escapeHtml(String(result.moderationMode || ''));
@@ -172,8 +271,8 @@ function renderResults(result) {
 
   resultsEl.innerHTML = `
     <p class="decision ${decisionClass(decision)}">${escapeHtml(decision)}</p>
-    <p><strong>Reason:</strong> ${reason}</p>
-    ${breakdown ? `<h3>Breakdown</h3><p>${breakdown}</p>` : ''}
+    ${copyBlockSection('Reason', 'result-reason', reasonPlain)}
+    ${breakdownPlain.trim() ? copyBlockSection('Breakdown', 'result-breakdown', breakdownPlain) : ''}
     ${category ? `<p><strong>Report category:</strong> ${escapeHtml(category)}</p>` : ''}
     ${revision && revision !== 'N/A' ? `<p><strong>Suggested revision:</strong> ${revision}</p>` : ''}
     ${mode ? `<p class="muted">Mode: ${mode}${contract ? ` · ${contract}` : ''}</p>` : ''}
@@ -195,8 +294,8 @@ moderateBtn.addEventListener('click', async () => {
   }
 
   const settings = await loadSettings();
-  if (!hasValidUserLocation(settings.userLocation)) {
-    setSelectValue(modalSelect, resolveStoredUserLocation(settings.userLocation));
+  if (!isFeedLocationConfirmed(settings)) {
+    setPickerValues(settings.userLocation);
     showModal(true);
     setStatus('Confirm your feed location first.', true);
     return;
@@ -213,12 +312,16 @@ moderateBtn.addEventListener('click', async () => {
     return;
   }
 
-  moderateBtn.disabled = true;
-  setStatus('Moderating… (up to 120s on cold start)');
+  const timeoutSec = settings.moderateTimeoutSec;
+  const requestId = crypto.randomUUID();
+  activeModerationRequestId = requestId;
+  startModerationProgress(timeoutSec);
+  setStatus('Moderating…');
 
   try {
     const response = await chrome.runtime.sendMessage({
       type: 'MODERATE',
+      requestId,
       payload: {
         content,
         postContext: postContextInput.value,
@@ -239,8 +342,17 @@ moderateBtn.addEventListener('click', async () => {
   } catch (err) {
     setStatus(err instanceof Error ? err.message : String(err), true);
   } finally {
-    moderateBtn.disabled = false;
+    stopModerationProgress();
   }
+});
+
+abortModerateBtn.addEventListener('click', () => {
+  if (!activeModerationRequestId) return;
+  chrome.runtime.sendMessage({
+    type: 'MODERATE_ABORT',
+    requestId: activeModerationRequestId,
+  });
+  setStatus('Stopping…');
 });
 
 clearBtn.addEventListener('click', () => {
@@ -248,6 +360,34 @@ clearBtn.addEventListener('click', () => {
   postContextInput.value = '';
   resultsEl.classList.add('hidden');
   setStatus('');
+});
+
+function applyContentFromClipboard(text) {
+  if (!text.trim()) {
+    setStatus('Clipboard is empty.', true);
+    return;
+  }
+  contentInput.value = text;
+  contentInput.focus();
+}
+
+/** Call readText in the same turn as the click — async/await can drop user activation. */
+function pasteFromClipboard() {
+  setStatus('');
+  navigator.clipboard
+    .readText()
+    .then(applyContentFromClipboard)
+    .catch(() => {
+      contentInput.focus();
+      const inserted = document.execCommand('paste');
+      if (!inserted) {
+        setStatus('Paste blocked. Reload the extension, then try again or use Ctrl+V in the box.', true);
+      }
+    });
+}
+
+pasteContentBtn.addEventListener('click', () => {
+  pasteFromClipboard();
 });
 
 optionsBtn.addEventListener('click', () => {

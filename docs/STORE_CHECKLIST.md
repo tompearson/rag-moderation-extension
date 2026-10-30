@@ -19,6 +19,8 @@ RAG-backed community post moderation for moderators (side panel: paste content, 
 | `storage` | Persist feed location, environment profile |
 | `sidePanel` | Main UI |
 | `activeTab` | Optional future: selection from active tab |
+| `tabs` | Close/open Options tab from side panel toggle |
+| `clipboardRead` | Paste button reads clipboard into content field (user click) |
 | Optional host origins | `POST /api/moderate` to Universal (local + production) |
 
 ## Dual publish

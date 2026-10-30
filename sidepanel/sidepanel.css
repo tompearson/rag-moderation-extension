@@ -82,6 +82,27 @@ label {
   margin: 10px 0 4px;
 }
 
+.field-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.field-header label {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+button.small-btn {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 input[type='text'],
 textarea,
 select {
@@ -138,6 +159,33 @@ button:disabled {
   cursor: not-allowed;
 }
 
+.moderation-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--border) 25%, transparent);
+}
+
+.moderation-progress.hidden {
+  display: none;
+}
+
+.moderation-progress .elapsed {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  min-width: 3.5em;
+}
+
+button.danger-outline {
+  margin-left: auto;
+  border-color: var(--remove);
+  color: var(--remove);
+}
+
 .status {
   min-height: 1.2em;
   margin-top: 8px;
@@ -177,6 +225,35 @@ button:disabled {
 .results h3 {
   font-size: 0.95rem;
   margin: 12px 0 6px;
+}
+
+.copy-block {
+  margin: 10px 0;
+}
+
+.copy-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.copy-block-label {
+  font-weight: 600;
+}
+
+.copy-btn {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.copy-block-body {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .results ul {
