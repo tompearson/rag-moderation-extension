@@ -10,22 +10,25 @@
     <div id="location-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div class="modal-card">
         <h2 id="modal-title">Confirm feed location</h2>
-        <p class="muted">Moderation uses this state/region for location alignment (e.g. Oregon feed).</p>
-        <label for="modal-location">Your location</label>
-        <input id="modal-location" type="text" autocomplete="address-level1" value="Oregon" />
+        <p class="muted">Moderation uses this state for location alignment (e.g. Oregon feed).</p>
+        <label for="modal-location">Your state</label>
+        <select id="modal-location"></select>
         <p id="modal-error" class="error hidden"></p>
         <button type="button" id="modal-save" class="primary">Save and continue</button>
       </div>
     </div>
 
     <header>
-      <h1>RAG Moderation</h1>
+      <div class="header-row">
+        <h1>RAG Moderation</h1>
+        <button type="button" id="options-btn" class="header-btn">Options</button>
+      </div>
       <p id="connection-badge" class="badge muted">Connecting…</p>
     </header>
 
     <main id="main-panel" class="blocked" aria-hidden="true">
       <label for="user-location">Feed location</label>
-      <input id="user-location" type="text" autocomplete="address-level1" />
+      <select id="user-location"></select>
 
       <label for="content">Content to moderate</label>
       <textarea id="content" rows="6" placeholder="Paste post or comment text…"></textarea>

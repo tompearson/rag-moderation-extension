@@ -45,6 +45,25 @@ header {
   margin-bottom: 12px;
 }
 
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.header-row h1 {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+button.header-btn {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
 .badge {
   display: inline-block;
   font-size: 12px;

@@ -5,7 +5,7 @@ Manifest V3 **side panel** extension for **Chrome** and **Microsoft Edge**. It c
 ## Features
 
 - Side panel: paste content, optional post context, quick/detailed analysis
-- First-run **location modal** (default Oregon); `chrome.storage.local` persistence
+- First-run **location modal** (US state dropdown, default Oregon); `chrome.storage.local` persistence
 - Environment profiles: **local**, **production**, **custom** API origin
 - Results: decision, reason, breakdown, report category, RAG sources, context impact, timings
 
@@ -43,7 +43,7 @@ manifest.json
 background/service-worker.js   # fetch /api/moderate
 sidepanel/                     # UI + location modal
 options/
-lib/                           # envProfiles, userSettings, moderateClient, …
+lib/                           # envProfiles, userSettings, usStates, moderateClient, …
 docs/                          # store, Edge, smoke, prod auth spike
 ```
 

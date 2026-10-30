@@ -18,6 +18,24 @@ select {
   width: 100%;
   padding: 8px;
   margin-top: 4px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+select {
+  appearance: auto;
+  -webkit-appearance: menulist-button;
+  cursor: pointer;
+}
+
+@media (prefers-color-scheme: dark) {
+  input,
+  select {
+    border-color: #334155;
+  }
 }
 
 .muted {

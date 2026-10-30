@@ -4,6 +4,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node scripts/test-unwrap.mjs"
+    "test": "node scripts/test-unwrap.mjs && node scripts/test-us-states.mjs"
   }
 }

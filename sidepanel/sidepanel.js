@@ -2,10 +2,16 @@ import {
   loadSettings,
   saveUserLocation,
   hasValidUserLocation,
-  DEFAULT_USER_LOCATION,
 } from '../lib/userSettings.js';
+import {
+  DEFAULT_USER_LOCATION,
+  canonicalUsState,
+  resolveStoredUserLocation,
+  populateStateSelect,
+} from '../lib/usStates.js';
 import { resolveApiConfig } from '../lib/envProfiles.js';
 import { ensureHostPermission } from '../lib/permissions.js';
+import { toggleOptionsPage } from '../lib/optionsPage.js';
 import {
   decisionClass,
   formatReportCategory,
@@ -15,31 +21,35 @@ import {
 } from '../lib/formatters.js';
 
 const modal = document.getElementById('location-modal');
-const modalInput = /** @type {HTMLInputElement} */ (document.getElementById('modal-location'));
+const modalSelect = /** @type {HTMLSelectElement} */ (document.getElementById('modal-location'));
 const modalError = document.getElementById('modal-error');
 const modalSave = document.getElementById('modal-save');
 const mainPanel = document.getElementById('main-panel');
 const connectionBadge = document.getElementById('connection-badge');
-const locationInput = /** @type {HTMLInputElement} */ (document.getElementById('user-location'));
+const locationSelect = /** @type {HTMLSelectElement} */ (document.getElementById('user-location'));
 const contentInput = /** @type {HTMLTextAreaElement} */ (document.getElementById('content'));
 const postContextInput = /** @type {HTMLTextAreaElement} */ (document.getElementById('post-context'));
 const analysisSelect = /** @type {HTMLSelectElement} */ (document.getElementById('analysis-type'));
 const badWordsCheckbox = /** @type {HTMLInputElement} */ (document.getElementById('bad-words-enabled'));
 const moderateBtn = document.getElementById('moderate-btn');
 const clearBtn = document.getElementById('clear-btn');
+const optionsBtn = document.getElementById('options-btn');
 const statusEl = document.getElementById('status');
 const resultsEl = document.getElementById('results');
 
-/** @type {ReturnType<typeof setTimeout> | null} */
-let locationDebounce = null;
+populateStateSelect(modalSelect, DEFAULT_USER_LOCATION);
+populateStateSelect(locationSelect, DEFAULT_USER_LOCATION);
+
+function setSelectValue(selectEl, value) {
+  populateStateSelect(selectEl, value);
+}
 
 function showModal(show) {
   modal.classList.toggle('hidden', !show);
   if (show) {
     mainPanel.classList.add('blocked');
     mainPanel.setAttribute('aria-hidden', 'true');
-    modalInput.focus();
-    modalInput.select();
+    modalSelect.focus();
   } else {
     mainPanel.classList.remove('blocked');
     mainPanel.setAttribute('aria-hidden', 'false');
@@ -66,70 +76,76 @@ async function refreshConnectionBadge() {
   }
 }
 
+async function maybeMigrateStoredLocation(settings) {
+  const raw = settings.userLocation;
+  if (!raw) return;
+  const canonical = canonicalUsState(raw);
+  if (canonical && canonical !== raw) {
+    await saveUserLocation(canonical, { onboarding: settings.locationOnboardingComplete });
+  }
+}
+
 async function initLocationUi() {
   const settings = await loadSettings();
-  if (!hasValidUserLocation(settings.userLocation)) {
-    modalInput.value = DEFAULT_USER_LOCATION;
+  await maybeMigrateStoredLocation(settings);
+  const refreshed = await loadSettings();
+
+  if (!hasValidUserLocation(refreshed.userLocation)) {
+    setSelectValue(modalSelect, DEFAULT_USER_LOCATION);
+    setSelectValue(locationSelect, DEFAULT_USER_LOCATION);
     showModal(true);
     return;
   }
-  locationInput.value = settings.userLocation;
-  showModal(false);
-}
 
-async function persistInlineLocation() {
-  const trimmed = locationInput.value.trim();
-  if (!trimmed) return;
-  const settings = await loadSettings();
-  if (settings.userLocation === trimmed) return;
-  await saveUserLocation(trimmed, { onboarding: settings.locationOnboardingComplete });
+  setSelectValue(locationSelect, refreshed.userLocation);
+  setSelectValue(modalSelect, refreshed.userLocation);
+  showModal(false);
 }
 
 modalSave.addEventListener('click', async () => {
   setModalError('');
-  const trimmed = modalInput.value.trim();
-  if (!trimmed) {
-    setModalError('Enter a state or region.');
-    return;
-  }
+  const selected = modalSelect.value;
   try {
-    await saveUserLocation(trimmed, { onboarding: true });
-    locationInput.value = trimmed;
+    await saveUserLocation(selected, { onboarding: true });
+    setSelectValue(locationSelect, selected);
     showModal(false);
   } catch (err) {
     setModalError(err instanceof Error ? err.message : String(err));
   }
 });
 
-modalInput.addEventListener('keydown', (e) => {
+modalSelect.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') {
     e.preventDefault();
     modalSave.click();
   }
 });
 
-locationInput.addEventListener('input', () => {
-  if (locationDebounce) clearTimeout(locationDebounce);
-  locationDebounce = setTimeout(() => {
-    persistInlineLocation().catch(() => {});
-  }, 400);
-});
-
-locationInput.addEventListener('blur', () => {
-  persistInlineLocation().catch(() => {});
+locationSelect.addEventListener('change', async () => {
+  const selected = locationSelect.value;
+  const settings = await loadSettings();
+  if (settings.userLocation === selected) return;
+  try {
+    await saveUserLocation(selected, { onboarding: settings.locationOnboardingComplete });
+  } catch {
+    setSelectValue(locationSelect, settings.userLocation);
+  }
 });
 
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== 'local') return;
-  if (changes.userLocation && !locationInput.matches(':focus')) {
+  if (changes.userLocation && document.activeElement !== locationSelect) {
     const next = changes.userLocation.newValue;
-    if (hasValidUserLocation(next)) locationInput.value = next;
+    if (hasValidUserLocation(next)) {
+      setSelectValue(locationSelect, next);
+      setSelectValue(modalSelect, next);
+    }
   }
   if (changes.envProfileId || changes.customApiOrigin) {
     refreshConnectionBadge().catch(() => {});
   }
   if (changes.userLocation && !hasValidUserLocation(changes.userLocation.newValue)) {
-    modalInput.value = DEFAULT_USER_LOCATION;
+    setSelectValue(modalSelect, DEFAULT_USER_LOCATION);
     showModal(true);
   }
 });
@@ -180,6 +196,7 @@ moderateBtn.addEventListener('click', async () => {
 
   const settings = await loadSettings();
   if (!hasValidUserLocation(settings.userLocation)) {
+    setSelectValue(modalSelect, resolveStoredUserLocation(settings.userLocation));
     showModal(true);
     setStatus('Confirm your feed location first.', true);
     return;
@@ -231,6 +248,12 @@ clearBtn.addEventListener('click', () => {
   postContextInput.value = '';
   resultsEl.classList.add('hidden');
   setStatus('');
+});
+
+optionsBtn.addEventListener('click', () => {
+  toggleOptionsPage().catch((err) => {
+    setStatus(err instanceof Error ? err.message : String(err), true);
+  });
 });
 
 refreshConnectionBadge().catch(() => {});
