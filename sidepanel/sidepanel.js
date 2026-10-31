@@ -14,6 +14,11 @@ import { resolveApiConfig } from '../lib/envProfiles.js';
 import { ensureHostPermission } from '../lib/permissions.js';
 import { toggleOptionsPage } from '../lib/optionsPage.js';
 import {
+  PENDING_DRAFT_SESSION_KEY,
+  consumePendingModerationDraft,
+} from '../lib/pendingModerationDraft.js';
+import { prepareTabCaptureFromSidePanel } from '../lib/prepareTabCapture.js';
+import {
   decisionClass,
   formatReportCategory,
   renderRagSourcesHtml,
@@ -36,6 +41,10 @@ const locationPicker = createStatePicker(document.getElementById('user-location'
 });
 const contentInput = /** @type {HTMLTextAreaElement} */ (document.getElementById('content'));
 const pasteContentBtn = document.getElementById('paste-content-btn');
+const fromTabContentBtn = document.getElementById('from-tab-content-btn');
+const pickContentBtn = document.getElementById('pick-content-btn');
+const fromTabContextBtn = document.getElementById('from-tab-context-btn');
+const postContextDetails = document.getElementById('post-context-details');
 const postContextInput = /** @type {HTMLTextAreaElement} */ (document.getElementById('post-context'));
 const analysisSelect = /** @type {HTMLSelectElement} */ (document.getElementById('analysis-type'));
 const badWordsCheckbox = /** @type {HTMLInputElement} */ (document.getElementById('bad-words-enabled'));
@@ -362,13 +371,136 @@ clearBtn.addEventListener('click', () => {
   setStatus('');
 });
 
+/** @typedef {'content' | 'postContext'} CaptureField */
+
+/**
+ * @param {CaptureField} field
+ * @returns {HTMLTextAreaElement}
+ */
+function textareaForField(field) {
+  return field === 'postContext' ? postContextInput : contentInput;
+}
+
+/**
+ * @param {string} text
+ * @param {CaptureField} field
+ */
+function applyCapturedText(text, field) {
+  const el = textareaForField(field);
+  el.value = text;
+  el.focus();
+  el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  el.setSelectionRange(0, el.value.length);
+  setStatus('');
+}
+
+/**
+ * @param {import('../lib/pendingModerationDraft.js').PendingModerationDraft} draft
+ */
+function applyPendingDraft(draft) {
+  if (draft.content) {
+    applyCapturedText(draft.content, draft.field === 'postContext' ? 'postContext' : 'content');
+  }
+  if (draft.postContext) {
+    if (postContextDetails instanceof HTMLDetailsElement) postContextDetails.open = true;
+    applyCapturedText(draft.postContext, 'postContext');
+  }
+}
+
+async function consumePendingDraftOnLoad() {
+  const draft = await consumePendingModerationDraft();
+  if (draft) applyPendingDraft(draft);
+}
+
+/**
+ * @param {CaptureField} field
+ */
+async function captureSelectionFromTabForField(field) {
+  setStatus('');
+  let tabId;
+  try {
+    tabId = await prepareTabCaptureFromSidePanel();
+  } catch (err) {
+    setStatus(err instanceof Error ? err.message : String(err), true);
+    return;
+  }
+  let response;
+  try {
+    response = await chrome.runtime.sendMessage({ type: 'CAPTURE_TAB_SELECTION', tabId });
+  } catch (err) {
+    setStatus(err instanceof Error ? err.message : String(err), true);
+    return;
+  }
+  if (!response?.ok) {
+    setStatus(response?.error || 'Could not read the page.', true);
+    return;
+  }
+  if (!response.text) {
+    setStatus('Select text on the page, then try again.', true);
+    return;
+  }
+  if (field === 'postContext' && postContextDetails instanceof HTMLDetailsElement) {
+    postContextDetails.open = true;
+  }
+  applyCapturedText(response.text, field);
+}
+
+/**
+ * @param {CaptureField} field
+ */
+/** @type {boolean} */
+let pickModeInProgress = false;
+
+async function runPickModeForField(field) {
+  if (pickModeInProgress) {
+    setStatus('Pick already active on the page tab. Click a post there or press Esc.', true);
+    return;
+  }
+  pickModeInProgress = true;
+  if (pickContentBtn instanceof HTMLButtonElement) pickContentBtn.disabled = true;
+  setStatus('On the page: move over a post (blue outline), then click once. Esc cancels.');
+  let tabId;
+  try {
+    tabId = await prepareTabCaptureFromSidePanel();
+  } catch (err) {
+    setStatus(err instanceof Error ? err.message : String(err), true);
+    pickModeInProgress = false;
+    if (pickContentBtn instanceof HTMLButtonElement) pickContentBtn.disabled = false;
+    return;
+  }
+  let response;
+  try {
+    response = await chrome.runtime.sendMessage({ type: 'START_PICK_MODE', tabId });
+  } catch (err) {
+    setStatus(err instanceof Error ? err.message : String(err), true);
+    pickModeInProgress = false;
+    if (pickContentBtn instanceof HTMLButtonElement) pickContentBtn.disabled = false;
+    return;
+  }
+  pickModeInProgress = false;
+  if (pickContentBtn instanceof HTMLButtonElement) pickContentBtn.disabled = false;
+  if (!response?.ok) {
+    const msg = response?.error || 'Pick failed.';
+    if (msg.includes('cancelled')) {
+      setStatus('Pick cancelled.');
+      return;
+    }
+    setStatus(msg, true);
+    return;
+  }
+  if (!response.text) {
+    setStatus('Nothing captured.', true);
+    return;
+  }
+  applyCapturedText(response.text, field);
+}
+
 function applyContentFromClipboard(text) {
   if (!text.trim()) {
     setStatus('Clipboard is empty.', true);
     return;
   }
-  contentInput.value = text;
-  contentInput.focus();
+  applyCapturedText(text, 'content');
 }
 
 /** Call readText in the same turn as the click — async/await can drop user activation. */
@@ -390,6 +522,32 @@ pasteContentBtn.addEventListener('click', () => {
   pasteFromClipboard();
 });
 
+fromTabContentBtn.addEventListener('click', () => {
+  captureSelectionFromTabForField('content').catch((err) => {
+    setStatus(err instanceof Error ? err.message : String(err), true);
+  });
+});
+
+pickContentBtn.addEventListener('click', () => {
+  runPickModeForField('content').catch((err) => {
+    setStatus(err instanceof Error ? err.message : String(err), true);
+  });
+});
+
+fromTabContextBtn.addEventListener('click', () => {
+  captureSelectionFromTabForField('postContext').catch((err) => {
+    setStatus(err instanceof Error ? err.message : String(err), true);
+  });
+});
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== 'session') return;
+  const draftChange = changes[PENDING_DRAFT_SESSION_KEY];
+  if (!draftChange?.newValue) return;
+  applyPendingDraft(/** @type {import('../lib/pendingModerationDraft.js').PendingModerationDraft} */ (draftChange.newValue));
+  consumePendingModerationDraft().catch(() => {});
+});
+
 optionsBtn.addEventListener('click', () => {
   toggleOptionsPage().catch((err) => {
     setStatus(err instanceof Error ? err.message : String(err), true);
@@ -397,6 +555,7 @@ optionsBtn.addEventListener('click', () => {
 });
 
 refreshConnectionBadge().catch(() => {});
+consumePendingDraftOnLoad().catch(() => {});
 initLocationUi().catch((err) => {
   setStatus(err instanceof Error ? err.message : String(err), true);
 });

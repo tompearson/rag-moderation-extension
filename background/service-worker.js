@@ -3,9 +3,28 @@ import { hasHostPermission } from '../lib/permissions.js';
 import { postModerate } from '../lib/moderateClient.js';
 import { loadSettings, isFeedLocationConfirmed } from '../lib/userSettings.js';
 import { moderateTimeoutMs } from '../lib/moderationTimeout.js';
+import { MODERATION_TARGET_TAB_SESSION_KEY } from '../lib/pageAccess.js';
+import { captureSelectionFromTab } from '../lib/tabSelectionCapture.js';
+import { startPickModeOnActiveTab, settlePickModeMessage } from '../lib/pickMode.js';
+import {
+  registerModerationContextMenu,
+  handleModerationContextMenuClick,
+} from '../lib/contextMenu.js';
 
-chrome.runtime.onInstalled.addListener(() => {
+function onInstalled() {
   chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {});
+  registerModerationContextMenu();
+}
+
+chrome.runtime.onInstalled.addListener(onInstalled);
+registerModerationContextMenu();
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  handleModerationContextMenuClick(info, tab).catch(() => {});
+});
+
+chrome.tabs.onActivated.addListener(({ tabId }) => {
+  chrome.storage.session.set({ [MODERATION_TARGET_TAB_SESSION_KEY]: tabId }).catch(() => {});
 });
 
 /** @type {Map<string, AbortController>} */
@@ -53,7 +72,44 @@ async function runModeration(settings, payload, requestId, signal) {
   return { result, api };
 }
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message?.type === 'PICK_MODE_COMPLETE' || message?.type === 'PICK_MODE_CANCELLED') {
+    settlePickModeMessage(message.type, sender.tab?.id, message.text);
+    return false;
+  }
+
+  if (message?.type === 'CAPTURE_TAB_SELECTION') {
+    (async () => {
+      try {
+        const tabId = typeof message.tabId === 'number' ? message.tabId : undefined;
+        const text = await captureSelectionFromTab(tabId);
+        sendResponse({ ok: true, text });
+      } catch (err) {
+        sendResponse({
+          ok: false,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
+    })();
+    return true;
+  }
+
+  if (message?.type === 'START_PICK_MODE') {
+    (async () => {
+      try {
+        const tabId = typeof message.tabId === 'number' ? message.tabId : undefined;
+        const text = await startPickModeOnActiveTab(tabId);
+        sendResponse({ ok: true, text });
+      } catch (err) {
+        sendResponse({
+          ok: false,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
+    })();
+    return true;
+  }
+
   if (message?.type === 'MODERATE_ABORT') {
     const id = message.requestId;
     if (typeof id === 'string') activeModerations.get(id)?.abort();

@@ -96,6 +96,23 @@ label {
   min-width: 0;
 }
 
+.field-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+.nested-field-header {
+  margin-top: 8px;
+}
+
+.nested-field-header .nested-label {
+  flex: 1;
+  font-size: 13px;
+}
+
 button.small-btn {
   flex-shrink: 0;
   padding: 2px 8px;

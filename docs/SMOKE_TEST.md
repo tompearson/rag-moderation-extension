@@ -33,6 +33,12 @@
 | 5 | Options → Reset location | Modal appears again on side panel |
 | 6 | Deny host permission | Clear error when moderating |
 | 7 | Production profile (when auth ready) | Moderate against `https://www.airesearchdog.net` |
+| 8 | **From tab** (content) | On Nextdoor: highlight post text → side panel → **From tab** → **Allow** site access if Chrome prompts → **Content** fills |
+| 8b | **From tab** (post context) | Highlight thread context → **Post context** → **From tab** fills context field |
+| 8c | Empty selection + **From tab** | Status asks to select text; existing draft unchanged |
+| 8d | Restricted tab (`chrome://extensions`) + **From tab** | Clear error; use Paste |
+| 9 | Context menu | Select text → right-click → **Send selection to RAG Moderation** → side panel opens with **Content** filled (panel closed or already open) |
+| 10 | **Pick** on Nextdoor post title | **Pick** → hover post title (`Linkify` / `link_style-provider` span) → blue outline on title only → click → **Content** has title text (e.g. “What are some good trunk or treats tonight?”) |
 
 ## Sample content
 

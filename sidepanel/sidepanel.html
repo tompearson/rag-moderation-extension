@@ -33,14 +33,47 @@
 
       <div class="field-header">
         <label for="content">Content to moderate</label>
-        <button type="button" id="paste-content-btn" class="small-btn" title="Paste from clipboard">
-          Paste
-        </button>
+        <div class="field-actions">
+          <button
+            type="button"
+            id="from-tab-content-btn"
+            class="small-btn"
+            title="Use highlighted text on the active page tab"
+          >
+            From tab
+          </button>
+          <button
+            type="button"
+            id="pick-content-btn"
+            class="small-btn"
+            title="Click a post block on the page to capture its text"
+          >
+            Pick
+          </button>
+          <button type="button" id="paste-content-btn" class="small-btn" title="Paste from clipboard">
+            Paste
+          </button>
+        </div>
       </div>
-      <textarea id="content" rows="6" placeholder="Paste post or comment text…"></textarea>
+      <textarea
+        id="content"
+        rows="6"
+        placeholder="Select on page → From tab, Pick a block, or copy → Paste…"
+      ></textarea>
 
-      <details>
+      <details id="post-context-details">
         <summary>Post context (beta)</summary>
+        <div class="field-header nested-field-header">
+          <span class="muted nested-label">Thread context from page</span>
+          <button
+            type="button"
+            id="from-tab-context-btn"
+            class="small-btn"
+            title="Use highlighted text for post context"
+          >
+            From tab
+          </button>
+        </div>
         <textarea id="post-context" rows="4" placeholder="Original post or thread context for reply moderation…"></textarea>
       </details>
 

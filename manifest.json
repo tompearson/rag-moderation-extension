@@ -8,12 +8,22 @@
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
   },
-  "permissions": ["storage", "sidePanel", "activeTab", "tabs", "clipboardRead"],
+  "permissions": [
+    "storage",
+    "sidePanel",
+    "activeTab",
+    "tabs",
+    "clipboardRead",
+    "scripting",
+    "contextMenus"
+  ],
   "optional_host_permissions": [
     "http://127.0.0.1/*",
     "http://localhost/*",
     "https://www.airesearchdog.net/*",
-    "https://moderation-tool-universal.vercel.app/*"
+    "https://moderation-tool-universal.vercel.app/*",
+    "http://*/*",
+    "https://*/*"
   ],
   "background": {
     "service_worker": "background/service-worker.js",
