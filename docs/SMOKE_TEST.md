@@ -39,6 +39,7 @@
 | 8d | Restricted tab (`chrome://extensions`) + **From tab** | Clear error; use Paste |
 | 9 | Context menu | Select text → right-click → **Send selection to RAG Moderation** → side panel opens with **Content** filled (panel closed or already open) |
 | 10 | **Pick** on Nextdoor post title | **Pick** → hover post title (`Linkify` / `link_style-provider` span) → blue outline on title only → click → **Content** has title text (e.g. “What are some good trunk or treats tonight?”) |
+| 10b | **Pick** multi-paragraph | **Pick** → drag from start of post through extra paragraphs → release → **Content** includes all selected text |
 
 ## Sample content
 

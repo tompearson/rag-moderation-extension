@@ -2,6 +2,7 @@ import {
   captureTargetForElement,
   extractTextFromCaptureTarget,
   isNextdoorPrimaryText,
+  mergeAnchorHrefsIntoText,
 } from '../lib/contentPickTargets.js';
 
 function assert(cond, msg) {
@@ -30,6 +31,9 @@ class MockHTMLElement {
   hasAttribute() {
     return false;
   }
+  querySelectorAll() {
+    return [];
+  }
 }
 globalThis.HTMLElement = MockHTMLElement;
 globalThis.document = { body: {} };
@@ -49,5 +53,28 @@ assert(target === linkify, 'prefers Linkify over article');
 
 const text = extractTextFromCaptureTarget(target);
 assert(text === 'What are some good trunk or treats tonight?', 'extracts title text');
+
+const commentRoot = {
+  querySelectorAll(sel) {
+    if (sel !== 'a[href]') return [];
+    return [
+      {
+        getAttribute: (n) => (n === 'href' ? 'https://saintmarks.org/justice/refugees/' : null),
+        innerText: 'What does the Bible say about refugees?',
+        textContent: 'What does the Bible say about refugees?',
+      },
+    ];
+  },
+};
+const body =
+  'Jeff What about what Jesus said?\nIf you need reminding:\nWhat does the Bible say about refugees?';
+const withUrl = mergeAnchorHrefsIntoText(commentRoot, body, 'https://nextdoor.com/');
+assert(withUrl.includes('https://saintmarks.org/justice/refugees/'), 'appends href when URL not in text');
+const alreadyHas = mergeAnchorHrefsIntoText(
+  commentRoot,
+  `${body}\nhttps://saintmarks.org/justice/refugees/`,
+  'https://nextdoor.com/',
+);
+assert(alreadyHas === `${body}\nhttps://saintmarks.org/justice/refugees/`, 'skip duplicate href');
 
 console.log('OK — content pick target tests passed');

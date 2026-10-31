@@ -458,7 +458,7 @@ async function runPickModeForField(field) {
   }
   pickModeInProgress = true;
   if (pickContentBtn instanceof HTMLButtonElement) pickContentBtn.disabled = true;
-  setStatus('On the page: move over a post (blue outline), then click once. Esc cancels.');
+  setStatus('On the page: drag to select text, or click one line. Esc cancels.');
   let tabId;
   try {
     tabId = await prepareTabCaptureFromSidePanel();
