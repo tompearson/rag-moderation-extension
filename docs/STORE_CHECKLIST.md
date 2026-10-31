@@ -10,7 +10,7 @@ RAG-backed community post moderation for moderators (side panel: paste content, 
 - Icons 16 / 48 / 128 included.
 - Privacy policy URL (host on airesearchdog.net or project site) describing:
   - User-provided text sent to your moderation API
-  - No silent full-page scraping: page text only when the moderator uses **From tab**, **Pick on page**, or the selection context menu (with `activeTab` / user gesture)
+  - No silent full-page scraping: page text only when the moderator uses **Click on Text to Moderate** or the selection context menu (with `activeTab` / user gesture)
 
 ## Permissions justification
 
@@ -19,11 +19,11 @@ RAG-backed community post moderation for moderators (side panel: paste content, 
 | `storage` | Persist feed location, environment profile |
 | `sidePanel` | Main UI |
 | `activeTab` | Read **current text selection** on the tab where the moderator opened the extension |
-| `scripting` | Inject a one-shot snippet on user click (**From tab** / **Pick on page**) to read selection or clicked block |
+| `scripting` | Inject a one-shot snippet when moderator clicks **Click on Text to Moderate** to read clicked block or drag-selection |
 | `contextMenus` | Right-click selected text → send to side panel |
 | `tabs` | Resolve active tab; open side panel from context menu |
 | `clipboardRead` | Paste button reads clipboard into content field (user click) |
-| Optional host origins | Moderation API (local + production); **`https://*/*`** / **`http://*/*`** granted on demand when moderator uses **From tab** or **Pick** on a page |
+| Optional host origins | Moderation API (local + production); **`https://*/*`** / **`http://*/*`** granted on demand when moderator uses **Click on Text to Moderate** |
 
 ## Dual publish
 

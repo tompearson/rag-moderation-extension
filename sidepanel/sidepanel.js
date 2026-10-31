@@ -41,9 +41,7 @@ const locationPicker = createStatePicker(document.getElementById('user-location'
 });
 const contentInput = /** @type {HTMLTextAreaElement} */ (document.getElementById('content'));
 const pasteContentBtn = document.getElementById('paste-content-btn');
-const fromTabContentBtn = document.getElementById('from-tab-content-btn');
 const pickContentBtn = document.getElementById('pick-content-btn');
-const fromTabContextBtn = document.getElementById('from-tab-context-btn');
 const postContextDetails = document.getElementById('post-context-details');
 const postContextInput = /** @type {HTMLTextAreaElement} */ (document.getElementById('post-context'));
 const analysisSelect = /** @type {HTMLSelectElement} */ (document.getElementById('analysis-type'));
@@ -382,6 +380,17 @@ function textareaForField(field) {
 }
 
 /**
+ * @param {CaptureField} field
+ */
+function clearCaptureField(field) {
+  const el = textareaForField(field);
+  el.value = '';
+  if (field === 'content') {
+    resultsEl.classList.add('hidden');
+  }
+}
+
+/**
  * @param {string} text
  * @param {CaptureField} field
  */
@@ -392,6 +401,16 @@ function applyCapturedText(text, field) {
   el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   el.setSelectionRange(0, el.value.length);
   setStatus('');
+}
+
+/**
+ * Replace field with pick result only (no merge with prior draft).
+ * @param {string} text
+ * @param {CaptureField} field
+ */
+function applyPickedText(text, field) {
+  clearCaptureField(field);
+  applyCapturedText(text, field);
 }
 
 /**
@@ -412,77 +431,84 @@ async function consumePendingDraftOnLoad() {
   if (draft) applyPendingDraft(draft);
 }
 
+/** @type {boolean} */
+let pickModeInProgress = false;
+/** @type {number | null} */
+let activePickTabId = null;
+/** @type {((e: KeyboardEvent) => void) | null} */
+let pickEscapeKeyHandler = null;
+
+function attachPickEscapeListener(tabId) {
+  detachPickEscapeListener();
+  activePickTabId = tabId;
+  pickEscapeKeyHandler = (e) => {
+    if (e.key !== 'Escape' || !pickModeInProgress || activePickTabId == null) return;
+    e.preventDefault();
+    e.stopPropagation();
+    chrome.runtime.sendMessage({ type: 'CANCEL_PICK_MODE', tabId: activePickTabId }).catch(() => {});
+  };
+  document.addEventListener('keydown', pickEscapeKeyHandler, true);
+}
+
+function detachPickEscapeListener() {
+  if (pickEscapeKeyHandler) {
+    document.removeEventListener('keydown', pickEscapeKeyHandler, true);
+    pickEscapeKeyHandler = null;
+  }
+  activePickTabId = null;
+}
+
+function endPickModeUi() {
+  pickModeInProgress = false;
+  detachPickEscapeListener();
+  setPickButtonActive(false);
+}
+
 /**
- * @param {CaptureField} field
+ * @param {boolean} active
  */
-async function captureSelectionFromTabForField(field) {
-  setStatus('');
-  let tabId;
-  try {
-    tabId = await prepareTabCaptureFromSidePanel();
-  } catch (err) {
-    setStatus(err instanceof Error ? err.message : String(err), true);
-    return;
-  }
-  let response;
-  try {
-    response = await chrome.runtime.sendMessage({ type: 'CAPTURE_TAB_SELECTION', tabId });
-  } catch (err) {
-    setStatus(err instanceof Error ? err.message : String(err), true);
-    return;
-  }
-  if (!response?.ok) {
-    setStatus(response?.error || 'Could not read the page.', true);
-    return;
-  }
-  if (!response.text) {
-    setStatus('Select text on the page, then try again.', true);
-    return;
-  }
-  if (field === 'postContext' && postContextDetails instanceof HTMLDetailsElement) {
-    postContextDetails.open = true;
-  }
-  applyCapturedText(response.text, field);
+function setPickButtonActive(active) {
+  if (!(pickContentBtn instanceof HTMLButtonElement)) return;
+  pickContentBtn.disabled = active;
+  pickContentBtn.classList.toggle('pick-btn-active', active);
+  pickContentBtn.setAttribute('aria-busy', active ? 'true' : 'false');
+  pickContentBtn.textContent = active ? 'Click text on the page…' : 'Click on Text to Moderate';
 }
 
 /**
  * @param {CaptureField} field
  */
-/** @type {boolean} */
-let pickModeInProgress = false;
-
 async function runPickModeForField(field) {
   if (pickModeInProgress) {
-    setStatus('Pick already active on the page tab. Click a post there or press Esc.', true);
+    setStatus('Already waiting for a click on the page. Click text there or press Esc.', true);
     return;
   }
   pickModeInProgress = true;
-  if (pickContentBtn instanceof HTMLButtonElement) pickContentBtn.disabled = true;
-  setStatus('On the page: drag to select text, or click one line. Esc cancels.');
+  setPickButtonActive(true);
+  clearCaptureField(field);
+  setStatus('On the page: drag to select text, or click one line. Esc cancels (here or on the page).');
   let tabId;
   try {
     tabId = await prepareTabCaptureFromSidePanel();
   } catch (err) {
     setStatus(err instanceof Error ? err.message : String(err), true);
-    pickModeInProgress = false;
-    if (pickContentBtn instanceof HTMLButtonElement) pickContentBtn.disabled = false;
+    endPickModeUi();
     return;
   }
+  attachPickEscapeListener(tabId);
   let response;
   try {
     response = await chrome.runtime.sendMessage({ type: 'START_PICK_MODE', tabId });
   } catch (err) {
     setStatus(err instanceof Error ? err.message : String(err), true);
-    pickModeInProgress = false;
-    if (pickContentBtn instanceof HTMLButtonElement) pickContentBtn.disabled = false;
+    endPickModeUi();
     return;
   }
-  pickModeInProgress = false;
-  if (pickContentBtn instanceof HTMLButtonElement) pickContentBtn.disabled = false;
+  endPickModeUi();
   if (!response?.ok) {
-    const msg = response?.error || 'Pick failed.';
+    const msg = response?.error || 'Could not capture text.';
     if (msg.includes('cancelled')) {
-      setStatus('Pick cancelled.');
+      setStatus('Cancelled.');
       return;
     }
     setStatus(msg, true);
@@ -492,7 +518,7 @@ async function runPickModeForField(field) {
     setStatus('Nothing captured.', true);
     return;
   }
-  applyCapturedText(response.text, field);
+  applyPickedText(response.text, field);
 }
 
 function applyContentFromClipboard(text) {
@@ -522,21 +548,10 @@ pasteContentBtn.addEventListener('click', () => {
   pasteFromClipboard();
 });
 
-fromTabContentBtn.addEventListener('click', () => {
-  captureSelectionFromTabForField('content').catch((err) => {
-    setStatus(err instanceof Error ? err.message : String(err), true);
-  });
-});
-
 pickContentBtn.addEventListener('click', () => {
   runPickModeForField('content').catch((err) => {
     setStatus(err instanceof Error ? err.message : String(err), true);
-  });
-});
-
-fromTabContextBtn.addEventListener('click', () => {
-  captureSelectionFromTabForField('postContext').catch((err) => {
-    setStatus(err instanceof Error ? err.message : String(err), true);
+    endPickModeUi();
   });
 });
 

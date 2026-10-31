@@ -4,8 +4,7 @@ import { postModerate } from '../lib/moderateClient.js';
 import { loadSettings, isFeedLocationConfirmed } from '../lib/userSettings.js';
 import { moderateTimeoutMs } from '../lib/moderationTimeout.js';
 import { MODERATION_TARGET_TAB_SESSION_KEY } from '../lib/pageAccess.js';
-import { captureSelectionFromTab } from '../lib/tabSelectionCapture.js';
-import { startPickModeOnActiveTab, settlePickModeMessage } from '../lib/pickMode.js';
+import { startPickModeOnActiveTab, settlePickModeMessage, cancelPickModeOnTab } from '../lib/pickMode.js';
 import {
   registerModerationContextMenu,
   handleModerationContextMenuClick,
@@ -78,20 +77,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return false;
   }
 
-  if (message?.type === 'CAPTURE_TAB_SELECTION') {
-    (async () => {
-      try {
-        const tabId = typeof message.tabId === 'number' ? message.tabId : undefined;
-        const text = await captureSelectionFromTab(tabId);
-        sendResponse({ ok: true, text });
-      } catch (err) {
-        sendResponse({
-          ok: false,
-          error: err instanceof Error ? err.message : String(err),
-        });
-      }
-    })();
-    return true;
+  if (message?.type === 'CANCEL_PICK_MODE') {
+    const tabId = typeof message.tabId === 'number' ? message.tabId : undefined;
+    cancelPickModeOnTab(tabId).catch(() => {});
+    sendResponse({ ok: true });
+    return false;
   }
 
   if (message?.type === 'START_PICK_MODE') {

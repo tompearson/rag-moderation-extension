@@ -4,7 +4,7 @@ Manifest V3 **side panel** extension for **Chrome** and **Microsoft Edge**. It c
 
 ## Features
 
-- Side panel: **From tab** / **Pick** / **Paste** into content, optional post context, quick/detailed analysis
+- Side panel: **Click on Text to Moderate** / **Paste** into content, optional post context, quick/detailed analysis
 - Context menu: send selected page text to the side panel
 - First-run **location modal** (US state dropdown, default Oregon); `chrome.storage.local` persistence
 - Environment profiles: **local**, **production**, **custom** API origin

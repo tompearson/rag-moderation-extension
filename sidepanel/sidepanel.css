@@ -120,6 +120,54 @@ button.small-btn {
   font-weight: 600;
 }
 
+button.pick-btn {
+  display: block;
+  width: 100%;
+  margin: 6px 0 8px;
+  padding: 10px 14px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  border: 2px solid #2563eb;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+  animation: pick-btn-attention 2.2s ease-in-out infinite;
+}
+
+button.pick-btn:hover:not(:disabled) {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+button.pick-btn.pick-btn-active {
+  animation: none;
+  background: #94a3b8;
+  border-color: #94a3b8;
+  color: #f1f5f9;
+  cursor: wait;
+  opacity: 0.92;
+}
+
+@keyframes pick-btn-attention {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.45);
+    filter: brightness(1);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(37, 99, 235, 0);
+    filter: brightness(1.06);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button.pick-btn {
+    animation: none;
+  }
+}
+
 input[type='text'],
 textarea,
 select {

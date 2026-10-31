@@ -11,6 +11,7 @@ import { DEFAULT_USER_LOCATION } from '../lib/usStates.js';
 import { createStatePicker } from '../lib/statePicker.js';
 import { parseModerateTimeoutSec } from '../lib/moderationTimeout.js';
 import { factoryResetExtension } from '../lib/factoryReset.js';
+import { closeOptionsPageIfOpen } from '../lib/optionsPage.js';
 
 const envProfile = /** @type {HTMLSelectElement} */ (document.getElementById('env-profile'));
 const moderateTimeoutSec = /** @type {HTMLInputElement} */ (
@@ -213,6 +214,15 @@ document.addEventListener('visibilitychange', () => {
       moderateTimeoutSec.value = String(s.moderateTimeoutSec);
     })
     .catch(() => {});
+});
+
+document.getElementById('close-options')?.addEventListener('click', () => {
+  optLocationPicker.closeList();
+  closeOptionsPageIfOpen()
+    .catch(() => {})
+    .finally(() => {
+      window.close();
+    });
 });
 
 loadForm().catch((err) => setStatus(err instanceof Error ? err.message : String(err), true));

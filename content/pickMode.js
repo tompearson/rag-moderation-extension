@@ -39,12 +39,13 @@
     zIndex: '2147483646',
     cursor: 'crosshair',
     background: 'rgba(15, 23, 42, 0.12)',
-    pointerEvents: 'none',
+    pointerEvents: 'auto',
   });
 
   const banner = document.createElement('div');
   banner.id = BANNER_ID;
-  banner.textContent = 'Drag to select text across paragraphs, or click a post line · Esc to cancel';
+  banner.textContent =
+    'Drag to select text, or click a post line · Esc cancels (page or extension side panel)';
   Object.assign(banner.style, {
     position: 'fixed',
     top: '12px',
@@ -62,11 +63,39 @@
     textAlign: 'center',
   });
 
+  /** Block synthesized clicks on links after pick (cleanup used to run before click fired). */
+  let blockPageNavigation = true;
+
+  function swallowPageActivation(e) {
+    if (!blockPageNavigation) return;
+    const t = /** @type {Node | null} */ (e.target);
+    if (t && (overlay.contains(t) || banner.contains(t))) return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+  }
+
+  /**
+   * @param {number} x
+   * @param {number} y
+   * @returns {Element | null}
+   */
+  function elementUnderPagePoint(x, y) {
+    overlay.style.pointerEvents = 'none';
+    const el = document.elementFromPoint(x, y);
+    overlay.style.pointerEvents = 'auto';
+    return el;
+  }
+
   function cleanup() {
+    blockPageNavigation = false;
     document.removeEventListener('keydown', onKeyDown, true);
-    document.removeEventListener('mousemove', onMove, true);
-    document.removeEventListener('mousedown', onMouseDown, true);
-    document.removeEventListener('mouseup', onMouseUp, true);
+    document.removeEventListener('click', swallowPageActivation, true);
+    document.removeEventListener('auxclick', swallowPageActivation, true);
+    document.removeEventListener('pointerup', swallowPageActivation, true);
+    overlay.removeEventListener('mousemove', onMove);
+    overlay.removeEventListener('mousedown', onMouseDown);
+    overlay.removeEventListener('mouseup', onMouseUp);
     clearHoverHighlight();
     try {
       window.getSelection()?.removeAllRanges();
@@ -84,7 +113,6 @@
   win[CLEANUP_KEY] = cleanup;
 
   function finish(payload) {
-    cleanup();
     try {
       chrome.runtime.sendMessage(payload, () => {
         void chrome.runtime.lastError;
@@ -92,6 +120,8 @@
     } catch {
       /* extension context gone */
     }
+    // Keep swallowing clicks briefly so links under the pick target do not open.
+    setTimeout(cleanup, 400);
   }
 
   /**
@@ -169,9 +199,37 @@
     if (el.tagName === 'ARTICLE') return true;
     const role = el.getAttribute('role');
     if (role === 'article' || role === 'listitem') return true;
-    if (el.hasAttribute('data-testid')) return true;
     if (el.hasAttribute('data-item-id')) return true;
+    const testId = (el.getAttribute('data-testid') ?? '').toLowerCase();
+    if (
+      testId &&
+      /comment|post-body|post-text|feed-item|feed_item|detail-post|story-body|reply/.test(testId)
+    ) {
+      return true;
+    }
     return false;
+  }
+
+  function smallestPickScopeContaining(el) {
+    if (!(el instanceof HTMLElement)) return null;
+    /** @type {HTMLElement[]} */
+    const candidates = [];
+    let node = el;
+    while (node && node !== document.body) {
+      if (isPostLikeBlock(node)) candidates.push(node);
+      node = node.parentElement;
+    }
+    if (!candidates.length) return null;
+    let best = candidates[0];
+    let bestLen = best.textContent?.length ?? Infinity;
+    for (const c of candidates) {
+      const len = c.textContent?.length ?? 0;
+      if (len > 0 && len < bestLen) {
+        best = c;
+        bestLen = len;
+      }
+    }
+    return best;
   }
 
   /**
@@ -189,16 +247,8 @@
       node = node.parentElement;
     }
 
-    /** @type {HTMLElement | null} */
-    let outermostPost = null;
-    node = el;
-    while (node && node !== document.body) {
-      if (node instanceof HTMLElement && isPostLikeBlock(node)) {
-        outermostPost = node;
-      }
-      node = node.parentElement;
-    }
-    if (outermostPost) return outermostPost;
+    const scoped = smallestPickScopeContaining(el);
+    if (scoped) return scoped;
 
     if (el instanceof HTMLElement) {
       let walk = el;
@@ -277,8 +327,7 @@
 
     if (dragSelecting || pointerDown) return;
 
-    if (isPickChrome(/** @type {Element} */ (e.target))) return;
-    const under = document.elementFromPoint(e.clientX, e.clientY);
+    const under = elementUnderPagePoint(e.clientX, e.clientY);
     if (!under || isPickChrome(under)) {
       setHighlight(null);
       return;
@@ -289,24 +338,19 @@
   /** @param {MouseEvent} e */
   function onMouseDown(e) {
     if (e.button !== 0) return;
-    if (isPickChrome(/** @type {Element} */ (e.target))) return;
     pointerDown = true;
     dragSelecting = false;
     anchorX = e.clientX;
     anchorY = e.clientY;
     clearHoverHighlight();
     e.preventDefault();
+    e.stopPropagation();
   }
 
   /** @param {MouseEvent} e */
   function onMouseUp(e) {
     if (!pointerDown) return;
     pointerDown = false;
-
-    if (isPickChrome(/** @type {Element} */ (e.target))) {
-      dragSelecting = false;
-      return;
-    }
 
     e.preventDefault();
     e.stopPropagation();
@@ -325,7 +369,7 @@
       }
     }
 
-    const under = document.elementFromPoint(e.clientX, e.clientY);
+    const under = elementUnderPagePoint(e.clientX, e.clientY);
     const text = textFromClickTarget(under);
     dragSelecting = false;
     if (!text) {
@@ -336,8 +380,11 @@
   }
 
   document.addEventListener('keydown', onKeyDown, true);
-  document.addEventListener('mousemove', onMove, true);
-  document.addEventListener('mousedown', onMouseDown, true);
-  document.addEventListener('mouseup', onMouseUp, true);
+  document.addEventListener('click', swallowPageActivation, true);
+  document.addEventListener('auxclick', swallowPageActivation, true);
+  document.addEventListener('pointerup', swallowPageActivation, true);
+  overlay.addEventListener('mousemove', onMove);
+  overlay.addEventListener('mousedown', onMouseDown);
+  overlay.addEventListener('mouseup', onMouseUp);
   document.body.append(banner, overlay);
 })();
