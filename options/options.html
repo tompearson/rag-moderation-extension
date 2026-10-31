@@ -10,13 +10,15 @@
   <body>
     <header class="options-header">
       <h1>Options</h1>
-      <button type="button" id="close-options" class="secondary header-btn">Close</button>
+      <button type="button" class="close-options secondary header-btn">Close</button>
     </header>
+    <p id="options-version" class="muted"></p>
     <p class="muted">API calls go to Community Moderation Tool Universal (<code>/api/moderate</code> with the RAG provider). Secrets stay on the server.</p>
 
     <section>
       <h2>Environment</h2>
       <label for="env-profile">Profile</label>
+      <p class="muted">Saves when you change the profile. Custom origin saves on blur or when you leave the field.</p>
       <select id="env-profile">
         <option value="local">Local dev (127.0.0.1:3001)</option>
         <option value="production">Production (airesearchdog.net)</option>
@@ -48,13 +50,49 @@
     </section>
 
     <section>
+      <h2>Saved full report</h2>
+      <label for="report-share-email">Report email</label>
+      <input id="report-share-email" type="email" autocomplete="email" placeholder="you@example.com" />
+      <p class="muted">
+        Optional. Used when you click <strong>Email report</strong> in the side panel (sent in the API request).
+        If mail still lands elsewhere, the production server may override delivery via <code>RESEND_REPORT_TO</code>.
+      </p>
+      <div class="row checkbox-row">
+        <input id="report-email-enabled" type="checkbox" />
+        <label for="report-email-enabled">Enable “Email report” on results</label>
+      </div>
+      <div class="row checkbox-row">
+        <input id="report-open-tab-enabled" type="checkbox" />
+        <label for="report-open-tab-enabled">Enable “Open full report in new tab” on results</label>
+      </div>
+      <p class="muted">
+        Checkboxes save when changed. Report email saves when you leave the field or close Options.
+        Buttons appear only when the API returns a saved report (<code>moderationHistoryId</code>).
+        Full reports use the <strong>Card</strong> layout (same as Universal with saved card / email layout).
+      </p>
+    </section>
+
+    <section>
+      <h2>Platform intelligence</h2>
+      <p class="muted">Same as Universal’s first two providers. Saves when you change the selection.</p>
+      <label for="rag-provider">Provider</label>
+      <select id="rag-provider">
+        <option value="NextDoor-prompt-production-28-rag">Nextdoor V28.0.114 (RAG)</option>
+        <option value="NextDoor-prompt-production-28">Nextdoor V28.0.114 (no RAG)</option>
+      </select>
+    </section>
+
+    <div class="options-close-row">
+      <button type="button" class="close-options secondary">Close</button>
+    </div>
+
+    <section>
       <h2>Moderation identity (dev)</h2>
+      <p class="muted">Saves when you leave each field or close Options.</p>
       <label for="moderator-id">moderatorId</label>
       <input id="moderator-id" type="text" />
       <label for="device-id">deviceId</label>
       <input id="device-id" type="text" />
-      <label for="rag-provider">RAG provider id</label>
-      <input id="rag-provider" type="text" />
     </section>
 
     <section>
@@ -65,9 +103,10 @@
       </p>
       <div id="opt-location" class="state-picker-host"></div>
       <div class="actions">
-        <button type="button" id="save" class="primary">Save</button>
+        <button type="button" id="save" class="primary">Save all settings</button>
         <button type="button" id="reset-location" class="danger">Reset location (show first-run dialog)</button>
       </div>
+      <p class="muted">Feed location saves when you pick a state. <strong>Save all settings</strong> flushes any field still being edited.</p>
       <p id="save-status" class="status muted" aria-live="polite"></p>
     </section>
 
@@ -79,6 +118,10 @@
       </p>
       <button type="button" id="factory-reset" class="danger">Reset to clean state…</button>
     </section>
+
+    <div class="options-close-row">
+      <button type="button" class="close-options secondary">Close</button>
+    </div>
 
     <script type="module" src="options.js"></script>
   </body>

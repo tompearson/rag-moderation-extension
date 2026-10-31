@@ -9,6 +9,8 @@ Manifest V3 **side panel** extension for **Chrome** and **Microsoft Edge**. It c
 - First-run **location modal** (US state dropdown, default Oregon); `chrome.storage.local` persistence
 - Environment profiles: **local**, **production**, **custom** API origin
 - Results: decision, reason, breakdown, report category, RAG sources, context impact, timings
+- Optional **Email report** / **Open full report** (Options toggles; uses saved `moderationHistoryId` on the API)
+- First-run optional **report email** dialog (skippable); editable in Options
 
 ## Load unpacked (development)
 
@@ -25,7 +27,9 @@ Right-click extension icon → **Options**, or open from `chrome://extensions`.
 - Environment profile and custom origin
 - Grant host permission for API origin
 - `moderatorId` / `deviceId` (dev defaults)
+- **Platform intelligence**: V28.0.114 **RAG** (default) or **no RAG** — same provider ids as Universal
 - Reset location (re-shows first-run dialog)
+- Saved full report: report email, enable email/open-in-tab actions
 
 ## Environment profiles
 

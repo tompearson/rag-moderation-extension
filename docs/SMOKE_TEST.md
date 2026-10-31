@@ -25,6 +25,8 @@
 | # | Step | Expected |
 |---|------|----------|
 | 1 | First open side panel | Location modal; state picker with Oregon selected |
+| 1b | After saving location | Optional **Report email** modal; **Not now** / **×** / **Escape** continues without email |
+| 1c | Report email modal → Save valid email | Address persisted; modal does not reappear on reopen |
 | 2 | Save location (pick a state) | Main UI enabled; **Feed location** picker persists after close/reopen |
 | 2b | Change **Feed location** (e.g. Texas) | Saves immediately; next moderate uses new state |
 | 2c | Options → Feed location state list | Scroll (wheel/trackpad) and keyboard (↑↓ Enter) work; list stays aligned if page scrolls (Chrome Win/macOS/Linux) |
@@ -37,6 +39,10 @@
 | 8b | Single comment | On long thread, click inside one comment → **Content** has that comment only (not whole thread / profile links) |
 | 9 | Context menu | Select text → right-click → **Send selection to RAG Moderation** → side panel opens with **Content** filled (panel closed or already open) |
 | 10 | Multi-paragraph | Drag from start of post through extra paragraphs → release → **Content** includes selected text |
+| 11 | Options → enable **Open full report**, moderate (prod + DB save) | **Open full report** on results opens production view URL |
+| 12 | Options → report email + enable **Email report** | **Email report** sends via API; status confirms |
+| 13 | Report toggles off | No report action buttons after moderate |
+| 14 | Factory reset | Location + optional report email dialogs again |
 
 ## Sample content
 
@@ -47,4 +53,5 @@
 
 ```bash
 node scripts/test-unwrap.mjs
+node scripts/test-report-view-url.mjs
 ```

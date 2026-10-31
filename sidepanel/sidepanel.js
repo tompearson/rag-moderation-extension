@@ -1,9 +1,22 @@
 import {
   loadSettings,
+  saveSettingsPatch,
   saveUserLocation,
   hasValidUserLocation,
   isFeedLocationConfirmed,
+  shouldShowReportEmailPrompt,
 } from '../lib/userSettings.js';
+import { normalizeReportEmail, isValidReportEmail } from '../lib/validateReportEmail.js';
+import {
+  resolveReportViewUrl,
+  hasSavedReportForActions,
+  normalizeModerationHistoryId,
+} from '../lib/reportViewUrl.js';
+import {
+  isModerationFailureResult,
+  moderationFailureStatusMessage,
+} from '../lib/moderationResult.js';
+import { postShareReportEmail } from '../lib/shareReportEmailClient.js';
 import {
   DEFAULT_USER_LOCATION,
   canonicalUsState,
@@ -29,6 +42,12 @@ import {
 const modal = document.getElementById('location-modal');
 const modalError = document.getElementById('modal-error');
 const modalSave = document.getElementById('modal-save');
+const reportEmailModal = document.getElementById('report-email-modal');
+const reportEmailInput = /** @type {HTMLInputElement} */ (document.getElementById('report-email-input'));
+const reportEmailError = document.getElementById('report-email-error');
+const reportEmailSave = document.getElementById('report-email-save');
+const reportEmailNotNow = document.getElementById('report-email-not-now');
+const reportEmailClose = document.getElementById('report-email-close');
 const mainPanel = document.getElementById('main-panel');
 const connectionBadge = document.getElementById('connection-badge');
 const modalLocationPicker = createStatePicker(document.getElementById('modal-location'), {
@@ -61,6 +80,13 @@ let moderationElapsedTimer = null;
 /** @type {string | null} */
 let activeModerationRequestId = null;
 
+/** @type {{ moderationHistoryId: string | null; moderationReportUrl: string | null; apiOrigin: string | null }} */
+let lastReportContext = {
+  moderationHistoryId: null,
+  moderationReportUrl: null,
+  apiOrigin: null,
+};
+
 function setPickerValues(value) {
   const resolved = resolveStoredUserLocation(value);
   modalLocationPicker.setValue(resolved);
@@ -71,16 +97,69 @@ function statePickerBusy() {
   return modalLocationPicker.isListOpen() || locationPicker.isListOpen();
 }
 
-function showModal(show) {
+function syncMainPanelBlocked() {
+  const locationOpen = modal && !modal.classList.contains('hidden');
+  const emailOpen = reportEmailModal && !reportEmailModal.classList.contains('hidden');
+  const blocked = locationOpen || emailOpen;
+  mainPanel.classList.toggle('blocked', blocked);
+  mainPanel.setAttribute('aria-hidden', blocked ? 'true' : 'false');
+}
+
+function showLocationModal(show) {
   modal.classList.toggle('hidden', !show);
-  if (show) {
-    mainPanel.classList.add('blocked');
-    mainPanel.setAttribute('aria-hidden', 'true');
-    modalLocationPicker.focus();
-  } else {
-    mainPanel.classList.remove('blocked');
-    mainPanel.setAttribute('aria-hidden', 'false');
+  syncMainPanelBlocked();
+  if (show) modalLocationPicker.focus();
+}
+
+function setReportEmailModalError(msg) {
+  if (!reportEmailError) return;
+  if (!msg) {
+    reportEmailError.classList.add('hidden');
+    reportEmailError.textContent = '';
+    return;
   }
+  reportEmailError.textContent = msg;
+  reportEmailError.classList.remove('hidden');
+}
+
+function showReportEmailModal(show) {
+  if (!reportEmailModal) return;
+  reportEmailModal.classList.toggle('hidden', !show);
+  syncMainPanelBlocked();
+  if (show) {
+    setReportEmailModalError('');
+    reportEmailInput.focus();
+  }
+}
+
+async function maybeShowReportEmailModal() {
+  const settings = await loadSettings();
+  if (!shouldShowReportEmailPrompt(settings)) {
+    showReportEmailModal(false);
+    syncMainPanelBlocked();
+    return;
+  }
+  reportEmailInput.value = settings.reportShareRecipientEmail || '';
+  showReportEmailModal(true);
+}
+
+async function dismissReportEmailPrompt() {
+  await saveSettingsPatch({ reportEmailPromptComplete: true });
+  showReportEmailModal(false);
+}
+
+async function saveReportEmailFromModal() {
+  setReportEmailModalError('');
+  const raw = normalizeReportEmail(reportEmailInput.value);
+  if (raw && !isValidReportEmail(raw)) {
+    setReportEmailModalError('Enter a valid email address or leave blank.');
+    return;
+  }
+  await saveSettingsPatch({
+    reportShareRecipientEmail: raw,
+    reportEmailPromptComplete: true,
+  });
+  showReportEmailModal(false);
 }
 
 function setModalError(msg) {
@@ -119,12 +198,14 @@ async function initLocationUi() {
 
   if (!isFeedLocationConfirmed(refreshed)) {
     setPickerValues(refreshed.userLocation);
-    showModal(true);
+    showLocationModal(true);
+    showReportEmailModal(false);
     return;
   }
 
   setPickerValues(refreshed.userLocation);
-  showModal(false);
+  showLocationModal(false);
+  await maybeShowReportEmailModal();
 }
 
 modalSave.addEventListener('click', async () => {
@@ -134,10 +215,37 @@ modalSave.addEventListener('click', async () => {
   try {
     await saveUserLocation(selected, { onboarding: true });
     locationPicker.setValue(selected);
-    showModal(false);
+    showLocationModal(false);
+    await maybeShowReportEmailModal();
   } catch (err) {
     setModalError(err instanceof Error ? err.message : String(err));
   }
+});
+
+reportEmailSave?.addEventListener('click', () => {
+  saveReportEmailFromModal().catch((err) => {
+    setReportEmailModalError(err instanceof Error ? err.message : String(err));
+  });
+});
+
+reportEmailNotNow?.addEventListener('click', () => {
+  dismissReportEmailPrompt().catch((err) => {
+    setReportEmailModalError(err instanceof Error ? err.message : String(err));
+  });
+});
+
+reportEmailClose?.addEventListener('click', () => {
+  dismissReportEmailPrompt().catch((err) => {
+    setReportEmailModalError(err instanceof Error ? err.message : String(err));
+  });
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape' || !reportEmailModal || reportEmailModal.classList.contains('hidden')) {
+    return;
+  }
+  e.preventDefault();
+  dismissReportEmailPrompt().catch(() => {});
 });
 
 locationPicker.onChange(async (selected) => {
@@ -163,7 +271,8 @@ chrome.storage.onChanged.addListener((changes, area) => {
     loadSettings().then((s) => {
       if (!isFeedLocationConfirmed(s)) {
         if (!statePickerBusy()) setPickerValues(s.userLocation);
-        showModal(true);
+        showLocationModal(true);
+        showReportEmailModal(false);
       }
     }).catch(() => {});
   }
@@ -251,8 +360,151 @@ async function copyElementTextToClipboard(elementId, button) {
   }
 }
 
+/**
+ * @param {Record<string, unknown>} result
+ * @param {string | null} apiOrigin
+ * @param {{ reportEmailEnabled: boolean; reportOpenTabEnabled: boolean }} flags
+ */
+function buildReportActionsHtml(result, apiOrigin, flags) {
+  if (!hasSavedReportForActions(result)) return '';
+
+  const historyId = normalizeModerationHistoryId(result.moderationHistoryId);
+  const reportUrl =
+    typeof result.moderationReportUrl === 'string' ? result.moderationReportUrl.trim() : '';
+  const canOpen =
+    flags.reportOpenTabEnabled &&
+    resolveReportViewUrl({
+      apiOrigin,
+      moderationHistoryId: historyId,
+      moderationReportUrl: reportUrl,
+    });
+  const canEmail = flags.reportEmailEnabled && historyId;
+
+  if (!canOpen && !canEmail) return '';
+
+  const parts = ['<div class="report-actions">'];
+  if (canOpen) {
+    parts.push(
+      '<button type="button" class="secondary small-btn open-report-btn">Open full report</button>',
+    );
+  }
+  if (canEmail) {
+    parts.push(
+      '<button type="button" class="secondary small-btn email-report-btn">Email report</button>',
+    );
+  }
+  parts.push('</div>');
+  return parts.join('');
+}
+
+/**
+ * @param {Record<string, unknown>} result
+ * @param {string | null | undefined} apiOrigin
+ */
+function rememberReportContext(result, apiOrigin) {
+  const historyId = normalizeModerationHistoryId(result.moderationHistoryId);
+  const reportUrl =
+    typeof result.moderationReportUrl === 'string' ? result.moderationReportUrl.trim() : '';
+  lastReportContext = {
+    moderationHistoryId: historyId,
+    moderationReportUrl: reportUrl || null,
+    apiOrigin: apiOrigin || null,
+  };
+}
+
+async function handleOpenReportClick() {
+  const viewUrl = resolveReportViewUrl({
+    apiOrigin: lastReportContext.apiOrigin,
+    moderationHistoryId: lastReportContext.moderationHistoryId,
+    moderationReportUrl: lastReportContext.moderationReportUrl,
+  });
+  if (!viewUrl) {
+    setStatus('No full report URL for this result.', true);
+    return;
+  }
+  await chrome.tabs.create({ url: viewUrl });
+}
+
+async function handleEmailReportClick(button) {
+  const settings = await loadSettings();
+  const email = normalizeReportEmail(settings.reportShareRecipientEmail);
+  if (!email || !isValidReportEmail(email)) {
+    setStatus('Add your report email in the setup dialog or Options.', true);
+    return;
+  }
+  const moderationId = lastReportContext.moderationHistoryId;
+  const apiOrigin = lastReportContext.apiOrigin;
+  if (!moderationId || !apiOrigin) {
+    setStatus('No saved report id for email.', true);
+    return;
+  }
+  const permitted = await ensureHostPermission(apiOrigin);
+  if (!permitted) {
+    setStatus(`Host permission required for ${apiOrigin}.`, true);
+    return;
+  }
+  if (button instanceof HTMLButtonElement) {
+    button.disabled = true;
+    const prev = button.textContent;
+    button.textContent = 'Sending…';
+    try {
+      setStatus(`Sending report to ${email}…`);
+      const sendResult = await postShareReportEmail(apiOrigin, { moderationId, email });
+      setShareReportEmailStatus(sendResult);
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : String(err), true);
+    } finally {
+      button.disabled = false;
+      button.textContent = prev;
+    }
+    return;
+  }
+  try {
+    setStatus(`Sending report to ${email}…`);
+    const sendResult = await postShareReportEmail(apiOrigin, { moderationId, email });
+    setShareReportEmailStatus(sendResult);
+  } catch (err) {
+    setStatus(err instanceof Error ? err.message : String(err), true);
+  }
+}
+
+/**
+ * @param {{ emailSent: boolean; emailedTo: string | null; requestedEmail: string }} sendResult
+ */
+function setShareReportEmailStatus(sendResult) {
+  const requested = sendResult.requestedEmail.trim().toLowerCase();
+  const delivered = (sendResult.emailedTo || sendResult.requestedEmail).trim().toLowerCase();
+  if (!sendResult.emailSent) {
+    setStatus('Report saved but email was not sent (check server Resend config).', true);
+    return;
+  }
+  if (delivered && requested && delivered !== requested) {
+    setStatus(
+      `Report delivered to ${sendResult.emailedTo} (not ${sendResult.requestedEmail}). Production may use RESEND_REPORT_TO redirect.`,
+      true,
+    );
+    return;
+  }
+  setStatus(`Report emailed to ${sendResult.emailedTo || sendResult.requestedEmail}.`);
+}
+
 resultsEl.addEventListener('click', (e) => {
-  const btn = /** @type {HTMLElement} */ (e.target)?.closest?.('.copy-btn');
+  const target = /** @type {HTMLElement} */ (e.target);
+  const openBtn = target?.closest?.('.open-report-btn');
+  if (openBtn && resultsEl.contains(openBtn)) {
+    handleOpenReportClick().catch((err) => {
+      setStatus(err instanceof Error ? err.message : String(err), true);
+    });
+    return;
+  }
+  const emailBtn = target?.closest?.('.email-report-btn');
+  if (emailBtn && resultsEl.contains(emailBtn)) {
+    handleEmailReportClick(emailBtn).catch((err) => {
+      setStatus(err instanceof Error ? err.message : String(err), true);
+    });
+    return;
+  }
+  const btn = target?.closest?.('.copy-btn');
   if (!btn || !resultsEl.contains(btn)) return;
   const forId = btn.getAttribute('data-for');
   if (!forId) return;
@@ -261,7 +513,13 @@ resultsEl.addEventListener('click', (e) => {
   });
 });
 
-function renderResults(result) {
+/**
+ * @param {Record<string, unknown>} result
+ * @param {string | null | undefined} apiOrigin
+ * @param {{ reportEmailEnabled: boolean; reportOpenTabEnabled: boolean }} flags
+ */
+function renderResults(result, apiOrigin, flags) {
+  rememberReportContext(result, apiOrigin);
   const decision = String(result.decision || 'Unknown');
   const reasonPlain = String(result.reason || '');
   const breakdownPlain = String(result.decisionBreakdown || '');
@@ -276,7 +534,10 @@ function renderResults(result) {
     timingLine = `<p class="muted">Timings: total ${t.totalMs ?? '—'} ms, LLM ${t.llmMs ?? '—'} ms</p>`;
   }
 
+  const reportActions = buildReportActionsHtml(result, apiOrigin ?? null, flags);
+
   resultsEl.innerHTML = `
+    ${reportActions}
     <p class="decision ${decisionClass(decision)}">${escapeHtml(decision)}</p>
     ${copyBlockSection('Reason', 'result-reason', reasonPlain)}
     ${breakdownPlain.trim() ? copyBlockSection('Breakdown', 'result-breakdown', breakdownPlain) : ''}
@@ -303,7 +564,8 @@ moderateBtn.addEventListener('click', async () => {
   const settings = await loadSettings();
   if (!isFeedLocationConfirmed(settings)) {
     setPickerValues(settings.userLocation);
-    showModal(true);
+    showLocationModal(true);
+    showReportEmailModal(false);
     setStatus('Confirm your feed location first.', true);
     return;
   }
@@ -341,8 +603,36 @@ moderateBtn.addEventListener('click', async () => {
       throw new Error(response?.error || 'Unknown error');
     }
 
-    renderResults(response.result);
-    setStatus('Done.');
+    const reportFlags = {
+      reportEmailEnabled: settings.reportEmailEnabled,
+      reportOpenTabEnabled: settings.reportOpenTabEnabled,
+    };
+    renderResults(response.result, response.meta?.apiOrigin, reportFlags);
+    if (isModerationFailureResult(response.result)) {
+      setStatus(moderationFailureStatusMessage(response.result), true);
+    } else {
+      const savedReport = hasSavedReportForActions(response.result);
+      const actionsHtml = buildReportActionsHtml(
+        /** @type {Record<string, unknown>} */ (response.result),
+        response.meta?.apiOrigin ?? null,
+        reportFlags,
+      );
+      if (
+        (settings.reportOpenTabEnabled || settings.reportEmailEnabled) &&
+        !actionsHtml
+      ) {
+        setStatus(
+          savedReport
+            ? 'Done. Report actions unavailable for this result.'
+            : 'Done. No saved full report from API (use Production with DB save, or check AUTO_SAVE_TO_DB).',
+          !savedReport,
+        );
+      } else if (settings.reportOpenTabEnabled && actionsHtml.includes('open-report-btn')) {
+        setStatus('Done. Click Open full report above the decision.');
+      } else {
+        setStatus('Done.');
+      }
+    }
     if (response.meta?.apiOrigin) {
       connectionBadge.textContent = `${response.meta.profileLabel} · ${response.meta.apiOrigin}`;
     }

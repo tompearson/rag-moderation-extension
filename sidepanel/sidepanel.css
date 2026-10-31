@@ -219,6 +219,12 @@ button.primary {
   border-color: var(--primary);
 }
 
+button.secondary {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: inherit;
+}
+
 button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
@@ -285,6 +291,10 @@ button.danger-outline {
 }
 .decision-maybe {
   color: var(--maybe);
+}
+
+.decision-error {
+  color: var(--remove);
 }
 
 .results h3 {
@@ -362,6 +372,46 @@ button.danger-outline {
   max-width: 360px;
   width: 100%;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.modal-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.modal-card-header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  flex: 1;
+}
+
+.modal-close {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  line-height: 1;
+  font-size: 1.25rem;
+  border-radius: 6px;
+}
+
+.modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.report-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
 }
 
 .modal-card h2 {

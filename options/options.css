@@ -33,6 +33,17 @@ button.header-btn {
   flex-shrink: 0;
 }
 
+.options-close-row {
+  margin: 28px 0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.options-close-row .close-options {
+  margin-top: 0;
+  min-width: 6.5rem;
+}
+
 .state-picker-host {
   margin-top: 4px;
 }
@@ -70,6 +81,23 @@ select {
 
 .muted {
   color: #64748b;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.checkbox-row label {
+  margin-top: 0;
+  font-weight: 500;
+}
+
+.checkbox-row input[type='checkbox'] {
+  width: auto;
+  margin: 0;
 }
 
 .actions {

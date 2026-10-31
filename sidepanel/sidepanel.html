@@ -19,6 +19,29 @@
       </div>
     </div>
 
+    <div
+      id="report-email-modal"
+      class="modal hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="report-email-modal-title"
+    >
+      <div class="modal-card">
+        <div class="modal-card-header">
+          <h2 id="report-email-modal-title">Report email (optional)</h2>
+          <button type="button" id="report-email-close" class="modal-close" aria-label="Close">×</button>
+        </div>
+        <p class="muted">Used when you click <strong>Email report</strong> on a saved moderation result. You can add or change this later in Options.</p>
+        <label for="report-email-input">Your email</label>
+        <input id="report-email-input" type="email" autocomplete="email" placeholder="you@example.com" />
+        <p id="report-email-error" class="error hidden"></p>
+        <div class="modal-actions">
+          <button type="button" id="report-email-save" class="primary">Save</button>
+          <button type="button" id="report-email-not-now" class="secondary">Not now</button>
+        </div>
+      </div>
+    </div>
+
     <header>
       <div class="header-row">
         <h1>RAG Moderation</h1>

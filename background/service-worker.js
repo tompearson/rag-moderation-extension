@@ -60,7 +60,7 @@ async function runModeration(settings, payload, requestId, signal) {
     badWordsEnabled: payload.badWordsEnabled !== false,
     moderatorId: settings.moderatorId,
     deviceId: settings.deviceId,
-    emailReport: false,
+    emailReport: true,
   };
   if (payload.postContext && String(payload.postContext).trim()) {
     body.postContext = String(payload.postContext).trim().slice(0, 8000);

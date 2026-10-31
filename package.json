@@ -4,6 +4,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node scripts/test-unwrap.mjs && node scripts/test-us-states.mjs && node scripts/test-moderation-timeout.mjs && node scripts/test-capture-text.mjs && node scripts/test-url-in-text.mjs && node scripts/test-pick-sanitize.mjs && node scripts/test-content-pick-targets.mjs"
+    "test": "node scripts/test-unwrap.mjs && node scripts/test-us-states.mjs && node scripts/test-moderation-timeout.mjs && node scripts/test-capture-text.mjs && node scripts/test-url-in-text.mjs && node scripts/test-pick-sanitize.mjs && node scripts/test-content-pick-targets.mjs && node scripts/test-report-view-url.mjs && node scripts/test-moderation-result.mjs && node scripts/test-rag-providers.mjs"
   }
 }
