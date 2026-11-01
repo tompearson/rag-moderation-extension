@@ -2,6 +2,14 @@
 
 **Status:** Documented patterns — implement before Chrome Web Store / Edge Add-ons public listing.
 
+## Table of contents
+
+- [Constraints](#constraints)
+- [Current v0 (sideload)](#current-v0-sideload)
+- [Recommended patterns (pick one before store)](#recommended-patterns-pick-one-before-store)
+- [Production CORS vs host permissions](#production-cors-vs-host-permissions)
+- [Checklist before store submission](#checklist-before-store-submission)
+
 ## Constraints
 
 - Do **not** embed `RAG_SERVICE_SECRET` or Gemini keys in the extension package (extractable from CRX). That secret is only between Universal and first-rag-system ([RAG_SERVICE_SECRET_SYNC.md](https://github.com/tompearson/Moderation-Tool-Universal/blob/master/docs/guides/RAG_SERVICE_SECRET_SYNC.md) in the Universal repo).

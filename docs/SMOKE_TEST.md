@@ -44,7 +44,8 @@
 | 4 | Moderate benign text | `Keep` or valid decision; `moderationMode: rag`; `ragSources` array |
 | 5 | Options → Reset location | Modal appears again on side panel |
 | 6 | Deny host permission | Clear error when moderating |
-| 7 | Production profile (when auth ready) | Moderate against `https://www.airesearchdog.net` |
+| 7 | Production profile | Moderate against `https://www.airesearchdog.net`; RAG provider should **not** return 401 (503 quota is a separate Gemini issue — [RAG_GEMINI_KEYS_AND_QUOTA.md](https://github.com/tompearson/Moderation-Tool-Universal/blob/master/docs/guides/RAG_GEMINI_KEYS_AND_QUOTA.md)) |
+| 7b | Production RAG curl (no extension) | `curl -sS -X POST 'https://www.airesearchdog.net/api/moderate' …` with `NextDoor-prompt-production-28-rag` — see [RAG_SERVICE_SECRET_SYNC § Verify](https://github.com/tompearson/Moderation-Tool-Universal/blob/master/docs/guides/RAG_SERVICE_SECRET_SYNC.md#verify) |
 | 8 | **Click on Text to Moderate** | Nextdoor post detail → button (pulses) → **Allow** site access if prompted → grays (**Click text on the page…**) → click comment or drag-select → **Content** replaces with capture only; **no new tab** for in-post links |
 | 8b | Single comment | On long thread, click inside one comment → **Content** has that comment only (not whole thread / profile links) |
 | 9 | Context menu | Select text → right-click → **Send selection to RAG Moderation** → side panel opens with **Content** filled (panel closed or already open) |
