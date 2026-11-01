@@ -4,7 +4,7 @@
 
 ## Constraints
 
-- Do **not** embed `RAG_SERVICE_SECRET` or Gemini keys in the extension package (extractable from CRX).
+- Do **not** embed `RAG_SERVICE_SECRET` or Gemini keys in the extension package (extractable from CRX). That secret is only between Universal and first-rag-system ([RAG_SERVICE_SECRET_SYNC.md](https://github.com/tompearson/Moderation-Tool-Universal/blob/master/docs/guides/RAG_SERVICE_SECRET_SYNC.md) in the Universal repo).
 - RAG remains server-to-server: Universal → first-rag-system `POST /moderate`.
 - Extension calls **Universal only**: `POST {apiOrigin}/api/moderate` with `provider: NextDoor-prompt-production-28-rag`.
 

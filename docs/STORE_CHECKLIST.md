@@ -4,6 +4,11 @@
 
 RAG-backed community post moderation for moderators (side panel: paste content, get decision + retrieved guidelines).
 
+## Build and local QA
+
+- `npm run package:store` → `dist/store/` (Load unpacked) + `dist/rag-moderation-assistant.zip` (upload).
+- QA the folder before upload; optional `npm run verify:store-zip`. Details: [STORE_PACKAGING.md](./STORE_PACKAGING.md).
+
 ## Package
 
 - MV3, all logic bundled — no remote JS ([MV3 requirements](https://developer.chrome.com/docs/webstore/program-policies/mv3-requirements)).

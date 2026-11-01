@@ -62,7 +62,11 @@ Full stack: Universal `npm run test:rag-smoke` then manual matrix in [docs/SMOKE
 
 ## Store / production
 
-See [docs/STORE_CHECKLIST.md](./docs/STORE_CHECKLIST.md) and [docs/PROD_AUTH_SPIKE.md](./docs/PROD_AUTH_SPIKE.md) before publishing to Chrome Web Store or Edge Add-ons.
+See [docs/STORE_CHECKLIST.md](./docs/STORE_CHECKLIST.md), [docs/STORE_PACKAGING.md](./docs/STORE_PACKAGING.md), and [docs/PROD_AUTH_SPIKE.md](./docs/PROD_AUTH_SPIKE.md) before publishing to Chrome Web Store or Edge Add-ons.
+
+```bash
+npm run package:store   # dist/store/ + upload ZIP
+```
 
 ## Related repos
 

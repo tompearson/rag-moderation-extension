@@ -1,0 +1,7 @@
+# Runtime directories copied into dist/store/ (paths relative to repo root)
+background
+content
+icons
+lib
+options
+sidepanel

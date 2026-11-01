@@ -15,18 +15,23 @@
     <p id="options-version" class="muted"></p>
     <p class="muted">API calls go to Community Moderation Tool Universal (<code>/api/moderate</code> with the RAG provider). Secrets stay on the server.</p>
 
-    <section>
+    <section id="section-environment">
       <h2>Environment</h2>
-      <label for="env-profile">Profile</label>
-      <p class="muted">Saves when you change the profile. Custom origin saves on blur or when you leave the field.</p>
-      <select id="env-profile">
-        <option value="local">Local dev (127.0.0.1:3001)</option>
-        <option value="production">Production (airesearchdog.net)</option>
-        <option value="custom">Custom origin</option>
-      </select>
+      <div id="env-profile-controls">
+        <label for="env-profile">Profile</label>
+        <p class="muted">Saves when you change the profile. Custom origin saves on blur or when you leave the field.</p>
+        <select id="env-profile">
+          <option value="local">Local dev (127.0.0.1:3001)</option>
+          <option value="production">Production (airesearchdog.net)</option>
+          <option value="custom">Custom origin</option>
+        </select>
 
-      <label for="custom-origin">Custom API origin (https://host, no path)</label>
-      <input id="custom-origin" type="url" placeholder="https://example.com" disabled />
+        <label for="custom-origin">Custom API origin (https://host, no path)</label>
+        <input id="custom-origin" type="url" placeholder="https://example.com" disabled />
+      </div>
+      <p id="env-store-note" class="muted" hidden>
+        Production API: <strong>https://www.airesearchdog.net</strong>
+      </p>
 
       <button type="button" id="grant-permission" class="secondary">Grant host permission for current origin</button>
       <p id="permission-status" class="muted"></p>
@@ -86,7 +91,7 @@
       <button type="button" class="close-options secondary">Close</button>
     </div>
 
-    <section>
+    <section id="section-dev-identity">
       <h2>Moderation identity (dev)</h2>
       <p class="muted">Saves when you leave each field or close Options.</p>
       <label for="moderator-id">moderatorId</label>

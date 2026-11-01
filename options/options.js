@@ -14,6 +14,7 @@ import { factoryResetExtension } from '../lib/factoryReset.js';
 import { closeOptionsPageIfOpen } from '../lib/optionsPage.js';
 import { normalizeReportEmail, isValidReportEmail } from '../lib/validateReportEmail.js';
 import { fillRagProviderSelect, DEFAULT_RAG_PROVIDER } from '../lib/ragProviders.js';
+import { isStoreBuild } from '../lib/buildConfig.js';
 
 const envProfile = /** @type {HTMLSelectElement} */ (document.getElementById('env-profile'));
 const moderateTimeoutSec = /** @type {HTMLInputElement} */ (
@@ -48,6 +49,18 @@ let skipReportSettingsSync = false;
 let skipEnvSettingsSync = false;
 /** Ignore storage sync while this page writes dev identity fields. */
 let skipDevSettingsSync = false;
+
+const envProfileControls = document.getElementById('env-profile-controls');
+const envStoreNote = document.getElementById('env-store-note');
+const devIdentitySection = document.getElementById('section-dev-identity');
+
+function applyStoreTargetUi() {
+  if (!isStoreBuild()) return;
+  if (envProfileControls) envProfileControls.hidden = true;
+  if (envStoreNote) envStoreNote.hidden = false;
+  if (devIdentitySection) devIdentitySection.hidden = true;
+  envProfile.value = 'production';
+}
 
 function toggleCustomOrigin() {
   customOrigin.disabled = envProfile.value !== 'custom';
@@ -159,8 +172,10 @@ async function syncDevIdentityFromStorage() {
 async function flushPendingOptionsFields() {
   await persistModerateTimeout(false);
   await persistReportShareEmail(false);
-  await persistDevIdentity(false);
-  await persistCustomOrigin(false);
+  if (!isStoreBuild()) {
+    await persistDevIdentity(false);
+    await persistCustomOrigin(false);
+  }
 }
 
 async function syncEnvFromStorage() {
@@ -212,7 +227,11 @@ async function persistCustomOrigin(showFeedback = false) {
 }
 
 async function loadForm() {
+  applyStoreTargetUi();
   const s = await loadSettings();
+  if (isStoreBuild() && s.envProfileId !== 'production') {
+    await saveSettingsPatch({ envProfileId: 'production', customApiOrigin: '' });
+  }
   await syncEnvFromStorage();
   moderateTimeoutSec.value = String(s.moderateTimeoutSec);
   await syncReportSettingsFromStorage();
@@ -285,17 +304,20 @@ saveBtn.addEventListener('click', async () => {
   skipReportSettingsSync = true;
   skipDevSettingsSync = true;
   try {
-    await saveSettingsPatch({
+    const patch = {
       envProfileId: profileId,
       customApiOrigin: customOrigin.value,
-      moderatorId: moderatorId.value.trim(),
-      deviceId: deviceId.value.trim(),
       ragProvider: ragProvider.value.trim() || DEFAULT_RAG_PROVIDER,
       moderateTimeoutSec: parseModerateTimeoutSec(moderateTimeoutSec.value),
       reportShareRecipientEmail: normalizeReportEmail(reportShareEmail.value),
       reportEmailEnabled: reportEmailEnabled.checked,
       reportOpenTabEnabled: reportOpenTabEnabled.checked,
-    });
+    };
+    if (!isStoreBuild()) {
+      patch.moderatorId = moderatorId.value.trim();
+      patch.deviceId = deviceId.value.trim();
+    }
+    await saveSettingsPatch(patch);
   } finally {
     queueMicrotask(() => {
       skipEnvSettingsSync = false;
@@ -395,8 +417,10 @@ function bindBlurPersist(el, persist) {
 }
 
 bindBlurPersist(reportShareEmail, persistReportShareEmail);
-bindBlurPersist(moderatorId, persistDevIdentity);
-bindBlurPersist(deviceId, persistDevIdentity);
+if (!isStoreBuild()) {
+  bindBlurPersist(moderatorId, persistDevIdentity);
+  bindBlurPersist(deviceId, persistDevIdentity);
+}
 ragProvider.addEventListener('change', () => {
   persistRagProvider(true).catch((err) => {
     setStatus(err instanceof Error ? err.message : String(err), true);

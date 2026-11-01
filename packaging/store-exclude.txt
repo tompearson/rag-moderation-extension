@@ -1,0 +1,13 @@
+# Not shipped in store ZIP (reference for reviewers; enforced by package-store.mjs)
+docs/
+scripts/
+README.md
+package.json
+package-lock.json
+packaging/
+dist/
+.git/
+node_modules/
+*.zip
+*.crx
+*.pem

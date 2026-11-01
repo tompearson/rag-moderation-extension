@@ -1,5 +1,12 @@
 # Manual smoke test matrix
 
+## Table of contents
+
+- [Prerequisites](#prerequisites)
+- [Extension tests](#extension-tests)
+- [Sample content](#sample-content)
+- [Automated helper (client only)](#automated-helper-client-only)
+
 ## Prerequisites
 
 1. **first-rag-system** (from sibling checkout):
@@ -13,10 +20,13 @@
 
    ```bash
    cd /path/to/Moderation-Tool-Universal
-   # .env.local: RAG_MODERATION_SERVICE_URL=http://127.0.0.1:8000, RAG_SERVICE_SECRET=...
+   # .env.local: RAG_MODERATION_SERVICE_URL=http://127.0.0.1:8000
+   # RAG_SERVICE_SECRET must match first-rag-system/.env (see RAG_SERVICE_SECRET_SYNC.md in Universal)
    npm run dev:server
    npm run test:rag-smoke
    ```
+
+   Secret sync (local, Vercel, Render): [Moderation-Tool-Universal `docs/guides/RAG_SERVICE_SECRET_SYNC.md`](https://github.com/tompearson/Moderation-Tool-Universal/blob/master/docs/guides/RAG_SERVICE_SECRET_SYNC.md)
 
 3. **Extension** — Load unpacked from `rag-moderation-extension` root (Chrome or Edge).
 
