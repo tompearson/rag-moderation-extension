@@ -1,0 +1,21 @@
+---
+description: Which repo/folder to use for npm, dev servers, and extension commands
+alwaysApply: true
+---
+
+# Working directories (RAG extension stack)
+
+When running shell commands, **state the working directory** (or `cd` there first). Do not assume `npm run dev` exists in every repo.
+
+| Goal | Directory | Command |
+|------|-----------|---------|
+| Extension tests, store ZIP, **start local API stack** | `~/Projects/rag-moderation-extension` | `npm test`, `npm run package:store`, **`npm run dev`** / **`npm run dev:full`** |
+| Load unpacked extension | `~/Projects/rag-moderation-extension` | Chrome/Edge → Load unpacked (this folder) |
+| Universal API/UI only (without extension helper) | `~/Projects/community-moderation-tool/Moderation-Tool-Universal` | `npm run dev:server`, `npm run dev`, `npm run dev:full`, `npm run test:rag-smoke` |
+| RAG service only | `~/Projects/first-rag-system` | `.venv/bin/uvicorn rag_api:app --host 127.0.0.1 --port 8000` |
+
+**`npm run dev` in the extension repo** runs `scripts/dev-services.mjs`, which starts RAG (`:8000`) + Universal (`:3001`; `dev:full` also Vite `:5173`). Sibling paths default to `../first-rag-system` and `../community-moderation-tool/Moderation-Tool-Universal`; override with `DEV_RAG_DIR` / `DEV_UNIVERSAL_DIR`.
+
+Extension **Options → Local dev** → API `http://127.0.0.1:3001`. Production profile hits `https://www.airesearchdog.net` (no local stack).
+
+In replies, prefix runnable steps with the folder, e.g. **From `rag-moderation-extension`:** `npm run dev`.

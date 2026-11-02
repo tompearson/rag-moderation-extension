@@ -14,7 +14,14 @@ Manifest V3 **side panel** extension for **Chrome** and **Microsoft Edge**. It c
 
 ## Load unpacked (development)
 
-1. Start RAG + Universal (see [docs/SMOKE_TEST.md](./docs/SMOKE_TEST.md)).
+1. From this repo, start the local API stack (sibling checkouts: `first-rag-system`, `Moderation-Tool-Universal` under `~/Projects`):
+
+   ```bash
+   npm run dev          # RAG :8000 + Universal API :3001 (enough for the extension)
+   npm run dev:full     # same + Universal Vite UI :5173
+   ```
+
+   Override paths if needed: `DEV_RAG_DIR=… DEV_UNIVERSAL_DIR=… npm run dev`. Manual steps: [docs/SMOKE_TEST.md](./docs/SMOKE_TEST.md).
 2. Chrome: `chrome://extensions` → Developer mode → **Load unpacked** → this directory.
 3. Edge: `edge://extensions` → same steps ([docs/EDGE_PORT.md](./docs/EDGE_PORT.md)).
 4. Click the toolbar icon → side panel opens.
