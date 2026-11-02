@@ -31,11 +31,16 @@
           <h2 id="report-email-modal-title">Report email (optional)</h2>
           <button type="button" id="report-email-close" class="modal-close" aria-label="Close">×</button>
         </div>
-        <p class="muted">Used when you click <strong>Email report</strong> on a saved moderation result. You can add or change this later in Options.</p>
+        <p id="report-email-modal-desc" class="muted">
+          Used when you click <strong>Email report</strong> on a saved moderation result. You can add or change this later in Options.
+        </p>
         <label for="report-email-input">Your email</label>
         <input id="report-email-input" type="email" autocomplete="email" placeholder="you@example.com" />
         <p id="report-email-error" class="error hidden"></p>
-        <div class="modal-actions">
+        <p id="report-email-remove-row" class="report-email-remove-row hidden">
+          <button type="button" id="report-email-remove" class="link-btn">Remove saved email</button>
+        </p>
+        <div id="report-email-modal-actions" class="modal-actions">
           <button type="button" id="report-email-save" class="primary">Save</button>
           <button type="button" id="report-email-not-now" class="secondary">Not now</button>
         </div>
@@ -45,7 +50,7 @@
     <header>
       <div class="header-row">
         <h1>RAG Moderation</h1>
-        <button type="button" id="options-btn" class="header-btn">Options</button>
+        <button type="button" id="options-btn" class="header-btn options-toggle-btn">Options</button>
       </div>
       <p id="connection-badge" class="badge muted">Connecting…</p>
       <p id="byok-badge" class="badge byok-badge hidden" aria-live="polite">Using your Gemini key</p>
@@ -96,6 +101,7 @@
       <div class="actions">
         <button type="button" id="moderate-btn" class="primary">Moderate</button>
         <button type="button" id="clear-btn">Clear content</button>
+        <button type="button" class="options-toggle-btn secondary">Options</button>
       </div>
 
       <div id="moderation-progress" class="moderation-progress hidden" aria-live="polite">

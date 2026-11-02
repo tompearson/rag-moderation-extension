@@ -55,6 +55,11 @@ const reportEmailError = document.getElementById('report-email-error');
 const reportEmailSave = document.getElementById('report-email-save');
 const reportEmailNotNow = document.getElementById('report-email-not-now');
 const reportEmailClose = document.getElementById('report-email-close');
+const reportEmailModalTitle = document.getElementById('report-email-modal-title');
+const reportEmailModalDesc = document.getElementById('report-email-modal-desc');
+const reportEmailModalCard = reportEmailModal?.querySelector('.modal-card');
+const reportEmailRemoveRow = document.getElementById('report-email-remove-row');
+const reportEmailRemove = document.getElementById('report-email-remove');
 const mainPanel = document.getElementById('main-panel');
 const connectionBadge = document.getElementById('connection-badge');
 const byokBadge = document.getElementById('byok-badge');
@@ -75,7 +80,6 @@ const analysisSelect = /** @type {HTMLSelectElement} */ (document.getElementById
 const badWordsCheckbox = /** @type {HTMLInputElement} */ (document.getElementById('bad-words-enabled'));
 const moderateBtn = document.getElementById('moderate-btn');
 const clearBtn = document.getElementById('clear-btn');
-const optionsBtn = document.getElementById('options-btn');
 const moderationProgress = document.getElementById('moderation-progress');
 const moderationElapsed = document.getElementById('moderation-elapsed');
 const moderationLimit = document.getElementById('moderation-limit');
@@ -94,6 +98,11 @@ let lastReportContext = {
   moderationReportUrl: null,
   apiOrigin: null,
 };
+
+/** @type {'onboarding' | 'sendReport'} */
+let reportEmailModalMode = 'onboarding';
+/** @type {HTMLButtonElement | null} */
+let pendingEmailReportButton = null;
 
 function setPickerValues(value) {
   const resolved = resolveStoredUserLocation(value);
@@ -133,6 +142,48 @@ function setReportEmailModalError(msg) {
   reportEmailError.classList.remove('hidden');
 }
 
+function setReportEmailRemoveVisible(show) {
+  if (!reportEmailRemoveRow) return;
+  reportEmailRemoveRow.classList.toggle('hidden', !show);
+  reportEmailRemoveRow.hidden = !show;
+}
+
+function applyReportEmailModalMode(mode, { hasSavedEmail = false } = {}) {
+  reportEmailModalMode = mode;
+  reportEmailModalCard?.classList.toggle('email-send-mode', mode === 'sendReport');
+  if (mode === 'sendReport') {
+    if (reportEmailModalTitle) reportEmailModalTitle.textContent = 'Email report';
+    if (reportEmailModalDesc) {
+      reportEmailModalDesc.textContent =
+        'Edit the address, clear the field to type a new one, or remove the saved email below. Send saves the address and emails this report.';
+    }
+    if (reportEmailSave) {
+      reportEmailSave.textContent = 'Send it';
+      reportEmailSave.classList.add('primary');
+    }
+    if (reportEmailNotNow) reportEmailNotNow.textContent = 'Cancel';
+    setReportEmailRemoveVisible(hasSavedEmail);
+  } else {
+    if (reportEmailModalTitle) reportEmailModalTitle.textContent = 'Report email (optional)';
+    if (reportEmailModalDesc) {
+      reportEmailModalDesc.textContent =
+        'Used when you click Email report on a saved moderation result. You can add or change this later in Options.';
+    }
+    if (reportEmailSave) {
+      reportEmailSave.textContent = 'Save';
+      reportEmailSave.classList.add('primary');
+    }
+    if (reportEmailNotNow) reportEmailNotNow.textContent = 'Not now';
+    setReportEmailRemoveVisible(false);
+  }
+}
+
+function closeReportEmailModal() {
+  pendingEmailReportButton = null;
+  applyReportEmailModalMode('onboarding');
+  showReportEmailModal(false);
+}
+
 function showReportEmailModal(show) {
   if (!reportEmailModal) return;
   reportEmailModal.classList.toggle('hidden', !show);
@@ -146,22 +197,54 @@ function showReportEmailModal(show) {
 async function maybeShowReportEmailModal() {
   const settings = await loadSettings();
   if (!shouldShowReportEmailPrompt(settings)) {
-    showReportEmailModal(false);
+    closeReportEmailModal();
     syncMainPanelBlocked();
     return;
   }
+  applyReportEmailModalMode('onboarding');
   reportEmailInput.value = settings.reportShareRecipientEmail || '';
   showReportEmailModal(true);
 }
 
 async function dismissReportEmailPrompt() {
   await saveSettingsPatch({ reportEmailPromptComplete: true });
-  showReportEmailModal(false);
+  closeReportEmailModal();
+}
+
+async function dismissReportEmailModal() {
+  if (reportEmailModalMode === 'sendReport') {
+    closeReportEmailModal();
+    return;
+  }
+  await dismissReportEmailPrompt();
+}
+
+async function removeSavedReportEmailFromModal() {
+  setReportEmailModalError('');
+  await saveSettingsPatch({ reportShareRecipientEmail: '' });
+  reportEmailInput.value = '';
+  setReportEmailRemoveVisible(false);
+  setStatus('Saved report email removed.');
+  closeReportEmailModal();
 }
 
 async function saveReportEmailFromModal() {
   setReportEmailModalError('');
   const raw = normalizeReportEmail(reportEmailInput.value);
+  if (reportEmailModalMode === 'sendReport') {
+    if (!raw || !isValidReportEmail(raw)) {
+      setReportEmailModalError('Enter a valid email address.');
+      return;
+    }
+    await saveSettingsPatch({
+      reportShareRecipientEmail: raw,
+      reportEmailPromptComplete: true,
+    });
+    const button = pendingEmailReportButton;
+    closeReportEmailModal();
+    await sendEmailReportFlow(button, raw);
+    return;
+  }
   if (raw && !isValidReportEmail(raw)) {
     setReportEmailModalError('Enter a valid email address or leave blank.');
     return;
@@ -170,7 +253,7 @@ async function saveReportEmailFromModal() {
     reportShareRecipientEmail: raw,
     reportEmailPromptComplete: true,
   });
-  showReportEmailModal(false);
+  closeReportEmailModal();
 }
 
 function setModalError(msg) {
@@ -254,13 +337,19 @@ reportEmailSave?.addEventListener('click', () => {
 });
 
 reportEmailNotNow?.addEventListener('click', () => {
-  dismissReportEmailPrompt().catch((err) => {
+  dismissReportEmailModal().catch((err) => {
     setReportEmailModalError(err instanceof Error ? err.message : String(err));
   });
 });
 
 reportEmailClose?.addEventListener('click', () => {
-  dismissReportEmailPrompt().catch((err) => {
+  dismissReportEmailModal().catch((err) => {
+    setReportEmailModalError(err instanceof Error ? err.message : String(err));
+  });
+});
+
+reportEmailRemove?.addEventListener('click', () => {
+  removeSavedReportEmailFromModal().catch((err) => {
     setReportEmailModalError(err instanceof Error ? err.message : String(err));
   });
 });
@@ -270,7 +359,7 @@ document.addEventListener('keydown', (e) => {
     return;
   }
   e.preventDefault();
-  dismissReportEmailPrompt().catch(() => {});
+  dismissReportEmailModal().catch(() => {});
 });
 
 locationPicker.onChange(async (selected) => {
@@ -426,21 +515,31 @@ async function copyElementTextToClipboard(elementId, button) {
  * @param {{ reportEmailEnabled: boolean; reportOpenTabEnabled: boolean }} flags
  */
 function buildReportActionsHtml(result, apiOrigin, flags) {
-  if (!hasSavedReportForActions(result)) return '';
+  const wantsActions = flags.reportEmailEnabled || flags.reportOpenTabEnabled;
+  if (!hasSavedReportForActions(result)) {
+    if (!wantsActions) return '';
+    return (
+      '<p class="muted report-actions-hint">No saved report from the API. Use <strong>Production</strong> (or local Universal with <code>AUTO_SAVE_TO_DB=true</code> and Supabase), then moderate again.</p>'
+    );
+  }
 
   const historyId = normalizeModerationHistoryId(result.moderationHistoryId);
   const reportUrl =
     typeof result.moderationReportUrl === 'string' ? result.moderationReportUrl.trim() : '';
-  const canOpen =
-    flags.reportOpenTabEnabled &&
-    resolveReportViewUrl({
-      apiOrigin,
-      moderationHistoryId: historyId,
-      moderationReportUrl: reportUrl,
-    });
+  const openUrl = resolveReportViewUrl({
+    apiOrigin,
+    moderationHistoryId: historyId,
+    moderationReportUrl: reportUrl,
+  });
+  const canOpen = flags.reportOpenTabEnabled && openUrl;
   const canEmail = flags.reportEmailEnabled && historyId;
 
-  if (!canOpen && !canEmail) return '';
+  if (!canOpen && !canEmail) {
+    if (!wantsActions) return '';
+    return (
+      '<p class="muted report-actions-hint">Turn on <strong>Email report</strong> and/or <strong>Open full report</strong> under Options → Saved full report.</p>'
+    );
+  }
 
   const parts = ['<div class="report-actions">'];
   if (canOpen) {
@@ -485,13 +584,12 @@ async function handleOpenReportClick() {
   await chrome.tabs.create({ url: viewUrl });
 }
 
-async function handleEmailReportClick(button) {
+/**
+ * @param {EventTarget | null} button
+ * @param {string} email
+ */
+async function sendEmailReportFlow(button, email) {
   const settings = await loadSettings();
-  const email = normalizeReportEmail(settings.reportShareRecipientEmail);
-  if (!email || !isValidReportEmail(email)) {
-    setStatus('Add your report email in the setup dialog or Options.', true);
-    return;
-  }
   const moderationId = lastReportContext.moderationHistoryId;
   const apiOrigin = lastReportContext.apiOrigin;
   if (!moderationId || !apiOrigin) {
@@ -530,6 +628,26 @@ async function handleEmailReportClick(button) {
   } catch (err) {
     setStatus(err instanceof Error ? err.message : String(err), true);
   }
+}
+
+async function openEmailReportDialog(button) {
+  const settings = await loadSettings();
+  const saved = normalizeReportEmail(settings.reportShareRecipientEmail);
+  const hasSavedEmail = !!(saved && isValidReportEmail(saved));
+  pendingEmailReportButton = button instanceof HTMLButtonElement ? button : null;
+  applyReportEmailModalMode('sendReport', { hasSavedEmail });
+  reportEmailInput.value = settings.reportShareRecipientEmail || '';
+  showReportEmailModal(true);
+}
+
+async function handleEmailReportClick(button) {
+  const moderationId = lastReportContext.moderationHistoryId;
+  const apiOrigin = lastReportContext.apiOrigin;
+  if (!moderationId || !apiOrigin) {
+    setStatus('No saved report id for email.', true);
+    return;
+  }
+  await openEmailReportDialog(button);
 }
 
 /**
@@ -970,11 +1088,13 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
-optionsBtn.addEventListener('click', () => {
-  toggleOptionsPage().catch((err) => {
-    setStatus(err instanceof Error ? err.message : String(err), true);
+for (const optionsToggleBtn of document.querySelectorAll('.options-toggle-btn')) {
+  optionsToggleBtn.addEventListener('click', () => {
+    toggleOptionsPage().catch((err) => {
+      setStatus(err instanceof Error ? err.message : String(err), true);
+    });
   });
-});
+}
 
 refreshConnectionBadge().catch(() => {});
 consumePendingDraftOnLoad().catch(() => {});
