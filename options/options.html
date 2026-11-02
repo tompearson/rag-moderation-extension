@@ -21,8 +21,8 @@
         <label for="env-profile">Profile</label>
         <p class="muted">Saves when you change the profile. Custom origin saves on blur or when you leave the field.</p>
         <select id="env-profile">
-          <option value="local">Local dev (127.0.0.1:3001)</option>
-          <option value="production">Production (airesearchdog.net)</option>
+          <option value="local">Local dev</option>
+          <option value="production">Production</option>
           <option value="custom">Custom origin</option>
         </select>
 
@@ -30,7 +30,7 @@
         <input id="custom-origin" type="url" placeholder="https://example.com" disabled />
       </div>
       <p id="env-store-note" class="muted" hidden>
-        Production API: <strong>https://www.airesearchdog.net</strong>
+        This build uses the <strong>Production</strong> profile.
       </p>
 
       <button type="button" id="grant-permission" class="secondary">Grant host permission for current origin</button>
@@ -96,7 +96,7 @@
         Stored only in this browser (<code>chrome.storage.local</code>). Used for <strong>no RAG</strong> moderations when enabled — sent to Universal over HTTPS per request, not saved on the server.
         Get a key from
         <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a>.
-        <strong>Test &amp; save</strong> checks your key directly with Google (<code>generativelanguage.googleapis.com</code>) — not through airesearchdog.net. Moderation still uses the API origin from <strong>Environment</strong> above.
+        <strong>Test &amp; save</strong> checks your key directly with Google. Moderation uses the profile from <strong>Environment</strong> above (Production in store builds).
       </p>
       <label for="gemini-api-key-input">Gemini API key</label>
       <input
@@ -110,6 +110,14 @@
       <div class="row actions-inline">
         <button type="button" id="gemini-key-save" class="primary">Test &amp; save</button>
         <button type="button" id="gemini-key-remove" class="secondary">Remove key</button>
+      </div>
+      <div class="row checkbox-row">
+        <input id="gemini-rag-style-test" type="checkbox" />
+        <label for="gemini-rag-style-test"
+          >Also test RAG-style (<code>embedContent</code> + <code>gemini-2.5-flash-lite</code>, same models as
+          first-rag-system). Predicts free-tier embed/chat quota; extension RAG still uses Render until phase
+          2.</label
+        >
       </div>
       <div class="row checkbox-row">
         <input id="gemini-byok-enabled" type="checkbox" />

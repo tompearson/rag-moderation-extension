@@ -1,4 +1,4 @@
-import { ENV_PROFILES, resolveApiConfig } from '../lib/envProfiles.js';
+import { ENV_PROFILES, resolveApiConfig, formatApiProfileUiLabel } from '../lib/envProfiles.js';
 import { ensureGeminiApiPermission, ensureHostPermission } from '../lib/permissions.js';
 import {
   loadSettings,
@@ -17,7 +17,8 @@ import { fillRagProviderSelect, DEFAULT_RAG_PROVIDER } from '../lib/ragProviders
 import { isStoreBuild } from '../lib/buildConfig.js';
 import { isRagProviderId, NON_RAG_V28_PROVIDER } from '../lib/geminiByok.js';
 import { notifyExtensionUiSync } from '../lib/extensionUiSync.js';
-import { validateGeminiKeyClient, normalizeGeminiApiKey } from '../lib/validateGeminiClient.js';
+import { normalizeGeminiApiKey } from '../lib/validateGeminiClient.js';
+import { validateGeminiKeyForOptions } from '../lib/validateGeminiRagStyle.js';
 import { STORAGE_KEYS } from '../lib/userSettings.js';
 
 const envProfile = /** @type {HTMLSelectElement} */ (document.getElementById('env-profile'));
@@ -46,6 +47,9 @@ const reportOpenTabEnabled = /** @type {HTMLInputElement} */ (
 );
 const geminiApiKeyInput = /** @type {HTMLInputElement} */ (
   document.getElementById('gemini-api-key-input')
+);
+const geminiRagStyleTest = /** @type {HTMLInputElement} */ (
+  document.getElementById('gemini-rag-style-test')
 );
 const geminiByokEnabled = /** @type {HTMLInputElement} */ (
   document.getElementById('gemini-byok-enabled')
@@ -137,7 +141,7 @@ async function handleGeminiKeySave() {
   const granted = await ensureGeminiApiPermission();
   if (!granted) {
     setGeminiByokStatus(
-      'Allow access to Google Generative Language API to test your key (not airesearchdog.net).',
+      'Allow access to Google Generative Language API to test your key.',
       true,
     );
     return;
@@ -147,7 +151,9 @@ async function handleGeminiKeySave() {
   }
   geminiKeySaveBtn?.setAttribute('disabled', 'true');
   try {
-    const result = await validateGeminiKeyClient(raw);
+    const result = await validateGeminiKeyForOptions(raw, {
+      ragStyle: !!geminiRagStyleTest?.checked,
+    });
     if (!result.valid) {
       const hint =
         result.error?.includes('API key not valid') || result.error?.includes('API key test failed')
@@ -371,9 +377,10 @@ async function refreshPermissionStatus() {
   }
   const pattern = `${api.apiOrigin}/*`;
   const has = await chrome.permissions.contains({ origins: [pattern] });
+  const profileLabel = formatApiProfileUiLabel(api);
   permissionStatus.textContent = has
-    ? `Host permission granted for ${api.apiOrigin}`
-    : `Permission not granted yet for ${api.apiOrigin}`;
+    ? `Host permission granted for ${profileLabel}`
+    : `Permission not granted yet for ${profileLabel}`;
 }
 
 envProfile.addEventListener('change', () => {

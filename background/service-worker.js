@@ -1,4 +1,4 @@
-import { resolveApiConfig } from '../lib/envProfiles.js';
+import { resolveApiConfig, formatApiProfileUiLabel } from '../lib/envProfiles.js';
 import { isApiOriginHostGranted } from '../lib/permissions.js';
 import { postModerate, moderateTimeoutMs } from '../lib/moderateClient.js';
 import { loadSettings, isFeedLocationConfirmed } from '../lib/userSettings.js';
@@ -49,7 +49,7 @@ async function runModeration(settings, payload, requestId, signal) {
   const granted = await isApiOriginHostGranted(api.apiOrigin);
   if (!granted) {
     throw new Error(
-      `Host permission required for ${api.apiOrigin}. Click Moderate again and allow access, or use Options → Grant host permission.`,
+      `Host permission required for ${formatApiProfileUiLabel(api)}. Click Moderate again and allow access, or use Options → Grant host permission.`,
     );
   }
 

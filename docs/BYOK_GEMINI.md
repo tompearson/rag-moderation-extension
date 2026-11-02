@@ -17,9 +17,10 @@ Bring your own Google Gemini API key in **Options** for **non-RAG** moderations 
 
 1. You enter a Gemini API key in **Options → Your Gemini API key**.
 2. **Test & save** calls Google **`generativelanguage.googleapis.com`** directly (minimal `generateContent` probe). Universal is not used for validation.
-3. On success, the key is saved in **`chrome.storage.local`** only.
-4. When **Use my key for non-RAG moderations** is on and the provider is **Nextdoor V28 (no RAG)**, each moderate sends **`userApiKey`** in **`POST /api/moderate`** over HTTPS.
-5. Universal uses the existing non-RAG path in `moderationLogic.js` (request-body key). The key is **not** written to Supabase in phase 1.
+3. Optional **Also test RAG-style** runs **`embedContent`** (`gemini-embedding-001`) plus **`generateContent`** on **`gemini-2.5-flash-lite`** (fallback **`gemini-2.5-flash`**) — same Gemini usage pattern as **first-rag-system**. **429 / free-tier** on those probes means the key is accepted but quota may be exhausted for that meter; it does not call Render. Extension **RAG moderations still use Render’s key** until phase 2.
+4. On success, the key is saved in **`chrome.storage.local`** only.
+5. When **Use my key for non-RAG moderations** is on and the provider is **Nextdoor V28 (no RAG)**, each moderate sends **`userApiKey`** in **`POST /api/moderate`** over HTTPS.
+6. Universal uses the existing non-RAG path in `moderationLogic.js` (request-body key). The key is **not** written to Supabase in phase 1.
 
 ## What it does not do (phase 1)
 

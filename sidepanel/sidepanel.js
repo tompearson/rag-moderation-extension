@@ -27,7 +27,7 @@ import {
   resolveStoredUserLocation,
 } from '../lib/usStates.js';
 import { createStatePicker } from '../lib/statePicker.js';
-import { resolveApiConfig } from '../lib/envProfiles.js';
+import { resolveApiConfig, formatApiProfileUiLabel } from '../lib/envProfiles.js';
 import { isByokConfigured } from '../lib/geminiByok.js';
 import { STORAGE_KEYS } from '../lib/userSettings.js';
 import { ensureHostPermission } from '../lib/permissions.js';
@@ -186,11 +186,7 @@ function setModalError(msg) {
 async function refreshConnectionBadge() {
   const settings = await loadSettings();
   const api = resolveApiConfig(settings.envProfileId, settings.customApiOrigin);
-  if (api.apiOrigin) {
-    connectionBadge.textContent = `${api.label} · ${api.apiOrigin}`;
-  } else {
-    connectionBadge.textContent = `${api.label} · (set custom URL in Options)`;
-  }
+  connectionBadge.textContent = formatApiProfileUiLabel(api);
   await refreshByokBadge(settings);
 }
 
@@ -504,7 +500,11 @@ async function handleEmailReportClick(button) {
   }
   const permitted = await ensureHostPermission(apiOrigin);
   if (!permitted) {
-    setStatus(`Host permission required for ${apiOrigin}.`, true);
+    const api = resolveApiConfig(settings.envProfileId, settings.customApiOrigin);
+    setStatus(
+      `Host permission required for ${formatApiProfileUiLabel(api)}. Allow access in Options.`,
+      true,
+    );
     return;
   }
   if (button instanceof HTMLButtonElement) {
@@ -646,7 +646,10 @@ moderateBtn.addEventListener('click', async () => {
   }
   const permitted = await ensureHostPermission(api.apiOrigin);
   if (!permitted) {
-    setStatus(`Host permission denied for ${api.apiOrigin}. Allow access in the prompt or Options.`, true);
+    setStatus(
+      `Host permission denied for ${formatApiProfileUiLabel(api)}. Allow access in the prompt or Options.`,
+      true,
+    );
     return;
   }
 
@@ -707,8 +710,8 @@ moderateBtn.addEventListener('click', async () => {
         setStatus('Done.');
       }
     }
-    if (response.meta?.apiOrigin) {
-      connectionBadge.textContent = `${response.meta.profileLabel} · ${response.meta.apiOrigin}`;
+    if (response.meta?.profileLabel) {
+      connectionBadge.textContent = response.meta.profileLabel;
     }
   } catch (err) {
     setErrorStatus(err instanceof Error ? err.message : String(err));
