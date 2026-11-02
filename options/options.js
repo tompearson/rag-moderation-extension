@@ -15,7 +15,7 @@ import { closeOptionsPageIfOpen } from '../lib/optionsPage.js';
 import { normalizeReportEmail, isValidReportEmail } from '../lib/validateReportEmail.js';
 import { fillRagProviderSelect, DEFAULT_RAG_PROVIDER } from '../lib/ragProviders.js';
 import { isStoreBuild } from '../lib/buildConfig.js';
-import { validateGeminiKey, isRagProviderId } from '../lib/geminiByok.js';
+import { validateGeminiKeyViaBackground, isRagProviderId } from '../lib/geminiByok.js';
 import { STORAGE_KEYS } from '../lib/userSettings.js';
 
 const envProfile = /** @type {HTMLSelectElement} */ (document.getElementById('env-profile'));
@@ -139,7 +139,7 @@ async function handleGeminiKeySave() {
   setGeminiByokStatus('Validating key…');
   geminiKeySaveBtn?.setAttribute('disabled', 'true');
   try {
-    const result = await validateGeminiKey(apiOrigin, raw);
+    const result = await validateGeminiKeyViaBackground(apiOrigin, raw);
     if (!result.valid) {
       setGeminiByokStatus(result.error || 'Key validation failed.', true);
       return;
