@@ -796,8 +796,8 @@ async function sendReviewDecisionFromModal() {
     closeReviewDecisionModal();
     setStatus(
       reporterForApi
-        ? `Feedback sent. Your comment was emailed to ${reporterForApi} and saved on the report.`
-        : 'Feedback sent. Add a report email in Options to receive your comment by email.',
+        ? `Feedback saved. Your comment will be emailed to ${reporterForApi} shortly (delivery is async).`
+        : 'Feedback saved on the report. Add a report email in Options to receive your comment by email.',
     );
   } catch (err) {
     setReviewDecisionError(err instanceof Error ? err.message : String(err));
