@@ -96,7 +96,7 @@
         Stored only in this browser (<code>chrome.storage.local</code>). Used for <strong>no RAG</strong> moderations when enabled — sent to Universal over HTTPS per request, not saved on the server.
         Get a key from
         <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a>.
-        Validation uses the API origin from <strong>Environment</strong> above (Production → airesearchdog.net; Local dev → requires <code>npm run dev:server</code> on port 3001).
+        <strong>Test &amp; save</strong> checks your key directly with Google (<code>generativelanguage.googleapis.com</code>) — not through airesearchdog.net. Moderation still uses the API origin from <strong>Environment</strong> above.
       </p>
       <label for="gemini-api-key-input">Gemini API key</label>
       <input
@@ -113,7 +113,10 @@
       </div>
       <div class="row checkbox-row">
         <input id="gemini-byok-enabled" type="checkbox" />
-        <label for="gemini-byok-enabled">Use my key for non-RAG moderations</label>
+        <label for="gemini-byok-enabled"
+          >Use my key for non-RAG moderations (must be on for Moderate to send your key; Test &amp; save
+          always checks the key with Google)</label
+        >
       </div>
       <p id="gemini-byok-status" class="status muted" aria-live="polite"></p>
     </section>

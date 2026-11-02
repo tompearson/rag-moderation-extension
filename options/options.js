@@ -1,5 +1,5 @@
 import { ENV_PROFILES, resolveApiConfig } from '../lib/envProfiles.js';
-import { ensureHostPermission } from '../lib/permissions.js';
+import { ensureGeminiApiPermission, ensureHostPermission } from '../lib/permissions.js';
 import {
   loadSettings,
   saveSettingsPatch,
@@ -15,7 +15,9 @@ import { closeOptionsPageIfOpen } from '../lib/optionsPage.js';
 import { normalizeReportEmail, isValidReportEmail } from '../lib/validateReportEmail.js';
 import { fillRagProviderSelect, DEFAULT_RAG_PROVIDER } from '../lib/ragProviders.js';
 import { isStoreBuild } from '../lib/buildConfig.js';
-import { validateGeminiKeyViaBackground, isRagProviderId } from '../lib/geminiByok.js';
+import { isRagProviderId, NON_RAG_V28_PROVIDER } from '../lib/geminiByok.js';
+import { notifyExtensionUiSync } from '../lib/extensionUiSync.js';
+import { validateGeminiKeyClient, normalizeGeminiApiKey } from '../lib/validateGeminiClient.js';
 import { STORAGE_KEYS } from '../lib/userSettings.js';
 
 const envProfile = /** @type {HTMLSelectElement} */ (document.getElementById('env-profile'));
@@ -121,38 +123,56 @@ async function resolveOptionsApiOrigin() {
 
 async function handleGeminiKeySave() {
   setGeminiByokStatus('');
-  const raw = geminiApiKeyInput?.value.trim() || '';
+  let raw = normalizeGeminiApiKey(geminiApiKeyInput?.value || '');
   if (!raw) {
-    setGeminiByokStatus('Enter a Gemini API key to test.', true);
-    return;
-  }
-  const apiOrigin = await resolveOptionsApiOrigin();
-  if (!apiOrigin) {
-    setGeminiByokStatus('Set a valid API origin in Environment first.', true);
-    return;
-  }
-  const granted = await ensureHostPermission(apiOrigin);
-  if (!granted) {
-    setGeminiByokStatus(`Grant host permission for ${apiOrigin} first.`, true);
-    return;
-  }
-  setGeminiByokStatus('Validating key…');
-  geminiKeySaveBtn?.setAttribute('disabled', 'true');
-  try {
-    const result = await validateGeminiKeyViaBackground(apiOrigin, raw);
-    if (!result.valid) {
-      setGeminiByokStatus(result.error || 'Key validation failed.', true);
+    const stored = normalizeGeminiApiKey((await loadSettings()).geminiApiKey || '');
+    if (stored) {
+      raw = stored;
+      setGeminiByokStatus('Re-testing saved key with Google…');
+    } else {
+      setGeminiByokStatus('Paste a Gemini API key to test, or save one first.', true);
       return;
     }
+  }
+  const granted = await ensureGeminiApiPermission();
+  if (!granted) {
+    setGeminiByokStatus(
+      'Allow access to Google Generative Language API to test your key (not airesearchdog.net).',
+      true,
+    );
+    return;
+  }
+  if (!geminiByokStatus.textContent) {
+    setGeminiByokStatus('Checking key with Google…');
+  }
+  geminiKeySaveBtn?.setAttribute('disabled', 'true');
+  try {
+    const result = await validateGeminiKeyClient(raw);
+    if (!result.valid) {
+      const hint =
+        result.error?.includes('API key not valid') || result.error?.includes('API key test failed')
+          ? ' Create a new key in Google AI Studio if this one was revoked or pasted incompletely.'
+          : '';
+      setGeminiByokStatus((result.error || 'Key validation failed.') + hint, true);
+      return;
+    }
+    const useForModeration = !!geminiByokEnabled?.checked;
     await saveSettingsPatch({
       geminiApiKey: raw,
-      geminiByokEnabled: true,
+      geminiByokEnabled: useForModeration,
+      ...(useForModeration ? { ragProvider: NON_RAG_V28_PROVIDER } : {}),
     });
-    if (geminiByokEnabled) geminiByokEnabled.checked = true;
+    if (useForModeration && ragProvider) ragProvider.value = NON_RAG_V28_PROVIDER;
     if (geminiApiKeyInput) geminiApiKeyInput.value = '';
     if (geminiKeySavedHint) geminiKeySavedHint.classList.remove('hidden');
     updateByokRagHint();
-    setGeminiByokStatus(result.message || 'Key saved on this device.');
+    const savedMsg = result.message || 'Key saved on this device.';
+    setGeminiByokStatus(
+      useForModeration
+        ? savedMsg
+        : `${savedMsg} “Use my key for non-RAG moderations” is off — key stored but not sent on Moderate until you turn it on.`,
+    );
+    notifyExtensionUiSync();
   } catch (err) {
     setGeminiByokStatus(err instanceof Error ? err.message : String(err), true);
   } finally {
@@ -167,6 +187,7 @@ async function handleGeminiKeyRemove() {
   if (geminiKeySavedHint) geminiKeySavedHint.classList.add('hidden');
   updateByokRagHint();
   setGeminiByokStatus('Key removed from this device.');
+  notifyExtensionUiSync();
 }
 
 async function syncStatePickerFromStorage() {

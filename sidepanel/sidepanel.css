@@ -36,6 +36,10 @@ body {
   min-width: 280px;
 }
 
+.hidden {
+  display: none !important;
+}
+
 h1 {
   font-size: 1.1rem;
   margin: 0 0 4px;
@@ -272,6 +276,17 @@ button.danger-outline {
 .error {
   color: var(--remove);
   font-size: 13px;
+}
+
+.status.error a,
+.gemini-quota-hint a {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.status.error a:hover,
+.gemini-quota-hint a:hover {
+  text-decoration: underline;
 }
 
 .results {

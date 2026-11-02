@@ -6,12 +6,11 @@ import {
 
 assert.equal(isModerationFailureResult({ decision: 'Keep' }), false);
 assert.equal(isModerationFailureResult({ decision: 'Error', reason: 'x' }), true);
-assert.match(
-  moderationFailureStatusMessage({
-    decision: 'Error',
-    reason: 'Failed to moderate: Gemini API quota exceeded',
-  }),
-  /quota/i,
-);
+const quotaMsg = moderationFailureStatusMessage({
+  decision: 'Error',
+  reason: 'Failed to moderate: Gemini API quota exceeded',
+});
+assert.match(quotaMsg, /quota/i);
+assert.match(quotaMsg, /aistudio\.google\.com\/apikey/);
 
 console.log('test-moderation-result: ok');

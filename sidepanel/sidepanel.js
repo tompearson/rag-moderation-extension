@@ -15,6 +15,9 @@ import {
 import {
   isModerationFailureResult,
   moderationFailureStatusMessage,
+  isGeminiQuotaOrBillingIssue,
+  GOOGLE_AI_STUDIO_KEYS_URL,
+  geminiQuotaResultsHintHtml,
 } from '../lib/moderationResult.js';
 import { postShareReportEmail } from '../lib/shareReportEmailClient.js';
 import {
@@ -24,10 +27,11 @@ import {
 } from '../lib/usStates.js';
 import { createStatePicker } from '../lib/statePicker.js';
 import { resolveApiConfig } from '../lib/envProfiles.js';
-import { isByokActiveForProvider } from '../lib/geminiByok.js';
+import { isByokConfigured } from '../lib/geminiByok.js';
 import { STORAGE_KEYS } from '../lib/userSettings.js';
 import { ensureHostPermission } from '../lib/permissions.js';
 import { toggleOptionsPage } from '../lib/optionsPage.js';
+import { EXTENSION_UI_SYNC } from '../lib/extensionUiSync.js';
 import {
   PENDING_DRAFT_SESSION_KEY,
   consumePendingModerationDraft,
@@ -111,7 +115,10 @@ function syncMainPanelBlocked() {
 function showLocationModal(show) {
   modal.classList.toggle('hidden', !show);
   syncMainPanelBlocked();
-  if (show) modalLocationPicker.focus();
+  if (show) {
+    abortPickMode();
+    modalLocationPicker.focus();
+  }
 }
 
 function setReportEmailModalError(msg) {
@@ -189,8 +196,18 @@ async function refreshConnectionBadge() {
 async function refreshByokBadge(settingsIn) {
   if (!byokBadge) return;
   const settings = settingsIn || (await loadSettings());
-  const active = isByokActiveForProvider(settings);
+  const active = isByokConfigured(settings);
   byokBadge.classList.toggle('hidden', !active);
+  byokBadge.hidden = !active;
+}
+
+/** Pull latest settings into header badges, location picker, etc. */
+async function syncSidePanelFromStorage() {
+  await refreshConnectionBadge();
+  const settings = await loadSettings();
+  if (!statePickerBusy() && hasValidUserLocation(settings.userLocation)) {
+    setPickerValues(settings.userLocation);
+  }
 }
 
 async function maybeMigrateStoredLocation(settings) {
@@ -275,15 +292,23 @@ chrome.storage.onChanged.addListener((changes, area) => {
     const next = changes.userLocation.newValue;
     if (hasValidUserLocation(next)) setPickerValues(next);
   }
-  if (changes.envProfileId || changes.customApiOrigin) {
-    refreshConnectionBadge().catch(() => {});
+  if (
+    changes.envProfileId ||
+    changes.customApiOrigin ||
+    changes[STORAGE_KEYS.geminiApiKey] ||
+    changes[STORAGE_KEYS.geminiByokEnabled] ||
+    changes[STORAGE_KEYS.ragProvider]
+  ) {
+    syncSidePanelFromStorage().catch(() => {});
   }
   if (changes.userLocation || changes.locationOnboardingComplete) {
     loadSettings().then((s) => {
       if (!isFeedLocationConfirmed(s)) {
+        abortPickMode();
         if (!statePickerBusy()) setPickerValues(s.userLocation);
         showLocationModal(true);
         showReportEmailModal(false);
+        refreshByokBadge(s).catch(() => {});
       }
     }).catch(() => {});
   }
@@ -292,6 +317,32 @@ chrome.storage.onChanged.addListener((changes, area) => {
 function setStatus(msg, isError = false) {
   statusEl.textContent = msg || '';
   statusEl.classList.toggle('error', isError);
+}
+
+function setGeminiQuotaHelpStatus() {
+  statusEl.classList.add('error');
+  statusEl.replaceChildren();
+  statusEl.append(
+    document.createTextNode(
+      'Gemini API quota exceeded. Try again later or restore server billing (Universal/Render). Manage or create a key in ',
+    ),
+  );
+  const link = document.createElement('a');
+  link.href = GOOGLE_AI_STUDIO_KEYS_URL;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  link.textContent = 'Google AI Studio';
+  statusEl.append(link);
+  statusEl.append(document.createTextNode('.'));
+}
+
+/** @param {string} message */
+function setErrorStatus(message) {
+  if (isGeminiQuotaOrBillingIssue(message)) {
+    setGeminiQuotaHelpStatus();
+    return;
+  }
+  setStatus(message, true);
 }
 
 /**
@@ -546,10 +597,15 @@ function renderResults(result, apiOrigin, flags) {
   }
 
   const reportActions = buildReportActionsHtml(result, apiOrigin ?? null, flags);
+  const geminiHint =
+    isModerationFailureResult(result) && isGeminiQuotaOrBillingIssue(reasonPlain)
+      ? geminiQuotaResultsHintHtml()
+      : '';
 
   resultsEl.innerHTML = `
     ${reportActions}
     <p class="decision ${decisionClass(decision)}">${escapeHtml(decision)}</p>
+    ${geminiHint}
     ${copyBlockSection('Reason', 'result-reason', reasonPlain)}
     ${breakdownPlain.trim() ? copyBlockSection('Breakdown', 'result-breakdown', breakdownPlain) : ''}
     ${category ? `<p><strong>Report category:</strong> ${escapeHtml(category)}</p>` : ''}
@@ -620,7 +676,12 @@ moderateBtn.addEventListener('click', async () => {
     };
     renderResults(response.result, response.meta?.apiOrigin, reportFlags);
     if (isModerationFailureResult(response.result)) {
-      setStatus(moderationFailureStatusMessage(response.result), true);
+      const reason = String(response.result?.reason || '');
+      if (isGeminiQuotaOrBillingIssue(reason)) {
+        setGeminiQuotaHelpStatus();
+      } else {
+        setStatus(moderationFailureStatusMessage(response.result), true);
+      }
     } else {
       const savedReport = hasSavedReportForActions(response.result);
       const actionsHtml = buildReportActionsHtml(
@@ -648,7 +709,7 @@ moderateBtn.addEventListener('click', async () => {
       connectionBadge.textContent = `${response.meta.profileLabel} · ${response.meta.apiOrigin}`;
     }
   } catch (err) {
-    setStatus(err instanceof Error ? err.message : String(err), true);
+    setErrorStatus(err instanceof Error ? err.message : String(err));
   } finally {
     stopModerationProgress();
   }
@@ -734,6 +795,8 @@ async function consumePendingDraftOnLoad() {
 
 /** @type {boolean} */
 let pickModeInProgress = false;
+/** Bumped when pick is aborted so in-flight START_PICK_MODE responses are ignored. */
+let pickRunGeneration = 0;
 /** @type {number | null} */
 let activePickTabId = null;
 /** @type {((e: KeyboardEvent) => void) | null} */
@@ -765,6 +828,16 @@ function endPickModeUi() {
   setPickButtonActive(false);
 }
 
+/** Cancel in-page pick and reset side panel button (e.g. factory reset while pick was active). */
+function abortPickMode() {
+  pickRunGeneration += 1;
+  const tabId = activePickTabId;
+  endPickModeUi();
+  if (tabId != null) {
+    chrome.runtime.sendMessage({ type: 'CANCEL_PICK_MODE', tabId }).catch(() => {});
+  }
+}
+
 /**
  * @param {boolean} active
  */
@@ -780,10 +853,16 @@ function setPickButtonActive(active) {
  * @param {CaptureField} field
  */
 async function runPickModeForField(field) {
+  const settings = await loadSettings();
+  if (!isFeedLocationConfirmed(settings)) {
+    setStatus('Confirm feed location in the dialog first.', true);
+    return;
+  }
   if (pickModeInProgress) {
     setStatus('Already waiting for a click on the page. Click text there or press Esc.', true);
     return;
   }
+  const runId = ++pickRunGeneration;
   pickModeInProgress = true;
   setPickButtonActive(true);
   clearCaptureField(field);
@@ -806,6 +885,7 @@ async function runPickModeForField(field) {
     return;
   }
   endPickModeUi();
+  if (runId !== pickRunGeneration) return;
   if (!response?.ok) {
     const msg = response?.error || 'Could not capture text.';
     if (msg.includes('cancelled')) {
@@ -870,18 +950,18 @@ chrome.storage.onChanged.addListener((changes, area) => {
     return;
   }
   if (area !== 'local') return;
-  if (
-    changes[STORAGE_KEYS.geminiApiKey] ||
-    changes[STORAGE_KEYS.geminiByokEnabled] ||
-    changes[STORAGE_KEYS.ragProvider]
-  ) {
-    refreshByokBadge().catch(() => {});
+});
+
+chrome.runtime.onMessage.addListener((message) => {
+  if (message?.type === EXTENSION_UI_SYNC) {
+    syncSidePanelFromStorage().catch(() => {});
   }
+  return false;
 });
 
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') {
-    refreshConnectionBadge().catch(() => {});
+    syncSidePanelFromStorage().catch(() => {});
   }
 });
 

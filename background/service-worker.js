@@ -1,16 +1,15 @@
 import { resolveApiConfig } from '../lib/envProfiles.js';
-import { hasHostPermission } from '../lib/permissions.js';
-import { postModerate } from '../lib/moderateClient.js';
+import { isApiOriginHostGranted } from '../lib/permissions.js';
+import { postModerate, moderateTimeoutMs } from '../lib/moderateClient.js';
 import { loadSettings, isFeedLocationConfirmed } from '../lib/userSettings.js';
-import { resolveUserApiKeyForModeration, validateGeminiKey } from '../lib/geminiByok.js';
-import { hasHostPermission } from '../lib/permissions.js';
-import { moderateTimeoutMs } from '../lib/moderationTimeout.js';
+import { resolveUserApiKeyForModeration } from '../lib/geminiByok.js';
 import { MODERATION_TARGET_TAB_SESSION_KEY } from '../lib/pageAccess.js';
 import { startPickModeOnActiveTab, settlePickModeMessage, cancelPickModeOnTab } from '../lib/pickMode.js';
 import {
   registerModerationContextMenu,
   handleModerationContextMenuClick,
 } from '../lib/contextMenu.js';
+import { EXTENSION_UI_SYNC } from '../lib/extensionUiSync.js';
 
 function onInstalled() {
   chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {});
@@ -47,7 +46,7 @@ async function runModeration(settings, payload, requestId, signal) {
     throw new Error('Invalid API origin. Check Options → environment profile.');
   }
 
-  const granted = await hasHostPermission(api.apiOrigin);
+  const granted = await isApiOriginHostGranted(api.apiOrigin);
   if (!granted) {
     throw new Error(
       `Host permission required for ${api.apiOrigin}. Click Moderate again and allow access, or use Options → Grant host permission.`,
@@ -79,6 +78,11 @@ async function runModeration(settings, payload, requestId, signal) {
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message?.type === EXTENSION_UI_SYNC && sender.tab?.url?.includes('options/options.html')) {
+    chrome.runtime.sendMessage({ type: EXTENSION_UI_SYNC }).catch(() => {});
+    return false;
+  }
+
   if (message?.type === 'PICK_MODE_COMPLETE' || message?.type === 'PICK_MODE_CANCELLED') {
     settlePickModeMessage(message.type, sender.tab?.id, message.text);
     return false;
@@ -97,35 +101,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         const tabId = typeof message.tabId === 'number' ? message.tabId : undefined;
         const text = await startPickModeOnActiveTab(tabId);
         sendResponse({ ok: true, text });
-      } catch (err) {
-        sendResponse({
-          ok: false,
-          error: err instanceof Error ? err.message : String(err),
-        });
-      }
-    })();
-    return true;
-  }
-
-  if (message?.type === 'VALIDATE_GEMINI_KEY') {
-    (async () => {
-      try {
-        const apiOrigin = typeof message.apiOrigin === 'string' ? message.apiOrigin.trim() : '';
-        const apiKey = typeof message.apiKey === 'string' ? message.apiKey : '';
-        if (!apiOrigin) {
-          sendResponse({ ok: false, error: 'Missing API origin.' });
-          return;
-        }
-        const granted = await hasHostPermission(apiOrigin);
-        if (!granted) {
-          sendResponse({
-            ok: false,
-            error: `Host permission required for ${apiOrigin}. Use Options → Grant host permission, then try again.`,
-          });
-          return;
-        }
-        const result = await validateGeminiKey(apiOrigin, apiKey);
-        sendResponse({ ok: true, ...result });
       } catch (err) {
         sendResponse({
           ok: false,

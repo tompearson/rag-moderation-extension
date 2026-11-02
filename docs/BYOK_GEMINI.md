@@ -16,7 +16,7 @@ Bring your own Google Gemini API key in **Options** for **non-RAG** moderations 
 ## What it does
 
 1. You enter a Gemini API key in **Options → Your Gemini API key**.
-2. The extension calls Universal **`POST /api/providers`** with `action: validateGeminiKey` (minimal Gemini probe).
+2. **Test & save** calls Google **`generativelanguage.googleapis.com`** directly (minimal `generateContent` probe). Universal is not used for validation.
 3. On success, the key is saved in **`chrome.storage.local`** only.
 4. When **Use my key for non-RAG moderations** is on and the provider is **Nextdoor V28 (no RAG)**, each moderate sends **`userApiKey`** in **`POST /api/moderate`** over HTTPS.
 5. Universal uses the existing non-RAG path in `moderationLogic.js` (request-body key). The key is **not** written to Supabase in phase 1.
@@ -30,13 +30,14 @@ Bring your own Google Gemini API key in **Options** for **non-RAG** moderations 
 ## Validate-then-save flow
 
 ```text
-Options → POST {apiOrigin}/api/providers
-  body: { action: "validateGeminiKey", apiKey: "…" }
-  → { valid: true } → chrome.storage.local
-  → { valid: false } → show error, do not save
+Options → POST generativelanguage.googleapis.com/.../generateContent?key=…
+  → success → chrome.storage.local
+  → 4xx from Google → show error, do not save
 ```
 
-Rate limit: **10 requests / minute / IP** on validate (429 when exceeded).
+Optional host permission: **`https://generativelanguage.googleapis.com/*`**.
+
+Server **`POST /api/providers` validateGeminiKey** remains available for Universal web/admin; the extension does not use it for Test & save.
 
 ## Storage and wire security
 
