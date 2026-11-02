@@ -15,7 +15,7 @@ import { closeOptionsPageIfOpen } from '../lib/optionsPage.js';
 import { normalizeReportEmail, isValidReportEmail } from '../lib/validateReportEmail.js';
 import { fillRagProviderSelect, DEFAULT_RAG_PROVIDER } from '../lib/ragProviders.js';
 import { isStoreBuild } from '../lib/buildConfig.js';
-import { isRagProviderId, NON_RAG_V28_PROVIDER } from '../lib/geminiByok.js';
+import { isRagProviderId } from '../lib/geminiByok.js';
 import { notifyExtensionUiSync } from '../lib/extensionUiSync.js';
 import { normalizeGeminiApiKey } from '../lib/validateGeminiClient.js';
 import { validateGeminiKeyForOptions } from '../lib/validateGeminiRagStyle.js';
@@ -57,7 +57,7 @@ const geminiByokEnabled = /** @type {HTMLInputElement} */ (
 const geminiByokEnabledLabel = document.getElementById('gemini-byok-enabled-label');
 
 const GEMINI_BYOK_CHECKBOX_LABEL =
-  'Use my key for non-RAG moderations (must be on for Moderate to send your key; Test & save always checks the key with Google)';
+  'Use my key for moderations (RAG and no RAG; must be on for Moderate to send your key; Test & save always checks the key with Google)';
 const geminiKeySaveBtn = document.getElementById('gemini-key-save');
 const geminiKeyRemoveBtn = document.getElementById('gemini-key-remove');
 const geminiByokStatus = document.getElementById('gemini-byok-status');
@@ -104,6 +104,10 @@ function updateByokRagHint() {
   if (!byokRagHint || !ragProvider || !geminiByokEnabled) return;
   const showHint = geminiByokEnabled.checked && isRagProviderId(ragProvider.value);
   byokRagHint.classList.toggle('hidden', !showHint);
+  if (showHint) {
+    byokRagHint.textContent =
+      'RAG moderations send your key to first-rag-system for embed + chat (your Google quota, not Render’s pool).';
+  }
 }
 
 function updateGeminiByokCheckboxLabel(hasKey) {
@@ -178,9 +182,7 @@ async function handleGeminiKeySave() {
     await saveSettingsPatch({
       geminiApiKey: raw,
       geminiByokEnabled: useForModeration,
-      ...(useForModeration ? { ragProvider: NON_RAG_V28_PROVIDER } : {}),
     });
-    if (useForModeration && ragProvider) ragProvider.value = NON_RAG_V28_PROVIDER;
     if (geminiApiKeyInput) geminiApiKeyInput.value = '';
     if (geminiKeySavedHint) geminiKeySavedHint.classList.remove('hidden');
     updateGeminiByokCheckboxLabel(true);
@@ -189,7 +191,7 @@ async function handleGeminiKeySave() {
     setGeminiByokStatus(
       useForModeration
         ? savedMsg
-        : `${savedMsg} “Use my key for non-RAG moderations” is off — key stored but not sent on Moderate until you turn it on.`,
+        : `${savedMsg} “Use my key for moderations” is off — key stored but not sent on Moderate until you turn it on.`,
     );
     notifyExtensionUiSync();
   } catch (err) {

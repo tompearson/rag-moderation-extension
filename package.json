@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node scripts/dev-services.mjs server",
     "dev:full": "node scripts/dev-services.mjs full",
-    "test": "node scripts/test-unwrap.mjs && node scripts/test-us-states.mjs && node scripts/test-moderation-timeout.mjs && node scripts/test-capture-text.mjs && node scripts/test-url-in-text.mjs && node scripts/test-pick-sanitize.mjs && node scripts/test-content-pick-targets.mjs && node scripts/test-report-view-url.mjs && node scripts/test-moderation-result.mjs && node scripts/test-rag-providers.mjs",
+    "test": "node scripts/test-unwrap.mjs && node scripts/test-us-states.mjs && node scripts/test-moderation-timeout.mjs && node scripts/test-capture-text.mjs && node scripts/test-url-in-text.mjs && node scripts/test-pick-sanitize.mjs && node scripts/test-content-pick-targets.mjs && node scripts/test-report-view-url.mjs && node scripts/test-moderation-result.mjs && node scripts/test-rag-providers.mjs && node scripts/test-gemini-byok.mjs",
     "package:store": "node scripts/package-store.mjs",
     "verify:store-zip": "node scripts/verify-store-zip.mjs"
   }

@@ -66,8 +66,8 @@ See [BYOK_GEMINI.md](./BYOK_GEMINI.md). Requires Universal with `POST /api/provi
 | B1 | Options → invalid key → **Test & save** | Error from server; nothing saved in storage |
 | B2 | Options → valid key → **Test & save** | Success; “Key saved”; input cleared; checkbox on |
 | B3 | Provider **no RAG**, BYOK on → side panel | Badge **Using your Gemini key** |
-| B4 | Switch provider to **RAG**, BYOK still on | Badge hidden; RAG hint visible in Options |
-| B5 | Moderate (no RAG + BYOK) | Uses your quota (not Render pool); no `userApiKey` sent when RAG selected |
+| B4 | Provider **RAG**, BYOK on → side panel | Badge **Using your Gemini key**; Options shows RAG BYOK hint |
+| B5 | Moderate (RAG + BYOK) | Uses your embed + chat quota via first-rag-system; falls back to Render key when BYOK off |
 | B6 | **Remove key** or factory reset | Badge hidden; moderate without BYOK |
 
 ## Sample content

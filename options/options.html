@@ -87,15 +87,13 @@
         <option value="NextDoor-prompt-production-28-rag">Nextdoor V28.0.114 (RAG)</option>
         <option value="NextDoor-prompt-production-28">Nextdoor V28.0.114 (no RAG)</option>
       </select>
-      <p id="byok-rag-hint" class="muted hidden">
-        RAG uses the server’s Gemini key on Render. Your personal key applies only to <strong>no RAG</strong> (phase 2 will add RAG BYOK).
-      </p>
+      <p id="byok-rag-hint" class="muted hidden"></p>
     </section>
 
     <section id="section-gemini-byok">
       <h2>Your Gemini API key (optional)</h2>
       <p class="muted">
-        Stored only in this browser (<code>chrome.storage.local</code>). Used for <strong>no RAG</strong> moderations when enabled — sent to Universal over HTTPS per request, not saved on the server.
+        Stored only in this browser (<code>chrome.storage.local</code>). When enabled, sent over HTTPS per moderation (Universal for no RAG; RAG service for embed + chat) — not saved on the server.
         Get a key from
         <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a>.
         <strong>Test &amp; save</strong> checks your key directly with Google. Moderation uses the profile from <strong>Environment</strong> above (Production in store builds).
@@ -117,14 +115,13 @@
         <input id="gemini-rag-style-test" type="checkbox" />
         <label for="gemini-rag-style-test"
           >Also test RAG-style (<code>embedContent</code> + <code>gemini-2.5-flash-lite</code>, same models as
-          first-rag-system). Predicts free-tier embed/chat quota; extension RAG still uses Render until phase
-          2.</label
+          first-rag-system). Predicts free-tier embed/chat quota for your key.</label
         >
       </div>
       <div class="row checkbox-row">
         <input id="gemini-byok-enabled" type="checkbox" />
         <label id="gemini-byok-enabled-label" for="gemini-byok-enabled"
-          >Use my key for non-RAG moderations (must be on for Moderate to send your key; Test &amp; save
+          >Use my key for moderations (RAG and no RAG; must be on for Moderate to send your key; Test &amp; save
           always checks the key with Google)</label
         >
       </div>
