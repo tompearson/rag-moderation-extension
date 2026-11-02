@@ -54,6 +54,10 @@ const geminiRagStyleTest = /** @type {HTMLInputElement} */ (
 const geminiByokEnabled = /** @type {HTMLInputElement} */ (
   document.getElementById('gemini-byok-enabled')
 );
+const geminiByokEnabledLabel = document.getElementById('gemini-byok-enabled-label');
+
+const GEMINI_BYOK_CHECKBOX_LABEL =
+  'Use my key for non-RAG moderations (must be on for Moderate to send your key; Test & save always checks the key with Google)';
 const geminiKeySaveBtn = document.getElementById('gemini-key-save');
 const geminiKeyRemoveBtn = document.getElementById('gemini-key-remove');
 const geminiByokStatus = document.getElementById('gemini-byok-status');
@@ -102,10 +106,18 @@ function updateByokRagHint() {
   byokRagHint.classList.toggle('hidden', !showHint);
 }
 
+function updateGeminiByokCheckboxLabel(hasKey) {
+  if (!geminiByokEnabledLabel) return;
+  geminiByokEnabledLabel.textContent = hasKey
+    ? `You have a key stored. ${GEMINI_BYOK_CHECKBOX_LABEL}`
+    : GEMINI_BYOK_CHECKBOX_LABEL;
+}
+
 async function syncGeminiByokFromStorage() {
   const s = await loadSettings();
   if (geminiByokEnabled) geminiByokEnabled.checked = s.geminiByokEnabled;
   const hasKey = (s.geminiApiKey || '').trim().length >= 30;
+  updateGeminiByokCheckboxLabel(hasKey);
   if (geminiKeySavedHint) {
     geminiKeySavedHint.classList.toggle('hidden', !hasKey);
   }
@@ -171,6 +183,7 @@ async function handleGeminiKeySave() {
     if (useForModeration && ragProvider) ragProvider.value = NON_RAG_V28_PROVIDER;
     if (geminiApiKeyInput) geminiApiKeyInput.value = '';
     if (geminiKeySavedHint) geminiKeySavedHint.classList.remove('hidden');
+    updateGeminiByokCheckboxLabel(true);
     updateByokRagHint();
     const savedMsg = result.message || 'Key saved on this device.';
     setGeminiByokStatus(
@@ -191,6 +204,7 @@ async function handleGeminiKeyRemove() {
   if (geminiApiKeyInput) geminiApiKeyInput.value = '';
   if (geminiByokEnabled) geminiByokEnabled.checked = false;
   if (geminiKeySavedHint) geminiKeySavedHint.classList.add('hidden');
+  updateGeminiByokCheckboxLabel(false);
   updateByokRagHint();
   setGeminiByokStatus('Key removed from this device.');
   notifyExtensionUiSync();

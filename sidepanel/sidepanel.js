@@ -122,6 +122,25 @@ let lastReportContext = {
 /** @type {boolean} */
 let reviewDecisionSubmitBlocked = false;
 
+/** Fingerprint of last successful moderation (skip duplicate API runs). */
+/** @type {string | null} */
+let lastSuccessfulModerationKey = null;
+
+/**
+ * @param {string} content
+ * @param {string} postContext
+ * @param {string} analysisType
+ * @param {boolean} badWordsEnabled
+ */
+function moderationRequestKey(content, postContext, analysisType, badWordsEnabled) {
+  return JSON.stringify({
+    c: content,
+    p: postContext.trim(),
+    a: analysisType,
+    b: badWordsEnabled,
+  });
+}
+
 /** @type {'onboarding' | 'sendReport'} */
 let reportEmailModalMode = 'onboarding';
 /** @type {HTMLButtonElement | null} */
@@ -555,9 +574,8 @@ async function copyElementTextToClipboard(elementId, button) {
 function buildReportActionsHtml(result, apiOrigin, flags) {
   const wantsActions = flags.reportEmailEnabled || flags.reportOpenTabEnabled;
   if (!hasSavedReportForActions(result)) {
-    if (!wantsActions) return '';
     return (
-      '<p class="muted report-actions-hint">No saved report from the API. Use <strong>Production</strong> (or local Universal with <code>AUTO_SAVE_TO_DB=true</code> and Supabase), then moderate again.</p>'
+      '<p class="muted report-actions-hint">No saved report from the API — <strong>Review this Decision</strong> and report buttons need a stored record. Use <strong>Production</strong> (or local Universal with <code>AUTO_SAVE_TO_DB=true</code> and Supabase), then moderate again.</p>'
     );
   }
 
@@ -984,13 +1002,33 @@ function renderResults(result, apiOrigin, flags) {
 }
 
 moderateBtn.addEventListener('click', async () => {
-  setStatus('');
-  resultsEl.classList.add('hidden');
   const content = contentInput.value.trim();
   if (!content) {
     setStatus('Enter content to moderate.', true);
     return;
   }
+
+  const postContext = postContextInput.value.trim();
+  const analysisType = analysisSelect.value;
+  const badWordsEnabled = badWordsCheckbox.checked;
+  const requestKey = moderationRequestKey(
+    content,
+    postContext,
+    analysisType,
+    badWordsEnabled,
+  );
+  if (requestKey === lastSuccessfulModerationKey) {
+    setStatus(
+      'Already moderated this same text with these settings. Your last decision is in the Results section below—edit content, change analysis, or Clear content to run again.',
+      true,
+    );
+    resultsEl.classList.remove('hidden');
+    resultsEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    return;
+  }
+
+  setStatus('');
+  resultsEl.classList.add('hidden');
 
   const settings = await loadSettings();
   if (!isFeedLocationConfirmed(settings)) {
@@ -1027,9 +1065,9 @@ moderateBtn.addEventListener('click', async () => {
       requestId,
       payload: {
         content,
-        postContext: postContextInput.value,
-        analysisType: analysisSelect.value,
-        badWordsEnabled: badWordsCheckbox.checked,
+        postContext,
+        analysisType,
+        badWordsEnabled,
       },
     });
 
@@ -1042,6 +1080,9 @@ moderateBtn.addEventListener('click', async () => {
       reportOpenTabEnabled: settings.reportOpenTabEnabled,
     };
     renderResults(response.result, response.meta?.apiOrigin, reportFlags);
+    if (!isModerationFailureResult(response.result)) {
+      lastSuccessfulModerationKey = requestKey;
+    }
     if (isModerationFailureResult(response.result)) {
       const reason = sanitizeModerationReason(String(response.result?.reason || ''));
       if (isGeminiQuotaOrBillingIssue(reason)) {
@@ -1065,6 +1106,10 @@ moderateBtn.addEventListener('click', async () => {
             ? 'Done. Report actions unavailable for this result.'
             : 'Done. No saved full report from API (use Production with DB save, or check AUTO_SAVE_TO_DB).',
           !savedReport,
+        );
+      } else if (actionsHtml.includes('review-decision-btn')) {
+        setStatus(
+          'Done. Report actions are above the decision (Review this Decision, email, or open full report).',
         );
       } else if (settings.reportOpenTabEnabled && actionsHtml.includes('open-report-btn')) {
         setStatus('Done. Click Open full report above the decision.');
@@ -1094,6 +1139,7 @@ abortModerateBtn.addEventListener('click', () => {
 clearBtn.addEventListener('click', () => {
   contentInput.value = '';
   postContextInput.value = '';
+  lastSuccessfulModerationKey = null;
   resultsEl.classList.add('hidden');
   setStatus('');
 });
@@ -1115,6 +1161,7 @@ function clearCaptureField(field) {
   const el = textareaForField(field);
   el.value = '';
   if (field === 'content') {
+    lastSuccessfulModerationKey = null;
     resultsEl.classList.add('hidden');
   }
 }
@@ -1232,7 +1279,6 @@ async function runPickModeForField(field) {
   const runId = ++pickRunGeneration;
   pickModeInProgress = true;
   setPickButtonActive(true);
-  clearCaptureField(field);
   setStatus('On the page: drag to select text, or click one line. Esc cancels (here or on the page).');
   let tabId;
   try {
@@ -1242,6 +1288,7 @@ async function runPickModeForField(field) {
     endPickModeUi();
     return;
   }
+  clearCaptureField(field);
   attachPickEscapeListener(tabId);
   let response;
   try {

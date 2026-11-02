@@ -72,7 +72,9 @@
       </div>
       <p class="muted">
         Checkboxes save when changed. Report email saves when you leave the field or close Options.
-        Buttons appear only when the API returns a saved report (<code>moderationHistoryId</code>).
+        <strong>Review this Decision</strong>, email, and open report appear only when the API returns a saved report
+        (<code>moderationHistoryId</code>) — the same whether you typed the text or used
+        <strong>Click on Text to Moderate</strong> on a page.
         Full reports use the <strong>Card</strong> layout (same as Universal with saved card / email layout).
       </p>
     </section>
@@ -121,7 +123,7 @@
       </div>
       <div class="row checkbox-row">
         <input id="gemini-byok-enabled" type="checkbox" />
-        <label for="gemini-byok-enabled"
+        <label id="gemini-byok-enabled-label" for="gemini-byok-enabled"
           >Use my key for non-RAG moderations (must be on for Moderate to send your key; Test &amp; save
           always checks the key with Google)</label
         >
