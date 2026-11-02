@@ -18,6 +18,7 @@ import {
   isGeminiQuotaOrBillingIssue,
   GOOGLE_AI_STUDIO_KEYS_URL,
   geminiQuotaResultsHintHtml,
+  sanitizeModerationReason,
 } from '../lib/moderationResult.js';
 import { postShareReportEmail } from '../lib/shareReportEmailClient.js';
 import {
@@ -324,7 +325,7 @@ function setGeminiQuotaHelpStatus() {
   statusEl.replaceChildren();
   statusEl.append(
     document.createTextNode(
-      'Gemini API quota exceeded. Try again later or restore server billing (Universal/Render). Manage or create a key in ',
+      'Gemini API quota exceeded. Try again later. Manage or create a key in ',
     ),
   );
   const link = document.createElement('a');
@@ -338,11 +339,12 @@ function setGeminiQuotaHelpStatus() {
 
 /** @param {string} message */
 function setErrorStatus(message) {
-  if (isGeminiQuotaOrBillingIssue(message)) {
+  const msg = sanitizeModerationReason(message);
+  if (isGeminiQuotaOrBillingIssue(msg)) {
     setGeminiQuotaHelpStatus();
     return;
   }
-  setStatus(message, true);
+  setStatus(msg, true);
 }
 
 /**
@@ -583,7 +585,7 @@ resultsEl.addEventListener('click', (e) => {
 function renderResults(result, apiOrigin, flags) {
   rememberReportContext(result, apiOrigin);
   const decision = String(result.decision || 'Unknown');
-  const reasonPlain = String(result.reason || '');
+  const reasonPlain = sanitizeModerationReason(String(result.reason || ''));
   const breakdownPlain = String(result.decisionBreakdown || '');
   const category = formatReportCategory(result.reportCategory);
   const revision = escapeHtml(String(result.suggestedRevision || ''));
@@ -676,7 +678,7 @@ moderateBtn.addEventListener('click', async () => {
     };
     renderResults(response.result, response.meta?.apiOrigin, reportFlags);
     if (isModerationFailureResult(response.result)) {
-      const reason = String(response.result?.reason || '');
+      const reason = sanitizeModerationReason(String(response.result?.reason || ''));
       if (isGeminiQuotaOrBillingIssue(reason)) {
         setGeminiQuotaHelpStatus();
       } else {
