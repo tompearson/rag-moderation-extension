@@ -96,6 +96,7 @@
         Stored only in this browser (<code>chrome.storage.local</code>). Used for <strong>no RAG</strong> moderations when enabled — sent to Universal over HTTPS per request, not saved on the server.
         Get a key from
         <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a>.
+        Validation uses the API origin from <strong>Environment</strong> above (Production → airesearchdog.net; Local dev → requires <code>npm run dev:server</code> on port 3001).
       </p>
       <label for="gemini-api-key-input">Gemini API key</label>
       <input
