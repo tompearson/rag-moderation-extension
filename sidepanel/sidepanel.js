@@ -24,6 +24,8 @@ import {
 } from '../lib/usStates.js';
 import { createStatePicker } from '../lib/statePicker.js';
 import { resolveApiConfig } from '../lib/envProfiles.js';
+import { isByokActiveForProvider } from '../lib/geminiByok.js';
+import { STORAGE_KEYS } from '../lib/userSettings.js';
 import { ensureHostPermission } from '../lib/permissions.js';
 import { toggleOptionsPage } from '../lib/optionsPage.js';
 import {
@@ -50,6 +52,7 @@ const reportEmailNotNow = document.getElementById('report-email-not-now');
 const reportEmailClose = document.getElementById('report-email-close');
 const mainPanel = document.getElementById('main-panel');
 const connectionBadge = document.getElementById('connection-badge');
+const byokBadge = document.getElementById('byok-badge');
 const modalLocationPicker = createStatePicker(document.getElementById('modal-location'), {
   initialValue: DEFAULT_USER_LOCATION,
   triggerId: 'modal-location-trigger',
@@ -180,6 +183,14 @@ async function refreshConnectionBadge() {
   } else {
     connectionBadge.textContent = `${api.label} · (set custom URL in Options)`;
   }
+  await refreshByokBadge(settings);
+}
+
+async function refreshByokBadge(settingsIn) {
+  if (!byokBadge) return;
+  const settings = settingsIn || (await loadSettings());
+  const active = isByokActiveForProvider(settings);
+  byokBadge.classList.toggle('hidden', !active);
 }
 
 async function maybeMigrateStoredLocation(settings) {
@@ -846,11 +857,32 @@ pickContentBtn.addEventListener('click', () => {
 });
 
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area !== 'session') return;
-  const draftChange = changes[PENDING_DRAFT_SESSION_KEY];
-  if (!draftChange?.newValue) return;
-  applyPendingDraft(/** @type {import('../lib/pendingModerationDraft.js').PendingModerationDraft} */ (draftChange.newValue));
-  consumePendingModerationDraft().catch(() => {});
+  if (area === 'session') {
+    const draftChange = changes[PENDING_DRAFT_SESSION_KEY];
+    if (draftChange?.newValue) {
+      applyPendingDraft(
+        /** @type {import('../lib/pendingModerationDraft.js').PendingModerationDraft} */ (
+          draftChange.newValue
+        ),
+      );
+      consumePendingModerationDraft().catch(() => {});
+    }
+    return;
+  }
+  if (area !== 'local') return;
+  if (
+    changes[STORAGE_KEYS.geminiApiKey] ||
+    changes[STORAGE_KEYS.geminiByokEnabled] ||
+    changes[STORAGE_KEYS.ragProvider]
+  ) {
+    refreshByokBadge().catch(() => {});
+  }
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    refreshConnectionBadge().catch(() => {});
+  }
 });
 
 optionsBtn.addEventListener('click', () => {

@@ -41,6 +41,8 @@ Right-click extension icon → **Options**, or open from `chrome://extensions`.
 
 Host access uses `optional_host_permissions` + runtime grant before the first moderate.
 
+Optional **bring your own Gemini key** (non-RAG provider only): [docs/BYOK_GEMINI.md](docs/BYOK_GEMINI.md).
+
 ## Project layout
 
 ```

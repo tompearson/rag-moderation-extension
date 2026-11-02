@@ -15,6 +15,8 @@ import { closeOptionsPageIfOpen } from '../lib/optionsPage.js';
 import { normalizeReportEmail, isValidReportEmail } from '../lib/validateReportEmail.js';
 import { fillRagProviderSelect, DEFAULT_RAG_PROVIDER } from '../lib/ragProviders.js';
 import { isStoreBuild } from '../lib/buildConfig.js';
+import { validateGeminiKey, isRagProviderId } from '../lib/geminiByok.js';
+import { STORAGE_KEYS } from '../lib/userSettings.js';
 
 const envProfile = /** @type {HTMLSelectElement} */ (document.getElementById('env-profile'));
 const moderateTimeoutSec = /** @type {HTMLInputElement} */ (
@@ -40,6 +42,17 @@ const reportEmailEnabled = /** @type {HTMLInputElement} */ (document.getElementB
 const reportOpenTabEnabled = /** @type {HTMLInputElement} */ (
   document.getElementById('report-open-tab-enabled')
 );
+const geminiApiKeyInput = /** @type {HTMLInputElement} */ (
+  document.getElementById('gemini-api-key-input')
+);
+const geminiByokEnabled = /** @type {HTMLInputElement} */ (
+  document.getElementById('gemini-byok-enabled')
+);
+const geminiKeySaveBtn = document.getElementById('gemini-key-save');
+const geminiKeyRemoveBtn = document.getElementById('gemini-key-remove');
+const geminiByokStatus = document.getElementById('gemini-byok-status');
+const geminiKeySavedHint = document.getElementById('gemini-key-saved-hint');
+const byokRagHint = document.getElementById('byok-rag-hint');
 
 /** Ignore one storage event after we wrote userLocation from this page. */
 let skipLocationStorageSync = false;
@@ -69,6 +82,91 @@ function toggleCustomOrigin() {
 function setStatus(msg, isError = false) {
   saveStatus.textContent = msg || '';
   saveStatus.classList.toggle('error', isError);
+}
+
+function setGeminiByokStatus(msg, isError = false) {
+  if (!geminiByokStatus) return;
+  geminiByokStatus.textContent = msg || '';
+  geminiByokStatus.classList.toggle('error', isError);
+}
+
+function updateByokRagHint() {
+  if (!byokRagHint || !ragProvider || !geminiByokEnabled) return;
+  const showHint = geminiByokEnabled.checked && isRagProviderId(ragProvider.value);
+  byokRagHint.classList.toggle('hidden', !showHint);
+}
+
+async function syncGeminiByokFromStorage() {
+  const s = await loadSettings();
+  if (geminiByokEnabled) geminiByokEnabled.checked = s.geminiByokEnabled;
+  const hasKey = (s.geminiApiKey || '').trim().length >= 30;
+  if (geminiKeySavedHint) {
+    geminiKeySavedHint.classList.toggle('hidden', !hasKey);
+  }
+  if (geminiApiKeyInput) geminiApiKeyInput.value = '';
+  updateByokRagHint();
+}
+
+async function persistGeminiByokEnabled(showFeedback = false) {
+  await saveSettingsPatch({ geminiByokEnabled: geminiByokEnabled.checked });
+  updateByokRagHint();
+  if (showFeedback) setGeminiByokStatus('BYOK preference saved.');
+}
+
+async function resolveOptionsApiOrigin() {
+  const s = await loadSettings();
+  const api = resolveApiConfig(s.envProfileId, s.customApiOrigin);
+  return api.apiOrigin;
+}
+
+async function handleGeminiKeySave() {
+  setGeminiByokStatus('');
+  const raw = geminiApiKeyInput?.value.trim() || '';
+  if (!raw) {
+    setGeminiByokStatus('Enter a Gemini API key to test.', true);
+    return;
+  }
+  const apiOrigin = await resolveOptionsApiOrigin();
+  if (!apiOrigin) {
+    setGeminiByokStatus('Set a valid API origin in Environment first.', true);
+    return;
+  }
+  const granted = await ensureHostPermission(apiOrigin);
+  if (!granted) {
+    setGeminiByokStatus(`Grant host permission for ${apiOrigin} first.`, true);
+    return;
+  }
+  setGeminiByokStatus('Validating key…');
+  geminiKeySaveBtn?.setAttribute('disabled', 'true');
+  try {
+    const result = await validateGeminiKey(apiOrigin, raw);
+    if (!result.valid) {
+      setGeminiByokStatus(result.error || 'Key validation failed.', true);
+      return;
+    }
+    await saveSettingsPatch({
+      geminiApiKey: raw,
+      geminiByokEnabled: true,
+    });
+    if (geminiByokEnabled) geminiByokEnabled.checked = true;
+    if (geminiApiKeyInput) geminiApiKeyInput.value = '';
+    if (geminiKeySavedHint) geminiKeySavedHint.classList.remove('hidden');
+    updateByokRagHint();
+    setGeminiByokStatus(result.message || 'Key saved on this device.');
+  } catch (err) {
+    setGeminiByokStatus(err instanceof Error ? err.message : String(err), true);
+  } finally {
+    geminiKeySaveBtn?.removeAttribute('disabled');
+  }
+}
+
+async function handleGeminiKeyRemove() {
+  await saveSettingsPatch({ geminiApiKey: '', geminiByokEnabled: false });
+  if (geminiApiKeyInput) geminiApiKeyInput.value = '';
+  if (geminiByokEnabled) geminiByokEnabled.checked = false;
+  if (geminiKeySavedHint) geminiKeySavedHint.classList.add('hidden');
+  updateByokRagHint();
+  setGeminiByokStatus('Key removed from this device.');
 }
 
 async function syncStatePickerFromStorage() {
@@ -153,6 +251,7 @@ async function persistRagProvider(showFeedback = false) {
   try {
     const id = ragProvider.value.trim() || DEFAULT_RAG_PROVIDER;
     await saveSettingsPatch({ ragProvider: id });
+    updateByokRagHint();
     if (showFeedback) setStatus('Provider saved.');
   } finally {
     queueMicrotask(() => {
@@ -237,6 +336,7 @@ async function loadForm() {
   await syncReportSettingsFromStorage();
   await syncDevIdentityFromStorage();
   await syncStatePickerFromStorage();
+  await syncGeminiByokFromStorage();
 }
 
 async function refreshPermissionStatus() {
@@ -393,6 +493,13 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (changes.moderatorId || changes.deviceId || changes.ragProvider) {
     if (skipDevSettingsSync) return;
     syncDevIdentityFromStorage().catch(() => {});
+    updateByokRagHint();
+  }
+  if (
+    changes[STORAGE_KEYS.geminiApiKey] ||
+    changes[STORAGE_KEYS.geminiByokEnabled]
+  ) {
+    syncGeminiByokFromStorage().catch(() => {});
   }
   if (changes.moderateTimeoutSec) {
     loadSettings()
@@ -424,6 +531,24 @@ if (!isStoreBuild()) {
 ragProvider.addEventListener('change', () => {
   persistRagProvider(true).catch((err) => {
     setStatus(err instanceof Error ? err.message : String(err), true);
+  });
+});
+
+geminiKeySaveBtn?.addEventListener('click', () => {
+  handleGeminiKeySave().catch((err) => {
+    setGeminiByokStatus(err instanceof Error ? err.message : String(err), true);
+  });
+});
+
+geminiKeyRemoveBtn?.addEventListener('click', () => {
+  handleGeminiKeyRemove().catch((err) => {
+    setGeminiByokStatus(err instanceof Error ? err.message : String(err), true);
+  });
+});
+
+geminiByokEnabled?.addEventListener('change', () => {
+  persistGeminiByokEnabled(true).catch((err) => {
+    setGeminiByokStatus(err instanceof Error ? err.message : String(err), true);
   });
 });
 
@@ -459,6 +584,7 @@ document.addEventListener('visibilitychange', () => {
   syncReportSettingsFromStorage().catch(() => {});
   syncEnvFromStorage().catch(() => {});
   syncDevIdentityFromStorage().catch(() => {});
+  syncGeminiByokFromStorage().catch(() => {});
   loadSettings()
     .then((s) => {
       moderateTimeoutSec.value = String(s.moderateTimeoutSec);

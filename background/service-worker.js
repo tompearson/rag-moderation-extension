@@ -2,6 +2,7 @@ import { resolveApiConfig } from '../lib/envProfiles.js';
 import { hasHostPermission } from '../lib/permissions.js';
 import { postModerate } from '../lib/moderateClient.js';
 import { loadSettings, isFeedLocationConfirmed } from '../lib/userSettings.js';
+import { resolveUserApiKeyForModeration } from '../lib/geminiByok.js';
 import { moderateTimeoutMs } from '../lib/moderationTimeout.js';
 import { MODERATION_TARGET_TAB_SESSION_KEY } from '../lib/pageAccess.js';
 import { startPickModeOnActiveTab, settlePickModeMessage, cancelPickModeOnTab } from '../lib/pickMode.js';
@@ -64,6 +65,11 @@ async function runModeration(settings, payload, requestId, signal) {
   };
   if (payload.postContext && String(payload.postContext).trim()) {
     body.postContext = String(payload.postContext).trim().slice(0, 8000);
+  }
+
+  const userApiKey = resolveUserApiKeyForModeration(settings);
+  if (userApiKey) {
+    body.userApiKey = userApiKey;
   }
 
   const timeoutMs = moderateTimeoutMs(settings.moderateTimeoutSec);

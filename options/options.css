@@ -83,6 +83,19 @@ select {
   color: #64748b;
 }
 
+.actions-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.actions-inline button {
+  margin-top: 0;
+  width: auto;
+  flex: 1 1 140px;
+}
+
 .checkbox-row {
   display: flex;
   align-items: center;

@@ -15,6 +15,7 @@
 - Do **not** embed `RAG_SERVICE_SECRET` or Gemini keys in the extension package (extractable from CRX). That secret is only between Universal and first-rag-system ([RAG_SERVICE_SECRET_SYNC.md](https://github.com/tompearson/Moderation-Tool-Universal/blob/master/docs/guides/RAG_SERVICE_SECRET_SYNC.md) in the Universal repo).
 - RAG remains server-to-server: Universal → first-rag-system `POST /moderate`.
 - Extension calls **Universal only**: `POST {apiOrigin}/api/moderate` with `provider: NextDoor-prompt-production-28-rag`.
+- **BYOK (phase 1):** optional Gemini key in extension Options — stored locally, validated via `POST /api/providers` (`validateGeminiKey`), sent as `userApiKey` only for **non-RAG** provider. See [BYOK_GEMINI.md](./BYOK_GEMINI.md). Privacy policy must disclose user-supplied keys.
 
 ## Current v0 (sideload)
 

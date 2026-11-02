@@ -45,6 +45,13 @@ header {
   margin-bottom: 12px;
 }
 
+.badge.byok-badge {
+  margin-top: 6px;
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--fg);
+  border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--border));
+}
+
 .header-row {
   display: flex;
   align-items: center;

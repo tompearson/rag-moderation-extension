@@ -85,6 +85,36 @@
         <option value="NextDoor-prompt-production-28-rag">Nextdoor V28.0.114 (RAG)</option>
         <option value="NextDoor-prompt-production-28">Nextdoor V28.0.114 (no RAG)</option>
       </select>
+      <p id="byok-rag-hint" class="muted hidden">
+        RAG uses the server’s Gemini key on Render. Your personal key applies only to <strong>no RAG</strong> (phase 2 will add RAG BYOK).
+      </p>
+    </section>
+
+    <section id="section-gemini-byok">
+      <h2>Your Gemini API key (optional)</h2>
+      <p class="muted">
+        Stored only in this browser (<code>chrome.storage.local</code>). Used for <strong>no RAG</strong> moderations when enabled — sent to Universal over HTTPS per request, not saved on the server.
+        Get a key from
+        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a>.
+      </p>
+      <label for="gemini-api-key-input">Gemini API key</label>
+      <input
+        id="gemini-api-key-input"
+        type="password"
+        autocomplete="off"
+        spellcheck="false"
+        placeholder="Paste key to test and save"
+      />
+      <p id="gemini-key-saved-hint" class="muted hidden">A key is saved. Paste a new key to replace it, or use Remove.</p>
+      <div class="row actions-inline">
+        <button type="button" id="gemini-key-save" class="primary">Test &amp; save</button>
+        <button type="button" id="gemini-key-remove" class="secondary">Remove key</button>
+      </div>
+      <div class="row checkbox-row">
+        <input id="gemini-byok-enabled" type="checkbox" />
+        <label for="gemini-byok-enabled">Use my key for non-RAG moderations</label>
+      </div>
+      <p id="gemini-byok-status" class="status muted" aria-live="polite"></p>
     </section>
 
     <div class="options-close-row">

@@ -4,6 +4,7 @@
 
 - [Prerequisites](#prerequisites)
 - [Extension tests](#extension-tests)
+- [BYOK Gemini (optional)](#byok-gemini-optional)
 - [Sample content](#sample-content)
 - [Automated helper (client only)](#automated-helper-client-only)
 
@@ -54,6 +55,19 @@
 | 12 | Options → report email + enable **Email report** | **Email report** sends via API; status confirms |
 | 13 | Report toggles off | No report action buttons after moderate |
 | 14 | Factory reset | Location + optional report email dialogs again |
+
+## BYOK Gemini (optional)
+
+See [BYOK_GEMINI.md](./BYOK_GEMINI.md). Requires Universal with `POST /api/providers` validate (same deploy as production API).
+
+| # | Step | Expected |
+|---|------|----------|
+| B1 | Options → invalid key → **Test & save** | Error from server; nothing saved in storage |
+| B2 | Options → valid key → **Test & save** | Success; “Key saved”; input cleared; checkbox on |
+| B3 | Provider **no RAG**, BYOK on → side panel | Badge **Using your Gemini key** |
+| B4 | Switch provider to **RAG**, BYOK still on | Badge hidden; RAG hint visible in Options |
+| B5 | Moderate (no RAG + BYOK) | Uses your quota (not Render pool); no `userApiKey` sent when RAG selected |
+| B6 | **Remove key** or factory reset | Badge hidden; moderate without BYOK |
 
 ## Sample content
 
