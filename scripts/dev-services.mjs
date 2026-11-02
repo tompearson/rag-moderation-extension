@@ -6,7 +6,7 @@
  *   DEV_RAG_DIR=/path/to/first-rag-system
  *   DEV_UNIVERSAL_DIR=/path/to/Moderation-Tool-Universal
  */
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -42,6 +42,57 @@ const uvicorn = join(ragDir, '.venv', 'bin', 'uvicorn');
 if (!existsSync(uvicorn)) {
   console.error(`No uvicorn in ${ragDir}/.venv — create venv and install deps first.`);
   process.exit(1);
+}
+
+const DEV_PORTS = [8000, 3001];
+if (mode === 'full') DEV_PORTS.push(5173);
+
+/** @param {number} port */
+function pidsListeningOnPort(port) {
+  const r = spawnSync('lsof', ['-t', `-iTCP:${port}`, '-sTCP:LISTEN'], {
+    encoding: 'utf8',
+  });
+  if (r.error || r.status !== 0 || !r.stdout.trim()) return [];
+  return [...new Set(r.stdout.trim().split('\n').map((s) => s.trim()).filter(Boolean))];
+}
+
+/** @param {number} port */
+function freePort(port) {
+  let pids = pidsListeningOnPort(port);
+  if (!pids.length) return;
+
+  console.log(`Port ${port} in use (PID ${pids.join(', ')}) — stopping…`);
+  for (const pid of pids) {
+    const n = Number(pid);
+    if (n === process.pid) continue;
+    try {
+      process.kill(n, 'SIGTERM');
+    } catch {
+      /* already gone */
+    }
+  }
+
+  const deadline = Date.now() + 4000;
+  while (Date.now() < deadline) {
+    const waitUntil = Date.now() + 200;
+    while (Date.now() < waitUntil) {
+      /* brief pause for SIGTERM */
+    }
+    pids = pidsListeningOnPort(port);
+    if (!pids.length) return;
+  }
+
+  for (const pid of pids) {
+    try {
+      process.kill(Number(pid), 'SIGKILL');
+    } catch {
+      /* already gone */
+    }
+  }
+}
+
+function freeDevPorts() {
+  for (const port of DEV_PORTS) freePort(port);
 }
 
 /** @type {import('node:child_process').ChildProcess[]} */
@@ -84,6 +135,8 @@ if (mode === 'full') {
   console.log('Vite UI:     http://localhost:5173 (Universal npm run dev)');
 }
 console.log('Extension:   Options → Local dev, then Load unpacked from this repo.\n');
+
+freeDevPorts();
 
 run('rag', ragDir, uvicorn, ['rag_api:app', '--host', '127.0.0.1', '--port', '8000']);
 

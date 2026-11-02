@@ -17,8 +17,8 @@ Manifest V3 **side panel** extension for **Chrome** and **Microsoft Edge**. It c
 1. From this repo, start the local API stack (sibling checkouts: `first-rag-system`, `Moderation-Tool-Universal` under `~/Projects`):
 
    ```bash
-   npm run dev          # RAG :8000 + Universal API :3001 (enough for the extension)
-   npm run dev:full     # same + Universal Vite UI :5173
+   npm run dev          # frees :8000/:3001 if busy, then RAG + Universal API (extension)
+   npm run dev:full     # same + frees :5173; starts Universal Vite UI
    ```
 
    Override paths if needed: `DEV_RAG_DIR=… DEV_UNIVERSAL_DIR=… npm run dev`. Manual steps: [docs/SMOKE_TEST.md](./docs/SMOKE_TEST.md).
