@@ -2,6 +2,7 @@ import { resolveApiConfig, formatApiProfileUiLabel } from '../lib/envProfiles.js
 import { isApiOriginHostGranted } from '../lib/permissions.js';
 import { postModerate, moderateTimeoutMs } from '../lib/moderateClient.js';
 import { loadSettings, isFeedLocationConfirmed } from '../lib/userSettings.js';
+import { normalizeReportEmail, isValidReportEmail } from '../lib/validateReportEmail.js';
 import { resolveUserApiKeyForModeration } from '../lib/geminiByok.js';
 import { MODERATION_TARGET_TAB_SESSION_KEY } from '../lib/pageAccess.js';
 import { startPickModeOnActiveTab, settlePickModeMessage, cancelPickModeOnTab } from '../lib/pickMode.js';
@@ -70,6 +71,11 @@ async function runModeration(settings, payload, requestId, signal) {
   const userApiKey = resolveUserApiKeyForModeration(settings);
   if (userApiKey) {
     body.userApiKey = userApiKey;
+  }
+
+  const reporterEmail = normalizeReportEmail(settings.reportShareRecipientEmail);
+  if (reporterEmail && isValidReportEmail(reporterEmail)) {
+    body.reporterEmail = reporterEmail;
   }
 
   const timeoutMs = moderateTimeoutMs(settings.moderateTimeoutSec);

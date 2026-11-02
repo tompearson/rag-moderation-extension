@@ -780,6 +780,9 @@ async function sendReviewDecisionFromModal() {
     } catch {
       appVersion = null;
     }
+    const reporterEmail = normalizeReportEmail(settings.reportShareRecipientEmail);
+    const reporterForApi =
+      reporterEmail && isValidReportEmail(reporterEmail) ? reporterEmail : null;
     await postSubmitFeedback(apiOrigin, {
       moderationId,
       comment,
@@ -788,9 +791,14 @@ async function sendReviewDecisionFromModal() {
       provider: lastReportContext.provider,
       analysisType: lastReportContext.analysisType,
       appVersion,
+      reporterEmail: reporterForApi,
     });
     closeReviewDecisionModal();
-    setStatus('Feedback sent. It appears on the saved report and in Moderation Reports.');
+    setStatus(
+      reporterForApi
+        ? `Feedback sent. Your comment was emailed to ${reporterForApi} and saved on the report.`
+        : 'Feedback sent. Add a report email in Options to receive your comment by email.',
+    );
   } catch (err) {
     setReviewDecisionError(err instanceof Error ? err.message : String(err));
     if (reviewDecisionSend instanceof HTMLButtonElement) {
