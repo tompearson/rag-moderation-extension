@@ -468,6 +468,34 @@ button.link-btn:hover {
   opacity: 0.85;
 }
 
+.char-count {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  text-align: right;
+}
+
+.review-decision-preflight {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+}
+
+.review-decision-preflight.hidden {
+  display: none;
+}
+
+#review-decision-input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 4px;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg, transparent);
+  color: inherit;
+  font: inherit;
+  resize: vertical;
+}
+
 .report-actions {
   display: flex;
   flex-wrap: wrap;

@@ -47,6 +47,39 @@
       </div>
     </div>
 
+    <div
+      id="review-decision-modal"
+      class="modal hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="review-decision-modal-title"
+    >
+      <div class="modal-card email-send-mode">
+        <div class="modal-card-header">
+          <h2 id="review-decision-modal-title">Review this Decision</h2>
+          <button type="button" id="review-decision-close" class="modal-close" aria-label="Close">×</button>
+        </div>
+        <p id="review-decision-modal-desc" class="muted">
+          Your note is stored with this saved report (same as feedback on the full report page). For now it is
+          recorded as <strong>needs work</strong> (👎).
+        </p>
+        <p id="review-decision-preflight" class="muted review-decision-preflight hidden" aria-live="polite"></p>
+        <label for="review-decision-input">Your feedback</label>
+        <textarea
+          id="review-decision-input"
+          rows="5"
+          maxlength="1000"
+          placeholder="Is the decision wrong? What else is wrong?"
+        ></textarea>
+        <p id="review-decision-char-count" class="muted char-count">0 / 1000</p>
+        <p id="review-decision-error" class="error hidden"></p>
+        <div class="modal-actions">
+          <button type="button" id="review-decision-send" class="primary">Send it</button>
+          <button type="button" id="review-decision-cancel" class="secondary">Cancel</button>
+        </div>
+      </div>
+    </div>
+
     <header>
       <div class="header-row">
         <h1>RAG Moderation</h1>

@@ -53,7 +53,8 @@
 | 10 | Multi-paragraph | Drag from start of post through extra paragraphs → release → **Content** includes selected text |
 | 11 | Options → enable **Open full report**, moderate (prod + DB save) | **Open full report** on results opens production view URL |
 | 12 | Options → report email + enable **Email report** | **Email report** sends via API; status confirms |
-| 13 | Report toggles off | No report action buttons after moderate |
+| 12b | Saved report → **Review this Decision** → note → **Send it** | Success status; **Feedback** chip on Moderation Reports / Admin Query Submit Feedback (same `submitFeedback` as full report) |
+| 13 | Report toggles off (email/open) | **Review this Decision** still shown when `moderationHistoryId` present; email/open hidden |
 | 14 | Factory reset | Location + optional report email dialogs again |
 
 ## BYOK Gemini (optional)

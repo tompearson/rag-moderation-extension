@@ -21,6 +21,8 @@ import {
   sanitizeModerationReason,
 } from '../lib/moderationResult.js';
 import { postShareReportEmail } from '../lib/shareReportEmailClient.js';
+import { fetchFeedbackExists, postSubmitFeedback } from '../lib/submitFeedbackClient.js';
+import { getOrCreateFeedbackSessionId } from '../lib/feedbackSession.js';
 import {
   DEFAULT_USER_LOCATION,
   canonicalUsState,
@@ -60,6 +62,16 @@ const reportEmailModalDesc = document.getElementById('report-email-modal-desc');
 const reportEmailModalCard = reportEmailModal?.querySelector('.modal-card');
 const reportEmailRemoveRow = document.getElementById('report-email-remove-row');
 const reportEmailRemove = document.getElementById('report-email-remove');
+const reviewDecisionModal = document.getElementById('review-decision-modal');
+const reviewDecisionInput = /** @type {HTMLTextAreaElement} */ (
+  document.getElementById('review-decision-input')
+);
+const reviewDecisionError = document.getElementById('review-decision-error');
+const reviewDecisionPreflight = document.getElementById('review-decision-preflight');
+const reviewDecisionCharCount = document.getElementById('review-decision-char-count');
+const reviewDecisionSend = document.getElementById('review-decision-send');
+const reviewDecisionCancel = document.getElementById('review-decision-cancel');
+const reviewDecisionClose = document.getElementById('review-decision-close');
 const mainPanel = document.getElementById('main-panel');
 const connectionBadge = document.getElementById('connection-badge');
 const byokBadge = document.getElementById('byok-badge');
@@ -92,12 +104,23 @@ let moderationElapsedTimer = null;
 /** @type {string | null} */
 let activeModerationRequestId = null;
 
-/** @type {{ moderationHistoryId: string | null; moderationReportUrl: string | null; apiOrigin: string | null }} */
+/** @type {{
+ *   moderationHistoryId: string | null;
+ *   moderationReportUrl: string | null;
+ *   apiOrigin: string | null;
+ *   provider: string | null;
+ *   analysisType: string | null;
+ * }} */
 let lastReportContext = {
   moderationHistoryId: null,
   moderationReportUrl: null,
   apiOrigin: null,
+  provider: null,
+  analysisType: null,
 };
+
+/** @type {boolean} */
+let reviewDecisionSubmitBlocked = false;
 
 /** @type {'onboarding' | 'sendReport'} */
 let reportEmailModalMode = 'onboarding';
@@ -117,7 +140,8 @@ function statePickerBusy() {
 function syncMainPanelBlocked() {
   const locationOpen = modal && !modal.classList.contains('hidden');
   const emailOpen = reportEmailModal && !reportEmailModal.classList.contains('hidden');
-  const blocked = locationOpen || emailOpen;
+  const reviewOpen = reviewDecisionModal && !reviewDecisionModal.classList.contains('hidden');
+  const blocked = locationOpen || emailOpen || reviewOpen;
   mainPanel.classList.toggle('blocked', blocked);
   mainPanel.setAttribute('aria-hidden', blocked ? 'true' : 'false');
 }
@@ -355,12 +379,26 @@ reportEmailRemove?.addEventListener('click', () => {
 });
 
 document.addEventListener('keydown', (e) => {
-  if (e.key !== 'Escape' || !reportEmailModal || reportEmailModal.classList.contains('hidden')) {
+  if (e.key !== 'Escape') return;
+  if (reviewDecisionModal && !reviewDecisionModal.classList.contains('hidden')) {
+    e.preventDefault();
+    closeReviewDecisionModal();
     return;
   }
-  e.preventDefault();
-  dismissReportEmailModal().catch(() => {});
+  if (reportEmailModal && !reportEmailModal.classList.contains('hidden')) {
+    e.preventDefault();
+    dismissReportEmailModal().catch(() => {});
+  }
 });
+
+reviewDecisionCancel?.addEventListener('click', () => closeReviewDecisionModal());
+reviewDecisionClose?.addEventListener('click', () => closeReviewDecisionModal());
+reviewDecisionSend?.addEventListener('click', () => {
+  sendReviewDecisionFromModal().catch((err) => {
+    setReviewDecisionError(err instanceof Error ? err.message : String(err));
+  });
+});
+reviewDecisionInput?.addEventListener('input', () => updateReviewDecisionCharCount());
 
 locationPicker.onChange(async (selected) => {
   const settings = await loadSettings();
@@ -533,8 +571,9 @@ function buildReportActionsHtml(result, apiOrigin, flags) {
   });
   const canOpen = flags.reportOpenTabEnabled && openUrl;
   const canEmail = flags.reportEmailEnabled && historyId;
+  const canReview = !!historyId;
 
-  if (!canOpen && !canEmail) {
+  if (!canOpen && !canEmail && !canReview) {
     if (!wantsActions) return '';
     return (
       '<p class="muted report-actions-hint">Turn on <strong>Email report</strong> and/or <strong>Open full report</strong> under Options → Saved full report.</p>'
@@ -552,6 +591,11 @@ function buildReportActionsHtml(result, apiOrigin, flags) {
       '<button type="button" class="secondary small-btn email-report-btn">Email report</button>',
     );
   }
+  if (canReview) {
+    parts.push(
+      '<button type="button" class="secondary small-btn review-decision-btn">Review this Decision</button>',
+    );
+  }
   parts.push('</div>');
   return parts.join('');
 }
@@ -560,6 +604,30 @@ function buildReportActionsHtml(result, apiOrigin, flags) {
  * @param {Record<string, unknown>} result
  * @param {string | null | undefined} apiOrigin
  */
+/**
+ * @param {Record<string, unknown>} result
+ * @returns {string | null}
+ */
+function providerNameFromResult(result) {
+  const p = result.provider;
+  if (p && typeof p === 'object') {
+    const name = /** @type {{ name?: string }} */ (p).name;
+    if (typeof name === 'string' && name.trim()) return name.trim();
+  }
+  if (typeof p === 'string' && p.trim()) return p.trim();
+  return null;
+}
+
+/**
+ * @param {Record<string, unknown>} result
+ * @returns {string | null}
+ */
+function analysisTypeFromResult(result) {
+  const fromResult = result.analysisType;
+  if (typeof fromResult === 'string' && fromResult.trim()) return fromResult.trim();
+  return analysisSelect?.value || null;
+}
+
 function rememberReportContext(result, apiOrigin) {
   const historyId = normalizeModerationHistoryId(result.moderationHistoryId);
   const reportUrl =
@@ -568,7 +636,168 @@ function rememberReportContext(result, apiOrigin) {
     moderationHistoryId: historyId,
     moderationReportUrl: reportUrl || null,
     apiOrigin: apiOrigin || null,
+    provider: providerNameFromResult(result),
+    analysisType: analysisTypeFromResult(result),
   };
+}
+
+function setReviewDecisionError(msg) {
+  if (!reviewDecisionError) return;
+  if (!msg) {
+    reviewDecisionError.classList.add('hidden');
+    reviewDecisionError.textContent = '';
+    return;
+  }
+  reviewDecisionError.textContent = msg;
+  reviewDecisionError.classList.remove('hidden');
+}
+
+function setReviewDecisionPreflight(msg) {
+  if (!reviewDecisionPreflight) return;
+  if (!msg) {
+    reviewDecisionPreflight.classList.add('hidden');
+    reviewDecisionPreflight.textContent = '';
+    return;
+  }
+  reviewDecisionPreflight.textContent = msg;
+  reviewDecisionPreflight.classList.remove('hidden');
+}
+
+function updateReviewDecisionCharCount() {
+  if (!reviewDecisionCharCount || !reviewDecisionInput) return;
+  const n = reviewDecisionInput.value.length;
+  reviewDecisionCharCount.textContent = `${n} / 1000`;
+}
+
+function showReviewDecisionModal(show) {
+  if (!reviewDecisionModal) return;
+  reviewDecisionModal.classList.toggle('hidden', !show);
+  syncMainPanelBlocked();
+  if (show) {
+    setReviewDecisionError('');
+    updateReviewDecisionCharCount();
+    reviewDecisionInput?.focus();
+  }
+}
+
+function closeReviewDecisionModal() {
+  reviewDecisionSubmitBlocked = false;
+  setReviewDecisionPreflight('');
+  setReviewDecisionError('');
+  if (reviewDecisionSend instanceof HTMLButtonElement) {
+    reviewDecisionSend.disabled = false;
+    reviewDecisionSend.textContent = 'Send it';
+  }
+  showReviewDecisionModal(false);
+}
+
+async function openReviewDecisionModal() {
+  const moderationId = lastReportContext.moderationHistoryId;
+  const apiOrigin = lastReportContext.apiOrigin;
+  if (!moderationId || !apiOrigin) {
+    setStatus('No saved report id for feedback.', true);
+    return;
+  }
+
+  reviewDecisionSubmitBlocked = false;
+  setReviewDecisionPreflight('Checking prior feedback…');
+  setReviewDecisionError('');
+  if (reviewDecisionInput) reviewDecisionInput.value = '';
+  showReviewDecisionModal(true);
+
+  try {
+    const settings = await loadSettings();
+    const permitted = await ensureHostPermission(apiOrigin);
+    if (!permitted) {
+      const api = resolveApiConfig(settings.envProfileId, settings.customApiOrigin);
+      closeReviewDecisionModal();
+      setStatus(
+        `Host permission required for ${formatApiProfileUiLabel(api)}. Allow access in Options.`,
+        true,
+      );
+      return;
+    }
+
+    const status = await fetchFeedbackExists(apiOrigin, moderationId);
+    if (status.exists && !status.canSubmitAgain) {
+      reviewDecisionSubmitBlocked = true;
+      setReviewDecisionPreflight(
+        'You already submitted feedback for this report. Open the full report and use Discuss to unlock another submission.',
+      );
+      if (reviewDecisionSend instanceof HTMLButtonElement) reviewDecisionSend.disabled = true;
+    } else if (status.exists && status.canSubmitAgain) {
+      setReviewDecisionPreflight('You submitted feedback before; you can send an updated note.');
+    } else {
+      setReviewDecisionPreflight('');
+    }
+  } catch (err) {
+    setReviewDecisionPreflight('');
+    setReviewDecisionError(err instanceof Error ? err.message : String(err));
+  }
+}
+
+async function sendReviewDecisionFromModal() {
+  if (reviewDecisionSubmitBlocked) return;
+
+  const moderationId = lastReportContext.moderationHistoryId;
+  const apiOrigin = lastReportContext.apiOrigin;
+  if (!moderationId || !apiOrigin) {
+    setReviewDecisionError('No saved report id for feedback.');
+    return;
+  }
+
+  const comment = reviewDecisionInput?.value.trim() ?? '';
+  if (!comment) {
+    setReviewDecisionError('Enter your feedback before sending.');
+    return;
+  }
+  if (comment.length > 1000) {
+    setReviewDecisionError('Feedback must be 1000 characters or fewer.');
+    return;
+  }
+
+  const settings = await loadSettings();
+  const permitted = await ensureHostPermission(apiOrigin);
+  if (!permitted) {
+    const api = resolveApiConfig(settings.envProfileId, settings.customApiOrigin);
+    setReviewDecisionError(
+      `Host permission required for ${formatApiProfileUiLabel(api)}. Grant access in Options.`,
+    );
+    return;
+  }
+
+  if (reviewDecisionSend instanceof HTMLButtonElement) {
+    reviewDecisionSend.disabled = true;
+    reviewDecisionSend.textContent = 'Sending…';
+  }
+  setReviewDecisionError('');
+
+  try {
+    const feedbackSessionId = await getOrCreateFeedbackSessionId();
+    let appVersion = null;
+    try {
+      appVersion = chrome.runtime.getManifest().version;
+    } catch {
+      appVersion = null;
+    }
+    await postSubmitFeedback(apiOrigin, {
+      moderationId,
+      comment,
+      feedbackSessionId,
+      rating: -1,
+      provider: lastReportContext.provider,
+      analysisType: lastReportContext.analysisType,
+      appVersion,
+    });
+    closeReviewDecisionModal();
+    setStatus('Feedback sent. It appears on the saved report and in Moderation Reports.');
+  } catch (err) {
+    setReviewDecisionError(err instanceof Error ? err.message : String(err));
+    if (reviewDecisionSend instanceof HTMLButtonElement) {
+      reviewDecisionSend.disabled = false;
+      reviewDecisionSend.textContent = 'Send it';
+    }
+  }
 }
 
 async function handleOpenReportClick() {
@@ -682,6 +911,13 @@ resultsEl.addEventListener('click', (e) => {
   const emailBtn = target?.closest?.('.email-report-btn');
   if (emailBtn && resultsEl.contains(emailBtn)) {
     handleEmailReportClick(emailBtn).catch((err) => {
+      setStatus(err instanceof Error ? err.message : String(err), true);
+    });
+    return;
+  }
+  const reviewBtn = target?.closest?.('.review-decision-btn');
+  if (reviewBtn && resultsEl.contains(reviewBtn)) {
+    openReviewDecisionModal().catch((err) => {
       setStatus(err instanceof Error ? err.message : String(err), true);
     });
     return;
