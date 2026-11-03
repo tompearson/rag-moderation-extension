@@ -20,7 +20,10 @@ import {
   hasSavedGeminiKey,
   isRagProviderId,
 } from '../lib/geminiByok.js';
-import { GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL } from '../lib/geminiKeyUserHelp.js';
+import {
+  GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL,
+  EXTENSION_PRIVACY_POLICY_URL,
+} from '../lib/geminiKeyUserHelp.js';
 import {
   FOCUS_GEMINI_KEY_SETUP,
   GEMINI_BYOK_OPTIONS_HASH,
@@ -79,6 +82,10 @@ const geminiApiKeyLabel = document.querySelector('label[for="gemini-api-key-inpu
 const geminiKeyGuideLink = document.getElementById('gemini-key-guide-link');
 if (geminiKeyGuideLink) {
   geminiKeyGuideLink.href = GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL;
+}
+const extensionPrivacyLink = document.getElementById('extension-privacy-link');
+if (extensionPrivacyLink) {
+  extensionPrivacyLink.href = EXTENSION_PRIVACY_POLICY_URL;
 }
 const byokRagHint = document.getElementById('byok-rag-hint');
 const geminiByokDetailsToggle = document.getElementById('gemini-byok-details-toggle');
