@@ -3,3 +3,4 @@
 *.pem
 .zip
 dist/
+node_modules/

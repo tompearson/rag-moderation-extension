@@ -12,30 +12,50 @@
       <h1>Options</h1>
       <button type="button" class="close-options secondary header-btn">Close</button>
     </header>
-    <p id="options-version" class="muted"></p>
-    <p class="muted">API calls go to Community Moderation Tool Universal (<code>/api/moderate</code> with the RAG provider). Secrets stay on the server.</p>
 
-    <section id="section-environment">
-      <h2>Environment</h2>
-      <div id="env-profile-controls">
-        <label for="env-profile">Profile</label>
-        <p class="muted">Saves when you change the profile. Custom origin saves on blur or when you leave the field.</p>
-        <select id="env-profile">
-          <option value="local">Local dev</option>
-          <option value="production">Production</option>
-          <option value="custom">Custom origin</option>
-        </select>
+    <details class="options-advanced-panel" id="section-environment">
+      <summary>Advanced</summary>
+      <div class="options-advanced-panel__body">
+        <div id="env-profile-controls">
+          <label for="env-profile">Profile</label>
+          <p class="muted">Saves when you change the profile. Custom origin saves on blur or when you leave the field.</p>
+          <select id="env-profile">
+            <option value="local">Local dev</option>
+            <option value="production">Production</option>
+            <option value="custom">Custom origin</option>
+          </select>
 
-        <label for="custom-origin">Custom API origin (https://host, no path)</label>
-        <input id="custom-origin" type="url" placeholder="https://example.com" disabled />
+          <label for="custom-origin">Custom API origin (https://host, no path)</label>
+          <input id="custom-origin" type="url" placeholder="https://example.com" disabled />
+        </div>
+        <p id="env-store-note" class="muted" hidden>
+          This build uses the <strong>Production</strong> profile.
+        </p>
+
+        <button type="button" id="grant-permission" class="secondary">Grant host permission for current origin</button>
+        <p id="permission-status" class="muted"></p>
+
+        <div class="options-advanced-subsection">
+          <h3 class="options-subsection-title">Platform intelligence</h3>
+          <p class="muted">Same as Universal’s first two providers. Saves when you change the selection.</p>
+          <label for="rag-provider">Provider</label>
+          <select id="rag-provider">
+            <option value="NextDoor-prompt-production-28-rag">Nextdoor V28.0.114 (RAG)</option>
+            <option value="NextDoor-prompt-production-28">Nextdoor V28.0.114 (no RAG)</option>
+          </select>
+          <p id="byok-rag-hint" class="muted hidden"></p>
+        </div>
+
+        <div class="options-advanced-subsection" id="section-dev-identity">
+          <h3 class="options-subsection-title">Moderation identity (dev)</h3>
+          <p class="muted">Saves when you leave each field or close Options.</p>
+          <label for="moderator-id">moderatorId</label>
+          <input id="moderator-id" type="text" />
+          <label for="device-id">deviceId</label>
+          <input id="device-id" type="text" />
+        </div>
       </div>
-      <p id="env-store-note" class="muted" hidden>
-        This build uses the <strong>Production</strong> profile.
-      </p>
-
-      <button type="button" id="grant-permission" class="secondary">Grant host permission for current origin</button>
-      <p id="permission-status" class="muted"></p>
-    </section>
+    </details>
 
     <section>
       <h2>Moderation request</h2>
@@ -58,88 +78,73 @@
       <h2>Saved full report</h2>
       <label for="report-share-email">Report email</label>
       <input id="report-share-email" type="email" autocomplete="email" placeholder="you@example.com" />
-      <p class="muted">
-        Optional. Used when you click <strong>Email report</strong> in the side panel (sent in the API request).
-        If mail still lands elsewhere, the production server may override delivery via <code>RESEND_REPORT_TO</code>.
-      </p>
       <div class="row checkbox-row">
         <input id="report-email-enabled" type="checkbox" checked />
         <label for="report-email-enabled">Enable “Email report” on results</label>
       </div>
-      <div class="row checkbox-row">
-        <input id="report-open-tab-enabled" type="checkbox" checked />
-        <label for="report-open-tab-enabled">Enable “Open full report in new tab” on results</label>
+    </section>
+
+    <section id="section-gemini-byok" class="gemini-byok-section">
+      <h2>Your Gemini API key (recommended)</h2>
+      <p class="muted">
+        Stored only in this browser. When enabled, your key is sent over HTTPS for each moderation (your Google quota,
+        not the shared pool). Get a key from
+        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a>
+        (<a
+          id="gemini-key-guide-link"
+          href="https://www.airesearchdog.net/extension/get-gemini-api-key#extension"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Step-by-step guide</a
+        >). <strong>Save key</strong> checks your key with Google first.
+      </p>
+      <div class="field-header">
+        <label for="gemini-api-key-input">Gemini API key</label>
+        <button type="button" id="gemini-key-paste" class="small-btn" title="Paste from clipboard">
+          Paste
+        </button>
       </div>
-      <p class="muted">
-        Checkboxes save when changed. Report email saves when you leave the field or close Options.
-        <strong>Review this Decision</strong>, email, and open report appear only when the API returns a saved report
-        (<code>moderationHistoryId</code>) — the same whether you typed the text or used
-        <strong>Click on Text to Moderate</strong> on a page.
-        Full reports use the <strong>Card</strong> layout (same as Universal with saved card / email layout).
-      </p>
-    </section>
-
-    <section>
-      <h2>Platform intelligence</h2>
-      <p class="muted">Same as Universal’s first two providers. Saves when you change the selection.</p>
-      <label for="rag-provider">Provider</label>
-      <select id="rag-provider">
-        <option value="NextDoor-prompt-production-28-rag">Nextdoor V28.0.114 (RAG)</option>
-        <option value="NextDoor-prompt-production-28">Nextdoor V28.0.114 (no RAG)</option>
-      </select>
-      <p id="byok-rag-hint" class="muted hidden"></p>
-    </section>
-
-    <section id="section-gemini-byok">
-      <h2>Your Gemini API key (optional)</h2>
-      <p class="muted">
-        Stored only in this browser (<code>chrome.storage.local</code>). When enabled, sent over HTTPS per moderation (Universal for no RAG; RAG service for embed + chat) — not saved on the server.
-        Get a key from
-        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a>.
-        <strong>Test &amp; save</strong> checks your key directly with Google. Moderation uses the profile from <strong>Environment</strong> above (Production in store builds).
-      </p>
-      <label for="gemini-api-key-input">Gemini API key</label>
       <input
         id="gemini-api-key-input"
         type="password"
         autocomplete="off"
         spellcheck="false"
-        placeholder="Paste key to test and save"
+        placeholder="Paste key to save"
+        aria-describedby="gemini-key-field-error gemini-key-saved-hint"
       />
+      <p id="gemini-key-field-error" class="gemini-key-field-error hidden" role="alert"></p>
       <p id="gemini-key-saved-hint" class="muted hidden">A key is saved. Paste a new key to replace it, or use Remove.</p>
       <div class="row actions-inline">
-        <button type="button" id="gemini-key-save" class="primary">Test &amp; save</button>
+        <button type="button" id="gemini-key-save" class="primary">Save key</button>
         <button type="button" id="gemini-key-remove" class="secondary">Remove key</button>
       </div>
-      <div class="row checkbox-row">
-        <input id="gemini-rag-style-test" type="checkbox" />
-        <label for="gemini-rag-style-test"
-          >Also test RAG-style (<code>embedContent</code> + <code>gemini-2.5-flash-lite</code>, same models as
-          first-rag-system). Predicts free-tier embed/chat quota for your key.</label
-        >
-      </div>
+      <details class="byok-advanced">
+        <summary>Advanced</summary>
+        <div class="row checkbox-row">
+          <input id="gemini-rag-style-test" type="checkbox" />
+          <label for="gemini-rag-style-test"
+            >Also check RAG search + AI when saving (uses extra Google quota). When a RAG provider is selected above,
+            this check runs automatically.</label
+          >
+        </div>
+      </details>
       <div class="row checkbox-row">
         <input id="gemini-byok-enabled" type="checkbox" />
-        <label id="gemini-byok-enabled-label" for="gemini-byok-enabled"
-          >Use my key for moderations (RAG and no RAG; must be on for Moderate to send your key; Test &amp; save
-          always checks the key with Google)</label
-        >
+        <label id="gemini-byok-enabled-label" for="gemini-byok-enabled">Turn on my key for moderations (recommend)</label>
       </div>
       <p id="gemini-byok-status" class="status muted" aria-live="polite"></p>
+      <button type="button" id="gemini-byok-details-toggle" class="secondary hidden">Details</button>
+      <ul id="gemini-byok-details-list" class="muted hidden"></ul>
+      <div id="gemini-byok-turn-on-row" class="row actions-inline hidden" role="group" aria-label="Use saved key">
+        <span class="muted">Use this key for moderations?</span>
+        <button type="button" id="gemini-byok-turn-on" class="primary">Turn on</button>
+        <button type="button" id="gemini-byok-turn-on-dismiss" class="secondary">Not now</button>
+      </div>
     </section>
 
     <div class="options-close-row">
       <button type="button" class="close-options secondary">Close</button>
     </div>
-
-    <section id="section-dev-identity">
-      <h2>Moderation identity (dev)</h2>
-      <p class="muted">Saves when you leave each field or close Options.</p>
-      <label for="moderator-id">moderatorId</label>
-      <input id="moderator-id" type="text" />
-      <label for="device-id">deviceId</label>
-      <input id="device-id" type="text" />
-    </section>
 
     <section>
       <h2>Feed location</h2>
@@ -152,7 +157,6 @@
         <button type="button" id="save" class="primary">Save all settings</button>
         <button type="button" id="reset-location" class="danger">Reset location (show first-run dialog)</button>
       </div>
-      <p class="muted">Feed location saves when you pick a state. <strong>Save all settings</strong> flushes any field still being edited.</p>
       <p id="save-status" class="status muted" aria-live="polite"></p>
     </section>
 

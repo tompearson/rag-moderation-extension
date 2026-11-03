@@ -87,7 +87,24 @@
         <button type="button" id="options-btn" class="header-btn options-toggle-btn">Options</button>
       </div>
       <p id="connection-badge" class="badge muted">Connecting…</p>
-      <p id="byok-badge" class="badge byok-badge hidden" aria-live="polite">Using your Gemini key</p>
+      <button
+        type="button"
+        id="byok-badge"
+        class="badge byok-badge byok-badge--off"
+        aria-live="polite"
+        aria-pressed="false"
+        title="Your key for moderations — click to turn on or off"
+      >
+        Your key · Off
+      </button>
+      <p class="muted byok-guide-link">
+        <a
+          href="https://www.airesearchdog.net/extension/get-gemini-api-key#extension"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Get a Gemini key (guide)</a
+        >
+      </p>
     </header>
 
     <main id="main-panel" class="blocked" aria-hidden="true">

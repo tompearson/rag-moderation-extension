@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
 import {
+  formatGeminiKeySuffixLabel,
+  geminiKeyLastFour,
+  hasSavedGeminiKey,
   isByokConfigured,
   isByokActiveForProvider,
   resolveUserApiKeyForModeration,
@@ -14,7 +17,13 @@ const base = {
 };
 
 assert.equal(isRagProviderId(base.ragProvider), true);
+assert.equal(hasSavedGeminiKey(base), true);
+assert.equal(hasSavedGeminiKey({ geminiApiKey: '' }), false);
+assert.equal(geminiKeyLastFour('AIzaSyABCDEF1234567890'), '7890');
+assert.equal(formatGeminiKeySuffixLabel('AIzaSyABCDEF1234567890'), '…7890');
 assert.equal(isByokConfigured(base), true);
+assert.equal(isByokConfigured({ ...base, geminiByokEnabled: false }), false);
+assert.equal(isByokConfigured({ ...base, geminiApiKey: '' }), false);
 assert.equal(isByokActiveForProvider(base), true);
 assert.equal(resolveUserApiKeyForModeration(base), key);
 

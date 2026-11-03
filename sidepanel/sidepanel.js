@@ -30,10 +30,11 @@ import {
 } from '../lib/usStates.js';
 import { createStatePicker } from '../lib/statePicker.js';
 import { resolveApiConfig, formatApiProfileUiLabel } from '../lib/envProfiles.js';
-import { isByokConfigured } from '../lib/geminiByok.js';
+import { hasSavedGeminiKey, isByokConfigured } from '../lib/geminiByok.js';
+import { GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL } from '../lib/geminiKeyUserHelp.js';
 import { STORAGE_KEYS } from '../lib/userSettings.js';
 import { ensureHostPermission } from '../lib/permissions.js';
-import { toggleOptionsPage } from '../lib/optionsPage.js';
+import { openOptionsPage, toggleOptionsPage } from '../lib/optionsPage.js';
 import { EXTENSION_UI_SYNC } from '../lib/extensionUiSync.js';
 import {
   PENDING_DRAFT_SESSION_KEY,
@@ -43,7 +44,7 @@ import { prepareTabCaptureFromSidePanel } from '../lib/prepareTabCapture.js';
 import {
   decisionClass,
   formatReportCategory,
-  renderRagSourcesHtml,
+  renderRagSourcesFoldHtml,
   renderContextImpactHtml,
   escapeHtml,
 } from '../lib/formatters.js';
@@ -75,6 +76,10 @@ const reviewDecisionClose = document.getElementById('review-decision-close');
 const mainPanel = document.getElementById('main-panel');
 const connectionBadge = document.getElementById('connection-badge');
 const byokBadge = document.getElementById('byok-badge');
+const byokGuideLink = document.querySelector('.byok-guide-link a');
+if (byokGuideLink) {
+  byokGuideLink.href = GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL;
+}
 const modalLocationPicker = createStatePicker(document.getElementById('modal-location'), {
   initialValue: DEFAULT_USER_LOCATION,
   triggerId: 'modal-location-trigger',
@@ -91,6 +96,7 @@ const postContextInput = /** @type {HTMLTextAreaElement} */ (document.getElement
 const analysisSelect = /** @type {HTMLSelectElement} */ (document.getElementById('analysis-type'));
 const badWordsCheckbox = /** @type {HTMLInputElement} */ (document.getElementById('bad-words-enabled'));
 const moderateBtn = document.getElementById('moderate-btn');
+const MODERATE_BTN_PROMPT_CLASS = 'moderate-btn-prompt';
 const clearBtn = document.getElementById('clear-btn');
 const moderationProgress = document.getElementById('moderation-progress');
 const moderationElapsed = document.getElementById('moderation-elapsed');
@@ -319,9 +325,53 @@ async function refreshConnectionBadge() {
 async function refreshByokBadge(settingsIn) {
   if (!byokBadge) return;
   const settings = settingsIn || (await loadSettings());
-  const active = isByokConfigured(settings);
-  byokBadge.classList.toggle('hidden', !active);
-  byokBadge.hidden = !active;
+  const hasKey = hasSavedGeminiKey(settings);
+  const on = isByokConfigured(settings);
+
+  byokBadge.classList.remove('hidden', 'byok-badge--on', 'byok-badge--off', 'byok-badge--no-key');
+  byokBadge.hidden = false;
+
+  if (on) {
+    byokBadge.classList.add('byok-badge--on');
+    byokBadge.textContent = 'Your key · On';
+    byokBadge.title = 'Moderations use your Gemini key — click to turn off';
+    byokBadge.setAttribute('aria-pressed', 'true');
+  } else if (hasKey) {
+    byokBadge.classList.add('byok-badge--off');
+    byokBadge.textContent = 'Your key · Off';
+    byokBadge.title = 'Saved key not used — click to turn on';
+    byokBadge.setAttribute('aria-pressed', 'false');
+  } else {
+    byokBadge.classList.add('byok-badge--off', 'byok-badge--no-key');
+    byokBadge.textContent = 'Your key · Off';
+    byokBadge.title = 'No key saved — click to open Options and Save key';
+    byokBadge.setAttribute('aria-pressed', 'false');
+  }
+}
+
+async function handleByokBadgeClick() {
+  const settings = await loadSettings();
+  const hasKey = hasSavedGeminiKey(settings);
+  const on = isByokConfigured(settings);
+
+  if (!hasKey) {
+    setStatus('No Gemini key saved. In Options, paste your key and choose Save key.', true);
+    await openOptionsPage({ focusGeminiKey: true });
+    return;
+  }
+
+  try {
+    if (on) {
+      await saveSettingsPatch({ geminiByokEnabled: false });
+      setStatus('Your key is off — moderations use the shared pool.');
+    } else {
+      await saveSettingsPatch({ geminiByokEnabled: true });
+      setStatus('Your key is on for moderations.');
+    }
+    await refreshByokBadge(await loadSettings());
+  } catch (err) {
+    setStatus(err instanceof Error ? err.message : String(err), true);
+  }
 }
 
 /** Pull latest settings into header badges, location picker, etc. */
@@ -492,7 +542,18 @@ function setErrorStatus(message) {
 /**
  * @param {number} timeoutSec
  */
+function startModerateBtnPrompt() {
+  if (!(moderateBtn instanceof HTMLButtonElement) || moderateBtn.disabled) return;
+  if (!contentInput.value.trim()) return;
+  moderateBtn.classList.add(MODERATE_BTN_PROMPT_CLASS);
+}
+
+function stopModerateBtnPrompt() {
+  moderateBtn?.classList.remove(MODERATE_BTN_PROMPT_CLASS);
+}
+
 function startModerationProgress(timeoutSec) {
+  stopModerateBtnPrompt();
   moderationProgress.classList.remove('hidden');
   moderationLimit.textContent = `/ ${timeoutSec}s max`;
   moderationElapsed.textContent = '0.0s';
@@ -572,7 +633,6 @@ async function copyElementTextToClipboard(elementId, button) {
  * @param {{ reportEmailEnabled: boolean; reportOpenTabEnabled: boolean }} flags
  */
 function buildReportActionsHtml(result, apiOrigin, flags) {
-  const wantsActions = flags.reportEmailEnabled || flags.reportOpenTabEnabled;
   if (!hasSavedReportForActions(result)) {
     return (
       '<p class="muted report-actions-hint">No saved report from the API — <strong>Review this Decision</strong> and report buttons need a stored record. Use <strong>Production</strong> (or local Universal with <code>AUTO_SAVE_TO_DB=true</code> and Supabase), then moderate again.</p>'
@@ -587,14 +647,13 @@ function buildReportActionsHtml(result, apiOrigin, flags) {
     moderationHistoryId: historyId,
     moderationReportUrl: reportUrl,
   });
-  const canOpen = flags.reportOpenTabEnabled && openUrl;
+  const canOpen = !!openUrl;
   const canEmail = flags.reportEmailEnabled && historyId;
   const canReview = !!historyId;
 
   if (!canOpen && !canEmail && !canReview) {
-    if (!wantsActions) return '';
     return (
-      '<p class="muted report-actions-hint">Turn on <strong>Email report</strong> and/or <strong>Open full report</strong> under Options → Saved full report.</p>'
+      '<p class="muted report-actions-hint">Turn on <strong>Email report</strong> under Options → Saved full report if you want email.</p>'
     );
   }
 
@@ -995,8 +1054,7 @@ function renderResults(result, apiOrigin, flags) {
     ${mode ? `<p class="muted">Mode: ${mode}${contract ? ` · ${contract}` : ''}</p>` : ''}
     ${timingLine}
     ${renderContextImpactHtml(result.contextImpact)}
-    <h3>Retrieved guidelines</h3>
-    <ul>${renderRagSourcesHtml(result.ragSources)}</ul>
+    ${renderRagSourcesFoldHtml(result.ragSources)}
   `;
   resultsEl.classList.remove('hidden');
 }
@@ -1097,10 +1155,7 @@ moderateBtn.addEventListener('click', async () => {
         response.meta?.apiOrigin ?? null,
         reportFlags,
       );
-      if (
-        (settings.reportOpenTabEnabled || settings.reportEmailEnabled) &&
-        !actionsHtml
-      ) {
+      if (settings.reportEmailEnabled && !actionsHtml) {
         setStatus(
           savedReport
             ? 'Done. Report actions unavailable for this result.'
@@ -1111,7 +1166,7 @@ moderateBtn.addEventListener('click', async () => {
         setStatus(
           'Done. Report actions are above the decision (Review this Decision, email, or open full report).',
         );
-      } else if (settings.reportOpenTabEnabled && actionsHtml.includes('open-report-btn')) {
+      } else if (actionsHtml.includes('open-report-btn')) {
         setStatus('Done. Click Open full report above the decision.');
       } else {
         setStatus('Done.');
@@ -1141,6 +1196,7 @@ clearBtn.addEventListener('click', () => {
   postContextInput.value = '';
   lastSuccessfulModerationKey = null;
   resultsEl.classList.add('hidden');
+  stopModerateBtnPrompt();
   setStatus('');
 });
 
@@ -1163,6 +1219,7 @@ function clearCaptureField(field) {
   if (field === 'content') {
     lastSuccessfulModerationKey = null;
     resultsEl.classList.add('hidden');
+    stopModerateBtnPrompt();
   }
 }
 
@@ -1322,7 +1379,18 @@ function applyContentFromClipboard(text) {
     return;
   }
   applyCapturedText(text, 'content');
+  startModerateBtnPrompt();
 }
+
+contentInput.addEventListener('paste', () => {
+  requestAnimationFrame(() => {
+    if (contentInput.value.trim()) startModerateBtnPrompt();
+  });
+});
+
+contentInput.addEventListener('input', () => {
+  if (!contentInput.value.trim()) stopModerateBtnPrompt();
+});
 
 /** Call readText in the same turn as the click — async/await can drop user activation. */
 function pasteFromClipboard() {
@@ -1386,6 +1454,14 @@ for (const optionsToggleBtn of document.querySelectorAll('.options-toggle-btn'))
     });
   });
 }
+
+byokBadge?.addEventListener('click', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  handleByokBadgeClick().catch((err) => {
+    setStatus(err instanceof Error ? err.message : String(err), true);
+  });
+});
 
 refreshConnectionBadge().catch(() => {});
 consumePendingDraftOnLoad().catch(() => {});

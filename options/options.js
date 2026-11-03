@@ -15,11 +15,26 @@ import { closeOptionsPageIfOpen } from '../lib/optionsPage.js';
 import { normalizeReportEmail, isValidReportEmail } from '../lib/validateReportEmail.js';
 import { fillRagProviderSelect, DEFAULT_RAG_PROVIDER } from '../lib/ragProviders.js';
 import { isStoreBuild } from '../lib/buildConfig.js';
-import { isRagProviderId } from '../lib/geminiByok.js';
-import { notifyExtensionUiSync } from '../lib/extensionUiSync.js';
+import {
+  formatGeminiKeySuffixLabel,
+  hasSavedGeminiKey,
+  isRagProviderId,
+} from '../lib/geminiByok.js';
+import { GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL } from '../lib/geminiKeyUserHelp.js';
+import {
+  FOCUS_GEMINI_KEY_SETUP,
+  GEMINI_BYOK_OPTIONS_HASH,
+  notifyExtensionUiSync,
+} from '../lib/extensionUiSync.js';
 import { normalizeGeminiApiKey } from '../lib/validateGeminiClient.js';
 import { validateGeminiKeyForOptions } from '../lib/validateGeminiRagStyle.js';
+import {
+  computeReadinessFromValidateResult,
+  shouldRunRagStyleProbes,
+} from '../lib/geminiKeyReadiness.js';
 import { STORAGE_KEYS } from '../lib/userSettings.js';
+
+const GEMINI_RAG_STYLE_TEST_STORAGE = 'geminiRagStyleTest';
 
 const envProfile = /** @type {HTMLSelectElement} */ (document.getElementById('env-profile'));
 const moderateTimeoutSec = /** @type {HTMLInputElement} */ (
@@ -42,9 +57,6 @@ const factoryResetBtn = document.getElementById('factory-reset');
 const saveStatus = document.getElementById('save-status');
 const reportShareEmail = /** @type {HTMLInputElement} */ (document.getElementById('report-share-email'));
 const reportEmailEnabled = /** @type {HTMLInputElement} */ (document.getElementById('report-email-enabled'));
-const reportOpenTabEnabled = /** @type {HTMLInputElement} */ (
-  document.getElementById('report-open-tab-enabled')
-);
 const geminiApiKeyInput = /** @type {HTMLInputElement} */ (
   document.getElementById('gemini-api-key-input')
 );
@@ -56,13 +68,28 @@ const geminiByokEnabled = /** @type {HTMLInputElement} */ (
 );
 const geminiByokEnabledLabel = document.getElementById('gemini-byok-enabled-label');
 
-const GEMINI_BYOK_CHECKBOX_LABEL =
-  'Use my key for moderations (RAG and no RAG; must be on for Moderate to send your key; Test & save always checks the key with Google)';
+const GEMINI_BYOK_CHECKBOX_LABEL = 'Turn on my key for moderations (recommend)';
+const geminiKeyPasteBtn = document.getElementById('gemini-key-paste');
 const geminiKeySaveBtn = document.getElementById('gemini-key-save');
 const geminiKeyRemoveBtn = document.getElementById('gemini-key-remove');
 const geminiByokStatus = document.getElementById('gemini-byok-status');
 const geminiKeySavedHint = document.getElementById('gemini-key-saved-hint');
+const geminiKeyFieldError = document.getElementById('gemini-key-field-error');
+const geminiApiKeyLabel = document.querySelector('label[for="gemini-api-key-input"]');
+const geminiKeyGuideLink = document.getElementById('gemini-key-guide-link');
+if (geminiKeyGuideLink) {
+  geminiKeyGuideLink.href = GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL;
+}
 const byokRagHint = document.getElementById('byok-rag-hint');
+const geminiByokDetailsToggle = document.getElementById('gemini-byok-details-toggle');
+const geminiByokDetailsList = document.getElementById('gemini-byok-details-list');
+const geminiByokTurnOnRow = document.getElementById('gemini-byok-turn-on-row');
+const geminiByokTurnOnBtn = document.getElementById('gemini-byok-turn-on');
+const geminiByokTurnOnDismiss = document.getElementById('gemini-byok-turn-on-dismiss');
+
+/** @type {string[]} */
+let geminiByokStatusDetails = [];
+let geminiByokDetailsExpanded = false;
 
 /** Ignore one storage event after we wrote userLocation from this page. */
 let skipLocationStorageSync = false;
@@ -100,13 +127,85 @@ function setGeminiByokStatus(msg, isError = false) {
   geminiByokStatus.classList.toggle('error', isError);
 }
 
+function hideGeminiByokTurnOnPrompt() {
+  geminiByokTurnOnRow?.classList.add('hidden');
+}
+
+function showGeminiByokTurnOnPrompt() {
+  geminiByokTurnOnRow?.classList.remove('hidden');
+}
+
+function renderGeminiByokDetails() {
+  if (!geminiByokDetailsToggle || !geminiByokDetailsList) return;
+  if (!geminiByokStatusDetails.length) {
+    geminiByokDetailsToggle.classList.add('hidden');
+    geminiByokDetailsList.classList.add('hidden');
+    geminiByokDetailsList.replaceChildren();
+    return;
+  }
+  geminiByokDetailsToggle.classList.remove('hidden');
+  geminiByokDetailsToggle.textContent = geminiByokDetailsExpanded ? 'Hide details' : 'Details';
+  geminiByokDetailsList.classList.toggle('hidden', !geminiByokDetailsExpanded);
+  geminiByokDetailsList.replaceChildren(
+    ...geminiByokStatusDetails.map((line) => {
+      const li = document.createElement('li');
+      li.textContent = line;
+      return li;
+    }),
+  );
+}
+
+function applyGeminiValidateDisplay(result, isError = false) {
+  const { summary, details } = computeReadinessFromValidateResult(result);
+  geminiByokStatusDetails = details;
+  geminiByokDetailsExpanded = false;
+  setGeminiByokStatus(summary, isError);
+  renderGeminiByokDetails();
+}
+
+function resolveRagStyleForValidate() {
+  const ragSelected = ragProvider ? isRagProviderId(ragProvider.value) : false;
+  const advanced = !!geminiRagStyleTest?.checked;
+  return shouldRunRagStyleProbes(ragSelected, advanced);
+}
+
+const geminiByokSection = document.getElementById('section-gemini-byok');
+
+function shouldFocusGeminiKeyFromUrl() {
+  const hash = (location.hash || '').replace(/^#/, '');
+  return hash === GEMINI_BYOK_OPTIONS_HASH;
+}
+
+function focusGeminiKeySetupUI() {
+  const section = geminiByokSection || document.getElementById('section-gemini-byok');
+  section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  section?.classList.add('gemini-byok-section--attention');
+  window.setTimeout(() => section?.classList.remove('gemini-byok-section--attention'), 4500);
+
+  if (geminiApiKeyInput) {
+    geminiApiKeyInput.classList.add('gemini-key-input--attention');
+    try {
+      geminiApiKeyInput.focus({ preventScroll: true });
+    } catch {
+      geminiApiKeyInput.focus();
+    }
+    window.setTimeout(() => geminiApiKeyInput.classList.remove('gemini-key-input--attention'), 4500);
+  }
+  setGeminiByokStatus('Paste your Gemini API key below (or use Paste), then choose Save key.');
+}
+
+function maybeFocusGeminiKeySetupFromUrl() {
+  if (!shouldFocusGeminiKeyFromUrl()) return;
+  focusGeminiKeySetupUI();
+}
+
 function updateByokRagHint() {
   if (!byokRagHint || !ragProvider || !geminiByokEnabled) return;
   const showHint = geminiByokEnabled.checked && isRagProviderId(ragProvider.value);
   byokRagHint.classList.toggle('hidden', !showHint);
   if (showHint) {
     byokRagHint.textContent =
-      'RAG moderations send your key to first-rag-system for embed + chat (your Google quota, not Render’s pool).';
+      'RAG uses your key for search and AI (your Google quota, not the shared pool).';
   }
 }
 
@@ -117,15 +216,100 @@ function updateGeminiByokCheckboxLabel(hasKey) {
     : GEMINI_BYOK_CHECKBOX_LABEL;
 }
 
-async function syncGeminiByokFromStorage() {
-  const s = await loadSettings();
-  if (geminiByokEnabled) geminiByokEnabled.checked = s.geminiByokEnabled;
-  const hasKey = (s.geminiApiKey || '').trim().length >= 30;
+function clearGeminiKeyFieldError() {
+  if (geminiKeyFieldError) {
+    geminiKeyFieldError.textContent = '';
+    geminiKeyFieldError.classList.add('hidden');
+  }
+  geminiApiKeyInput?.removeAttribute('aria-invalid');
+}
+
+function setGeminiKeyFieldError(message) {
+  if (geminiKeyFieldError) {
+    geminiKeyFieldError.textContent = message;
+    geminiKeyFieldError.classList.remove('hidden');
+  }
+  if (geminiApiKeyInput) {
+    geminiApiKeyInput.setAttribute('aria-invalid', 'true');
+    geminiApiKeyInput.classList.add('gemini-key-input--attention');
+    window.setTimeout(() => geminiApiKeyInput.classList.remove('gemini-key-input--attention'), 2000);
+    geminiApiKeyInput.focus();
+  }
+}
+
+function refreshGeminiKeyStoredUi(hasKey) {
+  if (geminiApiKeyLabel) {
+    geminiApiKeyLabel.textContent = hasKey
+      ? 'Gemini API key (already added)'
+      : 'Gemini API key';
+  }
+  if (geminiByokEnabled) {
+    geminiByokEnabled.disabled = !hasKey;
+    if (!hasKey) {
+      geminiByokEnabled.checked = false;
+    }
+  }
   updateGeminiByokCheckboxLabel(hasKey);
   if (geminiKeySavedHint) {
     geminiKeySavedHint.classList.toggle('hidden', !hasKey);
+    if (hasKey) {
+      geminiKeySavedHint.textContent =
+        'A key is saved. Paste a new key to replace it, or use Remove.';
+    }
   }
+}
+
+function applyGeminiKeyFromClipboardText(text) {
+  const normalized = normalizeGeminiApiKey(text || '');
+  if (!normalized) {
+    setGeminiByokStatus('Clipboard is empty.', true);
+    return;
+  }
+  clearGeminiKeyFieldError();
+  if (geminiApiKeyInput) {
+    geminiApiKeyInput.value = normalized;
+    geminiApiKeyInput.classList.add('gemini-key-input--attention');
+    window.setTimeout(() => geminiApiKeyInput.classList.remove('gemini-key-input--attention'), 2000);
+  }
+  const suffix = formatGeminiKeySuffixLabel(normalized);
+  setGeminiByokStatus(
+    suffix
+      ? `Key pasted (${suffix}). Choose Save key when ready.`
+      : 'Key pasted — choose Save key when ready.',
+  );
+}
+
+function pasteGeminiKeyFromClipboard() {
+  setGeminiByokStatus('');
+  navigator.clipboard
+    .readText()
+    .then(applyGeminiKeyFromClipboardText)
+    .catch(() => {
+      if (geminiApiKeyInput) geminiApiKeyInput.focus();
+      const inserted = document.execCommand('paste');
+      if (!inserted) {
+        setGeminiByokStatus(
+          'Paste blocked. Allow clipboard access, reload the extension, or use Ctrl+V in the field.',
+          true,
+        );
+      }
+    });
+}
+
+async function syncGeminiByokFromStorage() {
+  const s = await loadSettings();
+  const hasKey = hasSavedGeminiKey(s);
+  if (geminiByokEnabled) {
+    geminiByokEnabled.checked = hasKey && s.geminiByokEnabled;
+  }
+  if (!hasKey && s.geminiByokEnabled) {
+    await saveSettingsPatch({ geminiByokEnabled: false });
+  }
+  refreshGeminiKeyStoredUi(hasKey);
   if (geminiApiKeyInput) geminiApiKeyInput.value = '';
+  if (geminiRagStyleTest) {
+    geminiRagStyleTest.checked = localStorage.getItem(GEMINI_RAG_STYLE_TEST_STORAGE) === 'true';
+  }
   updateByokRagHint();
 }
 
@@ -142,15 +326,19 @@ async function resolveOptionsApiOrigin() {
 }
 
 async function handleGeminiKeySave() {
+  hideGeminiByokTurnOnPrompt();
+  geminiByokStatusDetails = [];
+  renderGeminiByokDetails();
+  clearGeminiKeyFieldError();
   setGeminiByokStatus('');
   let raw = normalizeGeminiApiKey(geminiApiKeyInput?.value || '');
   if (!raw) {
     const stored = normalizeGeminiApiKey((await loadSettings()).geminiApiKey || '');
     if (stored) {
       raw = stored;
-      setGeminiByokStatus('Re-testing saved key with Google…');
+      setGeminiByokStatus('Re-checking saved key with Google…');
     } else {
-      setGeminiByokStatus('Paste a Gemini API key to test, or save one first.', true);
+      setGeminiKeyFieldError('You must enter a Gemini API key.');
       return;
     }
   }
@@ -163,19 +351,15 @@ async function handleGeminiKeySave() {
     return;
   }
   if (!geminiByokStatus.textContent) {
-    setGeminiByokStatus('Checking key with Google…');
+    setGeminiByokStatus('Checking with Google…');
   }
   geminiKeySaveBtn?.setAttribute('disabled', 'true');
   try {
     const result = await validateGeminiKeyForOptions(raw, {
-      ragStyle: !!geminiRagStyleTest?.checked,
+      ragStyle: resolveRagStyleForValidate(),
     });
     if (!result.valid) {
-      const hint =
-        result.error?.includes('API key not valid') || result.error?.includes('API key test failed')
-          ? ' Create a new key in Google AI Studio if this one was revoked or pasted incompletely.'
-          : '';
-      setGeminiByokStatus((result.error || 'Key validation failed.') + hint, true);
+      applyGeminiValidateDisplay(result, true);
       return;
     }
     const useForModeration = !!geminiByokEnabled?.checked;
@@ -184,15 +368,17 @@ async function handleGeminiKeySave() {
       geminiByokEnabled: useForModeration,
     });
     if (geminiApiKeyInput) geminiApiKeyInput.value = '';
-    if (geminiKeySavedHint) geminiKeySavedHint.classList.remove('hidden');
-    updateGeminiByokCheckboxLabel(true);
+    refreshGeminiKeyStoredUi(true);
     updateByokRagHint();
-    const savedMsg = result.message || 'Key saved on this device.';
-    setGeminiByokStatus(
-      useForModeration
-        ? savedMsg
-        : `${savedMsg} “Use my key for moderations” is off — key stored but not sent on Moderate until you turn it on.`,
-    );
+    geminiByokStatusDetails = [];
+    geminiByokDetailsExpanded = false;
+    renderGeminiByokDetails();
+    setGeminiByokStatus('');
+    if (useForModeration) {
+      hideGeminiByokTurnOnPrompt();
+    } else {
+      showGeminiByokTurnOnPrompt();
+    }
     notifyExtensionUiSync();
   } catch (err) {
     setGeminiByokStatus(err instanceof Error ? err.message : String(err), true);
@@ -205,9 +391,11 @@ async function handleGeminiKeyRemove() {
   await saveSettingsPatch({ geminiApiKey: '', geminiByokEnabled: false });
   if (geminiApiKeyInput) geminiApiKeyInput.value = '';
   if (geminiByokEnabled) geminiByokEnabled.checked = false;
-  if (geminiKeySavedHint) geminiKeySavedHint.classList.add('hidden');
-  updateGeminiByokCheckboxLabel(false);
+  refreshGeminiKeyStoredUi(false);
   updateByokRagHint();
+  hideGeminiByokTurnOnPrompt();
+  geminiByokStatusDetails = [];
+  renderGeminiByokDetails();
   setGeminiByokStatus('Key removed from this device.');
   notifyExtensionUiSync();
 }
@@ -225,7 +413,6 @@ async function syncReportSettingsFromStorage() {
   const s = await loadSettings();
   reportShareEmail.value = s.reportShareRecipientEmail || '';
   reportEmailEnabled.checked = s.reportEmailEnabled;
-  reportOpenTabEnabled.checked = s.reportOpenTabEnabled;
 }
 
 async function persistReportToggles(showFeedback = false) {
@@ -233,7 +420,6 @@ async function persistReportToggles(showFeedback = false) {
   try {
     await saveSettingsPatch({
       reportEmailEnabled: reportEmailEnabled.checked,
-      reportOpenTabEnabled: reportOpenTabEnabled.checked,
     });
     if (showFeedback) setStatus('Report options saved.');
   } finally {
@@ -380,6 +566,7 @@ async function loadForm() {
   await syncDevIdentityFromStorage();
   await syncStatePickerFromStorage();
   await syncGeminiByokFromStorage();
+  maybeFocusGeminiKeySetupFromUrl();
 }
 
 async function refreshPermissionStatus() {
@@ -455,7 +642,6 @@ saveBtn.addEventListener('click', async () => {
       moderateTimeoutSec: parseModerateTimeoutSec(moderateTimeoutSec.value),
       reportShareRecipientEmail: normalizeReportEmail(reportShareEmail.value),
       reportEmailEnabled: reportEmailEnabled.checked,
-      reportOpenTabEnabled: reportOpenTabEnabled.checked,
     };
     if (!isStoreBuild()) {
       patch.moderatorId = moderatorId.value.trim();
@@ -482,7 +668,7 @@ saveBtn.addEventListener('click', async () => {
 resetLocationBtn.addEventListener('click', async () => {
   await resetUserLocation();
   optLocationPicker.setValue(DEFAULT_USER_LOCATION);
-  setStatus('Location reset. Open the side panel to confirm location again.');
+  setStatus('');
 });
 
 factoryResetBtn.addEventListener('click', async () => {
@@ -526,11 +712,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
     if (skipEnvSettingsSync) return;
     syncEnvFromStorage().catch(() => {});
   }
-  if (
-    changes.reportShareRecipientEmail ||
-    changes.reportEmailEnabled ||
-    changes.reportOpenTabEnabled
-  ) {
+  if (changes.reportShareRecipientEmail || changes.reportEmailEnabled) {
     if (skipReportSettingsSync) return;
     syncReportSettingsFromStorage().catch(() => {});
   }
@@ -578,6 +760,10 @@ ragProvider.addEventListener('change', () => {
   });
 });
 
+geminiKeyPasteBtn?.addEventListener('click', () => {
+  pasteGeminiKeyFromClipboard();
+});
+
 geminiKeySaveBtn?.addEventListener('click', () => {
   handleGeminiKeySave().catch((err) => {
     setGeminiByokStatus(err instanceof Error ? err.message : String(err), true);
@@ -591,18 +777,41 @@ geminiKeyRemoveBtn?.addEventListener('click', () => {
 });
 
 geminiByokEnabled?.addEventListener('change', () => {
+  if (geminiByokEnabled.disabled) return;
   persistGeminiByokEnabled(true).catch((err) => {
     setGeminiByokStatus(err instanceof Error ? err.message : String(err), true);
   });
 });
 
-reportEmailEnabled.addEventListener('change', () => {
-  persistReportToggles(true).catch((err) => {
-    setStatus(err instanceof Error ? err.message : String(err), true);
+geminiApiKeyInput?.addEventListener('input', () => {
+  clearGeminiKeyFieldError();
+});
+
+geminiRagStyleTest?.addEventListener('change', () => {
+  localStorage.setItem(
+    GEMINI_RAG_STYLE_TEST_STORAGE,
+    geminiRagStyleTest.checked ? 'true' : 'false',
+  );
+});
+
+geminiByokDetailsToggle?.addEventListener('click', () => {
+  geminiByokDetailsExpanded = !geminiByokDetailsExpanded;
+  renderGeminiByokDetails();
+});
+
+geminiByokTurnOnBtn?.addEventListener('click', () => {
+  if (geminiByokEnabled) geminiByokEnabled.checked = true;
+  hideGeminiByokTurnOnPrompt();
+  persistGeminiByokEnabled(true).catch((err) => {
+    setGeminiByokStatus(err instanceof Error ? err.message : String(err), true);
   });
 });
 
-reportOpenTabEnabled.addEventListener('change', () => {
+geminiByokTurnOnDismiss?.addEventListener('click', () => {
+  hideGeminiByokTurnOnPrompt();
+});
+
+reportEmailEnabled.addEventListener('change', () => {
   persistReportToggles(true).catch((err) => {
     setStatus(err instanceof Error ? err.message : String(err), true);
   });
@@ -654,17 +863,18 @@ for (const btn of document.querySelectorAll('.close-options')) {
   btn.addEventListener('click', handleCloseOptions);
 }
 
-const optionsVersionEl = document.getElementById('options-version');
-if (optionsVersionEl) {
-  try {
-    optionsVersionEl.textContent = `Extension version ${chrome.runtime.getManifest().version} — close this tab after reloading the extension.`;
-  } catch {
-    optionsVersionEl.textContent = '';
-  }
-}
-
 if (ragProvider) {
   fillRagProviderSelect(ragProvider, DEFAULT_RAG_PROVIDER);
 }
 
 loadForm().catch((err) => setStatus(err instanceof Error ? err.message : String(err), true));
+
+chrome.runtime.onMessage.addListener((message) => {
+  if (message?.type === FOCUS_GEMINI_KEY_SETUP) {
+    focusGeminiKeySetupUI();
+  }
+});
+
+window.addEventListener('hashchange', () => {
+  maybeFocusGeminiKeySetupFromUrl();
+});

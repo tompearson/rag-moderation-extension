@@ -51,10 +51,10 @@
 | 8b | Single comment | On long thread, click inside one comment → **Content** has that comment only (not whole thread / profile links) |
 | 9 | Context menu | Select text → right-click → **Send selection to RAG Moderation** → side panel opens with **Content** filled (panel closed or already open) |
 | 10 | Multi-paragraph | Drag from start of post through extra paragraphs → release → **Content** includes selected text |
-| 11 | Options → enable **Open full report**, moderate (prod + DB save) | **Open full report** on results opens production view URL |
+| 11 | Moderate (prod + DB save) | **Open full report** on results opens production view URL (always on when saved report exists) |
 | 12 | Options → report email + enable **Email report** | **Email report** sends via API; status confirms |
 | 12b | Saved report → **Review this Decision** → note → **Send it** | Success status; **Feedback** chip on Moderation Reports / Admin Query Submit Feedback (same `submitFeedback` as full report) |
-| 13 | Report toggles off (email/open) | **Review this Decision** still shown when `moderationHistoryId` present; email/open hidden |
+| 13 | **Email report** off in Options | **Review this Decision** and **Open full report** still shown when `moderationHistoryId` present; email hidden |
 | 14 | Factory reset | Location + optional report email dialogs again |
 
 ## BYOK Gemini (optional)
@@ -65,8 +65,9 @@ See [BYOK_GEMINI.md](./BYOK_GEMINI.md). Requires Universal with `POST /api/provi
 |---|------|----------|
 | B1 | Options → invalid key → **Test & save** | Error from server; nothing saved in storage |
 | B2 | Options → valid key → **Test & save** | Success; “Key saved”; input cleared; checkbox on |
-| B3 | Provider **no RAG**, BYOK on → side panel | Badge **Using your Gemini key** |
-| B4 | Provider **RAG**, BYOK on → side panel | Badge **Using your Gemini key**; Options shows RAG BYOK hint |
+| B3 | Provider **no RAG**, BYOK on → side panel | **Your key · On**; click toggles off |
+| B4 | Provider **RAG**, BYOK on → side panel | **Your key · On**; Options shows RAG hint when BYOK on |
+| B4b | No key saved → click side panel key control | Status prompts Save key; **Options** opens |
 | B5 | Moderate (RAG + BYOK) | Uses your embed + chat quota via first-rag-system; falls back to Render key when BYOK off |
 | B6 | **Remove key** or factory reset | Badge hidden; moderate without BYOK |
 

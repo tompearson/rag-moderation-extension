@@ -6,6 +6,7 @@
   --border: #cbd5e1;
   --primary: #2563eb;
   --primary-fg: #fff;
+  --moderate-prompt-alt: #f59e0b;
   --keep: #15803d;
   --remove: #b91c1c;
   --maybe: #b45309;
@@ -21,6 +22,7 @@
     --muted: #94a3b8;
     --border: #334155;
     --primary: #3b82f6;
+    --moderate-prompt-alt: #fbbf24;
   }
 }
 
@@ -54,6 +56,43 @@ header {
   background: color-mix(in srgb, var(--primary) 12%, transparent);
   color: var(--fg);
   border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--border));
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 999px;
+  text-align: left;
+  width: auto;
+  max-width: 100%;
+}
+
+.badge.byok-badge:hover {
+  filter: brightness(0.97);
+}
+
+.badge.byok-badge:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.badge.byok-badge--on {
+  background: color-mix(in srgb, var(--primary) 22%, transparent);
+  border-color: color-mix(in srgb, var(--primary) 55%, var(--border));
+  font-weight: 600;
+}
+
+.badge.byok-badge--no-key {
+  opacity: 0.92;
+  border-style: dashed;
+}
+
+.byok-guide-link {
+  margin: 4px 0 0;
+  font-size: 0.75rem;
+}
+
+.byok-guide-link a {
+  color: var(--primary);
 }
 
 .header-row {
@@ -229,6 +268,30 @@ button.primary {
   background: var(--primary);
   color: var(--primary-fg);
   border-color: var(--primary);
+}
+
+@keyframes moderate-btn-flash {
+  0%,
+  49.999% {
+    background: var(--primary);
+    border-color: var(--primary);
+  }
+  50%,
+  100% {
+    background: var(--moderate-prompt-alt);
+    border-color: var(--moderate-prompt-alt);
+  }
+}
+
+button.primary.moderate-btn-prompt:not(:disabled) {
+  animation: moderate-btn-flash 4s step-end infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button.primary.moderate-btn-prompt:not(:disabled) {
+    animation: none;
+    box-shadow: 0 0 0 2px var(--moderate-prompt-alt);
+  }
 }
 
 button.secondary {
@@ -538,4 +601,17 @@ details summary {
   cursor: pointer;
   font-weight: 600;
   color: var(--muted);
+}
+
+.results details.rag-sources-fold {
+  margin-top: 12px;
+}
+
+.results details.rag-sources-fold summary {
+  font-size: 0.95rem;
+  color: inherit;
+}
+
+.results details.rag-sources-fold ul {
+  margin-top: 6px;
 }
