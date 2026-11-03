@@ -2,7 +2,7 @@
 
 **Last updated:** November 3, 2026  
 **Operator:** airesearchdog (“we,” “us”)  
-**Contact:** admin@airearchdog.net  
+**Contact:** [admin@airesearchdog.net](mailto:admin@airesearchdog.net)  
 
 ## Summary
 
@@ -115,4 +115,6 @@ We may update this policy when the extension or API behavior changes. We will po
 
 ## Contact
 
-Questions or requests: **admin@airearchdog.net**
+Privacy and extension questions: **[admin@airesearchdog.net](mailto:admin@airesearchdog.net)**.
+
+Do not use this address to submit posts for moderation; the email moderation product uses separate intake addresses documented on the Community Moderation Tool site.
