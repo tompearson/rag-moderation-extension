@@ -4,6 +4,12 @@ Add **RAG Moderation Assistant** to desktop **Google Chrome** from the official 
 
 When the listing is live, search the store for **RAG Moderation Assistant** or open the link your moderator team provides.
 
+## Table of contents
+
+- [Part 1 — Install from the Chrome Web Store](#install)
+- [Part 2 — Manage the extension](#manage)
+- [Next: Get a Gemini API key (recommended)](#gemini-key)
+
 ---
 
 ## Part 1 — Install from the Chrome Web Store {#install}
@@ -33,6 +39,18 @@ When the listing is live, search the store for **RAG Moderation Assistant** or o
 ### Pin for quick access
 
 Click the **Extensions** icon (puzzle piece) next to your profile picture, then click **Pin** next to **RAG Moderation Assistant** so its button stays visible on the toolbar.
+
+---
+
+## Next: Get a Gemini API key (recommended) {#gemini-key}
+
+The extension includes a small number of **free moderations** using shared capacity. For ongoing use (and to use **your own** Google quota instead of the shared pool), we recommend a **personal Gemini API key** in **Options → Your Gemini API key**.
+
+Follow our step-by-step instructions (Google AI Studio + saving the key in the extension):
+
+**[Get a Gemini API key for moderation — extension setup](https://www.airesearchdog.net/extension/get-gemini-api-key#extension)**
+
+You can also open that guide from the side panel (**Get a Gemini key (guide)**) or from **Options** next to the key field.
 
 ---
 

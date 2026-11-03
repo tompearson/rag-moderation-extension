@@ -22,6 +22,7 @@ import {
 } from '../lib/geminiByok.js';
 import {
   GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL,
+  INSTALL_CHROME_EXTENSION_GUIDE_URL,
   EXTENSION_PRIVACY_POLICY_URL,
 } from '../lib/geminiKeyUserHelp.js';
 import {
@@ -82,6 +83,10 @@ const geminiApiKeyLabel = document.querySelector('label[for="gemini-api-key-inpu
 const geminiKeyGuideLink = document.getElementById('gemini-key-guide-link');
 if (geminiKeyGuideLink) {
   geminiKeyGuideLink.href = GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL;
+}
+const extensionInstallGuideLink = document.getElementById('extension-install-guide-link');
+if (extensionInstallGuideLink) {
+  extensionInstallGuideLink.href = INSTALL_CHROME_EXTENSION_GUIDE_URL;
 }
 const extensionPrivacyLink = document.getElementById('extension-privacy-link');
 if (extensionPrivacyLink) {

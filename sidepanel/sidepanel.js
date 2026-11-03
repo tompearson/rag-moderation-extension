@@ -31,7 +31,10 @@ import {
 import { createStatePicker } from '../lib/statePicker.js';
 import { resolveApiConfig, formatApiProfileUiLabel } from '../lib/envProfiles.js';
 import { hasSavedGeminiKey, isByokConfigured } from '../lib/geminiByok.js';
-import { GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL } from '../lib/geminiKeyUserHelp.js';
+import {
+  GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL,
+  INSTALL_CHROME_EXTENSION_GUIDE_URL,
+} from '../lib/geminiKeyUserHelp.js';
 import { STORAGE_KEYS } from '../lib/userSettings.js';
 import { ensureHostPermission } from '../lib/permissions.js';
 import { openOptionsPage, toggleOptionsPage } from '../lib/optionsPage.js';
@@ -76,9 +79,13 @@ const reviewDecisionClose = document.getElementById('review-decision-close');
 const mainPanel = document.getElementById('main-panel');
 const connectionBadge = document.getElementById('connection-badge');
 const byokBadge = document.getElementById('byok-badge');
-const byokGuideLink = document.querySelector('.byok-guide-link a');
-if (byokGuideLink) {
-  byokGuideLink.href = GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL;
+const installExtensionGuideLink = document.getElementById('install-extension-guide-link');
+if (installExtensionGuideLink) {
+  installExtensionGuideLink.href = INSTALL_CHROME_EXTENSION_GUIDE_URL;
+}
+const geminiKeyGuideLink = document.getElementById('gemini-key-guide-link');
+if (geminiKeyGuideLink) {
+  geminiKeyGuideLink.href = GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL;
 }
 const modalLocationPicker = createStatePicker(document.getElementById('modal-location'), {
   initialValue: DEFAULT_USER_LOCATION,

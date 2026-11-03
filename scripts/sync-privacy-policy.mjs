@@ -28,6 +28,7 @@ const markdown = readFileSync(mdPath, 'utf8');
 const html = renderExtensionGuideHtml({
   pageTitle: 'Privacy Policy — RAG Moderation Assistant',
   footerText: 'RAG Moderation Assistant — privacy policy',
+  pagePath: '/extension/privacy',
   markdown,
   postprocessBodyHtml,
 });

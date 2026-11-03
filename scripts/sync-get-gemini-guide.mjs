@@ -31,6 +31,7 @@ const markdown = readFileSync(mdPath, 'utf8');
 const html = renderExtensionGuideHtml({
   pageTitle: 'Get a Gemini API key for moderation',
   footerText: 'RAG Moderation Assistant — optional BYOK help',
+  pagePath: '/extension/get-gemini-api-key',
   markdown,
   preprocessMarkdown,
   postprocessBodyHtml,

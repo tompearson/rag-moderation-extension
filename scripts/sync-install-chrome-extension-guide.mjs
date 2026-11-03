@@ -19,7 +19,11 @@ const outPath = join(outDir, 'install-chrome-extension.html');
 function preprocessMarkdown(raw) {
   return raw
     .replace(/^## Part 1 — Install from the Chrome Web Store \{#install\}/m, '## Part 1 — Install from the Chrome Web Store')
-    .replace(/^## Part 2 — Manage the extension \{#manage\}/m, '## Part 2 — Manage the extension');
+    .replace(/^## Part 2 — Manage the extension \{#manage\}/m, '## Part 2 — Manage the extension')
+    .replace(
+      /^## Next: Get a Gemini API key \(recommended\) \{#gemini-key\}/m,
+      '## Next: Get a Gemini API key (recommended)',
+    );
 }
 
 function postprocessBodyHtml(html) {
@@ -31,13 +35,19 @@ function postprocessBodyHtml(html) {
     .replace(
       /<h2>Part 2 — Manage the extension<\/h2>/,
       '<h2 id="manage">Part 2 — Manage the extension</h2>',
-    );
+    )
+    .replace(
+      /<h2>Next: Get a Gemini API key \(recommended\)<\/h2>/,
+      '<h2 id="gemini-key">Next: Get a Gemini API key (recommended)</h2>',
+    )
+    .replace(/<h2>Table of contents<\/h2>/, '<h2 id="toc">Table of contents</h2>');
 }
 
 const markdown = readFileSync(mdPath, 'utf8');
 const html = renderExtensionGuideHtml({
   pageTitle: 'Install RAG Moderation Assistant extension in Google Chrome',
   footerText: 'RAG Moderation Assistant — Chrome install help',
+  pagePath: '/extension/install-chrome-extension',
   markdown,
   preprocessMarkdown,
   postprocessBodyHtml,
