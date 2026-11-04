@@ -60,5 +60,5 @@ Use the addresses below for **questions about the extension, this website, or ou
 |------|----------------|
 | [Install RAG Moderation Assistant in Chrome](https://www.airesearchdog.net/extension/install-chrome-extension) | Web Store install and pin |
 | [How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts) | Side panel workflow |
-| [Privacy policy](https://www.airesearchdog.net/extension/privacy) | Data use, BYOK, and email roles |
+| [Privacy policy](https://www.airesearchdog.net/extension/privacy) | Data use and BYOK |
 | [Important — AI-generated analysis](https://www.airesearchdog.net/extension/important-ai-generated-analysis) | Read before acting on moderation suggestions |
