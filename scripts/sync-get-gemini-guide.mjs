@@ -17,14 +17,19 @@ const outDir = join(universalDir, 'public', 'extension');
 const outPath = join(outDir, 'get-gemini-api-key.html');
 
 function preprocessMarkdown(raw) {
-  return raw.replace(/^## Part 2 — Chrome extension \{#extension\}/m, '## Part 2 — Chrome extension');
+  return raw
+    .replace(/^## Part 1 — Obtain a key from Google \{#google\}/m, '## Part 1 — Obtain a key from Google')
+    .replace(/^## Related guides \{#related\}/m, '## Related guides');
 }
 
+/** @param {string} html */
 function postprocessBodyHtml(html) {
-  return html.replace(
-    /<h2>Part 2 — Chrome extension<\/h2>/,
-    '<h2 id="extension">Part 2 — Chrome extension</h2>',
-  );
+  return html
+    .replace(
+      /<h2>Part 1 — Obtain a key from Google<\/h2>/,
+      '<h2 id="google">Part 1 — Obtain a key from Google</h2>',
+    )
+    .replace(/<h2>Related guides<\/h2>/, '<h2 id="related">Related guides</h2>');
 }
 
 const markdown = readFileSync(mdPath, 'utf8');
@@ -32,6 +37,7 @@ const html = renderExtensionGuideHtml({
   pageTitle: 'Get a Gemini API key for moderation',
   footerText: 'RAG Moderation Assistant — optional BYOK help',
   pagePath: '/extension/get-gemini-api-key',
+  showGuideNav: false,
   markdown,
   preprocessMarkdown,
   postprocessBodyHtml,

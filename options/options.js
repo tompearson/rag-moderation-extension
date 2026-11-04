@@ -84,10 +84,6 @@ const geminiKeyGuideLink = document.getElementById('gemini-key-guide-link');
 if (geminiKeyGuideLink) {
   geminiKeyGuideLink.href = GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL;
 }
-const extensionInstallGuideLink = document.getElementById('extension-install-guide-link');
-if (extensionInstallGuideLink) {
-  extensionInstallGuideLink.href = INSTALL_CHROME_EXTENSION_GUIDE_URL;
-}
 const extensionPrivacyLink = document.getElementById('extension-privacy-link');
 if (extensionPrivacyLink) {
   extensionPrivacyLink.href = EXTENSION_PRIVACY_POLICY_URL;

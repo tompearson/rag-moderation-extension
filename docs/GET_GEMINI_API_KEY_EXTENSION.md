@@ -1,14 +1,18 @@
 # Get a Gemini API key for moderation
 
-**Note:** We recommend you [install the RAG Moderation Assistant Chrome extension](https://www.airesearchdog.net/extension/install-chrome-extension) **before** you obtain your Gemini API key.
+<div class="guide-preface-card" role="note">
+<p class="guide-preface-card__label">Before you begin</p>
+<p><strong>RAG Moderation Assistant</strong> must already be <strong>installed and available</strong> in Google Chrome (Web Store install, pinned toolbar icon, side panel). This guide does not walk through installation.</p>
+<p>If the extension is not installed yet, complete <a href="https://www.airesearchdog.net/extension/install-chrome-extension">Install RAG Moderation Assistant in Google Chrome</a> first, then return here.</p>
+</div>
 
 Use your own Google Gemini API key (BYOK) so moderations use **your** Google quota instead of the shared pool. This guide is for the **RAG Moderation Assistant** Chrome extension only.
 
 Official key page: [Google AI Studio — API keys](https://aistudio.google.com/apikey)
 
----
+This guide covers **getting a Google key** and **saving it in Options**.
 
-## Part 1 — Obtain a key from Google
+## Part 1 — Obtain a key from Google {#google}
 
 1. **Sign in**  
    Open [Google AI Studio](https://aistudio.google.com/) and sign in with your Google account.
@@ -34,7 +38,7 @@ You now have a Gemini API key on the clipboard (or saved in your password manage
 
 ---
 
-## Part 2 — Chrome extension {#extension}
+## Part 2 — Save your key in the extension
 
 For **RAG Moderation Assistant**: the key stays in **this browser only**; it is not saved on the moderation website server.
 
@@ -74,5 +78,11 @@ For **RAG Moderation Assistant**: the key stays in **this browser only**; it is 
 | New browser / PC | Keys do **not** sync — repeat this part on each install |
 
 ---
+
+## Related guides {#related}
+
+| Guide | When to use it |
+|------|----------------|
+| [Privacy policy](https://www.airesearchdog.net/extension/privacy) | Data use, BYOK, and contact |
 
 **Note:** BYOK on the moderation **website** (Universal web app, Platform Intelligence) is a separate product UI and is **not** described in this guide.

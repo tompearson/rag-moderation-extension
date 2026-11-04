@@ -13,7 +13,7 @@ assert.equal(
 assert.match(GET_GEMINI_API_KEY_GUIDE_URL, /^https:\/\/www\.airesearchdog\.net\//);
 assert.equal(
   GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL,
-  'https://www.airesearchdog.net/extension/get-gemini-api-key#extension',
+  'https://www.airesearchdog.net/extension/get-gemini-api-key',
 );
 assert.equal(
   INSTALL_CHROME_EXTENSION_GUIDE_URL,

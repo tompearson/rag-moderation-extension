@@ -136,6 +136,28 @@ export const EXTENSION_GUIDE_PAGE_CSS = `
 
   p { margin: 0.75rem 0; }
 
+  .guide-preface-card {
+    margin: 0 0 1.35rem;
+    padding: 16px 18px;
+    background: var(--bg-page);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+  }
+
+  .guide-preface-card__label {
+    margin: 0 0 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--green-dark);
+  }
+
+  .guide-preface-card p:last-child {
+    margin-bottom: 0;
+  }
+
   main > p:has(strong:first-child),
   blockquote {
     margin: 1rem 0;
@@ -268,15 +290,20 @@ function externalLinkRenderer() {
 
 /**
  * @param {string | undefined} pagePath e.g. /extension/privacy
+ * @param {boolean} [showGuideNav]
  */
-function renderSiteHeader(pagePath) {
-  const nav = EXTENSION_GUIDE_NAV.map(({ href, label }) => {
-    const current = pagePath && href === pagePath;
-    if (current) {
-      return `<a href="${href}" aria-current="page">${label}</a>`;
-    }
-    return `<a href="${href}">${label}</a>`;
-  }).join('\n      ');
+function renderSiteHeader(pagePath, showGuideNav = true) {
+  const navBlock = showGuideNav
+    ? `<nav class="site-nav" aria-label="Extension guides">
+      ${EXTENSION_GUIDE_NAV.map(({ href, label }) => {
+        const current = pagePath && href === pagePath;
+        if (current) {
+          return `<a href="${href}" aria-current="page">${label}</a>`;
+        }
+        return `<a href="${href}">${label}</a>`;
+      }).join('\n      ')}
+  </nav>`
+    : '';
 
   return `<header class="site-header">
     <div class="site-header__inner">
@@ -284,9 +311,7 @@ function renderSiteHeader(pagePath) {
       <p class="site-header__tagline">Extension help for community moderators</p>
     </div>
   </header>
-  <nav class="site-nav" aria-label="Extension guides">
-      ${nav}
-  </nav>`;
+  ${navBlock}`;
 }
 
 /**
@@ -305,6 +330,7 @@ function renderSiteFooter(footerText) {
  * @param {string} opts.footerText
  * @param {string} opts.markdown
  * @param {string} [opts.pagePath] — highlights active item in guide nav
+ * @param {boolean} [opts.showGuideNav] — Install / Gemini key / Privacy links under header (default true)
  * @param {(md: string) => string} [opts.preprocessMarkdown]
  * @param {(html: string) => string} [opts.postprocessBodyHtml]
  */
@@ -326,7 +352,7 @@ export function renderExtensionGuideHtml(opts) {
   <style>${EXTENSION_GUIDE_PAGE_CSS}</style>
 </head>
 <body>
-  ${renderSiteHeader(opts.pagePath)}
+  ${renderSiteHeader(opts.pagePath, opts.showGuideNav !== false)}
   <main>
 ${bodyHtml}
   </main>

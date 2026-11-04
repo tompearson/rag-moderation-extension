@@ -79,13 +79,9 @@ const reviewDecisionClose = document.getElementById('review-decision-close');
 const mainPanel = document.getElementById('main-panel');
 const connectionBadge = document.getElementById('connection-badge');
 const byokBadge = document.getElementById('byok-badge');
-const installExtensionGuideLink = document.getElementById('install-extension-guide-link');
-if (installExtensionGuideLink) {
-  installExtensionGuideLink.href = INSTALL_CHROME_EXTENSION_GUIDE_URL;
-}
-const geminiKeyGuideLink = document.getElementById('gemini-key-guide-link');
-if (geminiKeyGuideLink) {
-  geminiKeyGuideLink.href = GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL;
+const byokGuideLink = document.querySelector('.byok-guide-link a');
+if (byokGuideLink) {
+  byokGuideLink.href = GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL;
 }
 const modalLocationPicker = createStatePicker(document.getElementById('modal-location'), {
   initialValue: DEFAULT_USER_LOCATION,

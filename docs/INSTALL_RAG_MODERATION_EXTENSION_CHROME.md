@@ -1,14 +1,15 @@
 # Install RAG Moderation Assistant extension in Google Chrome
 
-Add **RAG Moderation Assistant** to desktop **Google Chrome** from the official [Chrome Web Store](https://chromewebstore.google.com/).
+**Start here.** This is the beginning guide for setting up **RAG Moderation Assistant** in Chrome: install the extension, pin it for daily use, then (in Part 3) move on to a **Gemini API key**. The key is **optional** — you can try the extension on shared capacity first — but **highly recommended** if you moderate regularly or want moderations to use your own Google quota.
 
-When the listing is live, search the store for **RAG Moderation Assistant** or open the link your moderator team provides.
+This guide walks through **install** (Part 1), **pinning** (Part 2), and the recommended **final step — a Gemini API key** (Part 3). Creating the key in Google AI Studio and saving it in **Options** is documented separately; Part 3 links to that guide.
 
 ## Table of contents
 
 - [Part 1 — Install from the Chrome Web Store](#install)
 - [Part 2 — Manage the extension](#manage)
-- [Next: Get a Gemini API key (recommended)](#gemini-key)
+- [Part 3 — Get a Gemini API key (recommended)](#gemini)
+- [Related guides](#related)
 
 ---
 
@@ -42,15 +43,21 @@ Click the **Extensions** icon (puzzle piece) next to your profile picture, then 
 
 ---
 
-## Next: Get a Gemini API key (recommended) {#gemini-key}
+## Part 3 — Get a Gemini API key (recommended) {#gemini}
 
-The extension includes a small number of **free moderations** using shared capacity. For ongoing use (and to use **your own** Google quota instead of the shared pool), we recommend a **personal Gemini API key** in **Options → Your Gemini API key**.
+The **final recommended step** after install and pinning is to obtain a **personal Gemini API key** and save it in the extension. With **Use my key for moderations** turned on, each moderation uses **your** Google project quota instead of the shared pool.
 
-Follow our step-by-step instructions (Google AI Studio + saving the key in the extension):
+The extension includes a small number of **free moderations** on shared capacity, so a key is optional for very light use. For regular moderating, we recommend completing this step.
 
-**[Get a Gemini API key for moderation — extension setup](https://www.airesearchdog.net/extension/get-gemini-api-key#extension)**
+**[Get a Gemini API key for moderation](https://www.airesearchdog.net/extension/get-gemini-api-key)** — Google AI Studio, then **Options → Your Gemini API key → Save key** (Part 2 in that guide).
 
-You can also open that guide from the side panel (**Get a Gemini key (guide)**) or from **Options** next to the key field.
+---
+
+## Related guides {#related}
+
+| Guide | When to use it |
+|------|----------------|
+| [Privacy policy](https://www.airesearchdog.net/extension/privacy) | Data use, BYOK, and contact |
 
 ---
 
