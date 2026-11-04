@@ -25,6 +25,7 @@ RAG-backed community post moderation for moderators (side panel: paste content, 
   - Install unpacked (dev only; not for listing): [install-chrome-extension-developer](https://www.airesearchdog.net/extension/install-chrome-extension-developer)
   - BYOK / Gemini key: [get-gemini-api-key](https://www.airesearchdog.net/extension/get-gemini-api-key)
   - Moderation workflow: [how-to-moderate-user-posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts)
+- **In the CRX (Options):** legal row links to Privacy, Terms, and Contact; store builds swap **Install** for **How to moderate**. Side panel: Gemini guide + Contact (Install hidden on store builds). URLs live in `lib/geminiKeyUserHelp.js`.
 
 ## Permissions justification
 

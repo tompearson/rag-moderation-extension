@@ -34,7 +34,9 @@ import { hasSavedGeminiKey, isByokConfigured } from '../lib/geminiByok.js';
 import {
   GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL,
   INSTALL_CHROME_EXTENSION_GUIDE_URL,
+  EXTENSION_CONTACT_URL,
 } from '../lib/geminiKeyUserHelp.js';
+import { isStoreBuild } from '../lib/buildConfig.js';
 import { STORAGE_KEYS } from '../lib/userSettings.js';
 import { ensureHostPermission } from '../lib/permissions.js';
 import { openOptionsPage, toggleOptionsPage } from '../lib/optionsPage.js';
@@ -79,9 +81,23 @@ const reviewDecisionClose = document.getElementById('review-decision-close');
 const mainPanel = document.getElementById('main-panel');
 const connectionBadge = document.getElementById('connection-badge');
 const byokBadge = document.getElementById('byok-badge');
-const byokGuideLink = document.querySelector('.byok-guide-link a');
-if (byokGuideLink) {
-  byokGuideLink.href = GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL;
+const installExtensionGuideLink = document.getElementById('install-extension-guide-link');
+const geminiKeyGuideLink = document.getElementById('gemini-key-guide-link');
+const sidepanelContactLink = document.getElementById('extension-contact-link');
+const sidepanelGuideSepInstall = document.getElementById('sidepanel-guide-sep-install');
+
+if (installExtensionGuideLink) {
+  installExtensionGuideLink.href = INSTALL_CHROME_EXTENSION_GUIDE_URL;
+}
+if (geminiKeyGuideLink) {
+  geminiKeyGuideLink.href = GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL;
+}
+if (sidepanelContactLink) {
+  sidepanelContactLink.href = EXTENSION_CONTACT_URL;
+}
+if (isStoreBuild()) {
+  if (installExtensionGuideLink) installExtensionGuideLink.hidden = true;
+  if (sidepanelGuideSepInstall) sidepanelGuideSepInstall.hidden = true;
 }
 const modalLocationPicker = createStatePicker(document.getElementById('modal-location'), {
   initialValue: DEFAULT_USER_LOCATION,

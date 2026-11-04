@@ -24,6 +24,9 @@ import {
   GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL,
   INSTALL_CHROME_EXTENSION_GUIDE_URL,
   EXTENSION_PRIVACY_POLICY_URL,
+  EXTENSION_TERMS_URL,
+  EXTENSION_CONTACT_URL,
+  EXTENSION_HOW_TO_MODERATE_URL,
 } from '../lib/geminiKeyUserHelp.js';
 import {
   FOCUS_GEMINI_KEY_SETUP,
@@ -84,9 +87,36 @@ const geminiKeyGuideLink = document.getElementById('gemini-key-guide-link');
 if (geminiKeyGuideLink) {
   geminiKeyGuideLink.href = GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL;
 }
+const extensionInstallGuideLink = document.getElementById('extension-install-guide-link');
+const extensionHowToGuideLink = document.getElementById('extension-how-to-guide-link');
 const extensionPrivacyLink = document.getElementById('extension-privacy-link');
-if (extensionPrivacyLink) {
-  extensionPrivacyLink.href = EXTENSION_PRIVACY_POLICY_URL;
+const extensionTermsLink = document.getElementById('extension-terms-link');
+const extensionContactLink = document.getElementById('extension-contact-link');
+
+function wirePublicGuideLinks() {
+  if (extensionInstallGuideLink) {
+    extensionInstallGuideLink.href = INSTALL_CHROME_EXTENSION_GUIDE_URL;
+  }
+  if (extensionHowToGuideLink) {
+    extensionHowToGuideLink.href = EXTENSION_HOW_TO_MODERATE_URL;
+  }
+  if (extensionPrivacyLink) {
+    extensionPrivacyLink.href = EXTENSION_PRIVACY_POLICY_URL;
+  }
+  if (extensionTermsLink) {
+    extensionTermsLink.href = EXTENSION_TERMS_URL;
+  }
+  if (extensionContactLink) {
+    extensionContactLink.href = EXTENSION_CONTACT_URL;
+  }
+}
+
+wirePublicGuideLinks();
+
+function applyStoreTargetGuideLinks() {
+  if (!isStoreBuild()) return;
+  if (extensionInstallGuideLink) extensionInstallGuideLink.hidden = true;
+  if (extensionHowToGuideLink) extensionHowToGuideLink.hidden = false;
 }
 const byokRagHint = document.getElementById('byok-rag-hint');
 const geminiByokDetailsToggle = document.getElementById('gemini-byok-details-toggle');
@@ -118,6 +148,7 @@ function applyStoreTargetUi() {
   if (envStoreNote) envStoreNote.hidden = false;
   if (devIdentitySection) devIdentitySection.hidden = true;
   envProfile.value = 'production';
+  applyStoreTargetGuideLinks();
 }
 
 function toggleCustomOrigin() {
