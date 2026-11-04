@@ -3,7 +3,7 @@
  * Every public/extension/*.html page: Privacy + Terms in footer only; AI notice in Related guides.
  */
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { EXTENSION_AI_GENERATED_ANALYSIS_PATH } from './lib/extension-guide-html.mjs';
@@ -15,6 +15,13 @@ const extensionPublicDir = resolve(
   'public',
   'extension',
 );
+
+if (!existsSync(extensionPublicDir)) {
+  console.log(
+    'test-public-extension-footers: skip (no synced HTML — run npm run sync:public-guides with Moderation-Tool-Universal checkout)',
+  );
+  process.exit(0);
+}
 
 const htmlFiles = readdirSync(extensionPublicDir)
   .filter((name) => name.endsWith('.html'))
