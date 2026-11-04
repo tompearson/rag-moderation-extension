@@ -57,7 +57,7 @@ Review the captured text, then click **Moderate**. Adjust **Analysis** or **Bad 
 
 ## Step 4 — Read Results {#step-4}
 
-**Results** appear below the action buttons. Check the **Decision** label and outcome, **Reason** (use **Copy** if you agree—see [When you agree: copy into Nextdoor Notes](https://www.airesearchdog.net/extension/how-to-moderate-user-posts#copy-notes)), and **Breakdown**. When the API saved a full report, use **Open full report**, **Email report**, or **Review this Decision** above the **Decision** line.
+**Results** appear below the action buttons. Check the **Decision** label and outcome, **Reason** (use **Copy** if you agree—see [When you agree: copy into Nextdoor Notes](https://www.airesearchdog.net/extension/how-to-moderate-user-posts#copy-notes)), and **Breakdown**. When the API saved a full report, use **Open full report**, **Email report**, or **Review this report** above the **Decision** line.
 
 ![Moderation results with Decision Maybe Remove, Reason, Breakdown, and report action buttons](/extension/images/how-to-moderate-walkthrough-04-results.png)
 

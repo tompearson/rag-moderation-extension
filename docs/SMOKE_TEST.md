@@ -53,8 +53,8 @@
 | 10 | Multi-paragraph | Drag from start of post through extra paragraphs → release → **Content** includes selected text |
 | 11 | Moderate (prod + DB save) | **Open full report** on results opens production view URL (always on when saved report exists) |
 | 12 | Options → report email + enable **Email report** | **Email report** sends via API; status confirms |
-| 12b | Saved report → **Review this Decision** → 👍/👎 + message → **Send it** | Success status; **Feedback** chip on Moderation Reports / Admin Query Submit Feedback (same `submitFeedback` as full report) |
-| 13 | **Email report** off in Options | **Review this Decision** and **Open full report** still shown when `moderationHistoryId` present; email hidden |
+| 12b | Saved report → **Review this report** → 👍/👎 + message → **Send it** | Success status; **Feedback** chip on Moderation Reports / Admin Query Submit Feedback (same `submitFeedback` as full report) |
+| 13 | **Email report** off in Options | **Review this report** and **Open full report** still shown when `moderationHistoryId` present; email hidden |
 | 14 | Factory reset | Location + optional report email dialogs again |
 
 ## BYOK Gemini (optional)

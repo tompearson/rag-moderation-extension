@@ -206,19 +206,7 @@
       <button type="button" class="close-options secondary">Close</button>
     </div>
 
-    <script>
-      (function showExtensionVersionLabel() {
-        try {
-          var v = chrome.runtime.getManifest().version;
-          var el = document.getElementById('extension-version-label');
-          if (el && v) {
-            el.textContent = 'v' + v;
-            el.hidden = false;
-            el.title = 'Extension version ' + v;
-          }
-        } catch (_) {}
-      })();
-    </script>
+    <script src="show-version.js"></script>
     <script type="module" src="options.js"></script>
   </body>
 </html>

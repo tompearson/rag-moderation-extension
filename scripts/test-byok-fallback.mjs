@@ -24,5 +24,6 @@ assert.equal(isLikelyGeminiKeyAuthFailure(''), false);
 
 assert.match(sharedPoolActiveStatusMessage(), /borrowed key/i);
 assert.match(sharedPoolActiveStatusMessage(), /Save key/i);
+assert.match(sharedPoolActiveStatusMessage(), /quota runs out/i);
 
 console.log('OK — byok fallback tests passed');

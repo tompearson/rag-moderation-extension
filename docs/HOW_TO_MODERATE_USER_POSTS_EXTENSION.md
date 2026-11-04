@@ -105,7 +105,7 @@ Open or scroll to **Breakdown** in **Results** to see **why** the model leaned a
 
 Use that breakdown to **double-check** the AI, not to skip reading the actual post. Compare the reasoning to your platform’s current guidelines and the full thread context. If the AI missed sarcasm, local norms, or a policy exception, **your** decision overrides the suggestion.
 
-When anything looks wrong, use **Review this Decision** (when a saved report exists) to send feedback, or note the case for your team’s process.
+When anything looks wrong, use **Review this report** (when a saved report exists) to send feedback, or note the case for your team’s process.
 
 ---
 
@@ -116,7 +116,7 @@ On Nextdoor, the moderation report includes **Notes — Additional Info**. Use t
 1. Run **Moderate** and wait for **Results** (report-action buttons may appear above the **Decision** label).
 2. Read the **Decision** line and the **Reason** below it.
 3. If you **agree with the Reason**, click **Copy** beside **Reason**, open the Nextdoor report, click into **Notes — Additional Info**, and paste (**Ctrl+V** / **Cmd+V**). Edit briefly if your team expects shorter or local wording—you remain responsible for what you submit.
-4. If you **do not** agree with the Reason, do **not** paste it—write your own notes instead, or use **Review this Decision** when that button is available.
+4. If you **do not** agree with the Reason, do **not** paste it—write your own notes instead, or use **Review this report** when that button is available.
 
 If **Copy** does nothing, allow clipboard access when Chrome prompts, or select the **Reason** text in the panel and copy manually.
 
@@ -138,7 +138,7 @@ Move to the next post by capturing new text with paste, pick mode, or the contex
 
 **Report email** — Optionally save an email in **Options** or when prompted. Then, on results tied to a **saved report**, **Email report** can send you a copy of the full moderation report.
 
-**Review this Decision** — Opens a short feedback form when the API stored a report id. Your comment is recorded as needing improvement and may be included in an acknowledgement email if report email is set.
+**Review this report** — Opens a short feedback form when the API stored a report id. Your comment is recorded as needing improvement and may be included in an acknowledgement email if report email is set.
 
 ---
 

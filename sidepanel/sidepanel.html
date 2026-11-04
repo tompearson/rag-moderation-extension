@@ -56,7 +56,7 @@
     >
       <div class="modal-card email-send-mode">
         <div class="modal-card-header">
-          <h2 id="review-decision-modal-title">Review this Decision</h2>
+          <h2 id="review-decision-modal-title">Review this report</h2>
           <button type="button" id="review-decision-close" class="modal-close" aria-label="Close">×</button>
         </div>
         <p id="review-decision-modal-desc" class="muted">
@@ -199,19 +199,7 @@
       <section id="results" class="results hidden" aria-live="polite"></section>
     </main>
 
-    <script>
-      (function showExtensionVersionLabel() {
-        try {
-          var v = chrome.runtime.getManifest().version;
-          var el = document.getElementById('extension-version-label');
-          if (el && v) {
-            el.textContent = 'v' + v;
-            el.hidden = false;
-            el.title = 'Extension version ' + v;
-          }
-        } catch (_) {}
-      })();
-    </script>
+    <script src="show-version.js"></script>
     <script type="module" src="sidepanel.js"></script>
   </body>
 </html>

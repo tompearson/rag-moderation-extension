@@ -684,7 +684,7 @@ function stopModerationProgress() {
  * @param {string} bodyId
  * @param {string} plainText
  */
-const REVIEW_THIS_DECISION_LABEL = 'Review this Decision';
+const REVIEW_THIS_REPORT_LABEL = 'Review this report';
 
 /**
  * @param {string} decision
@@ -754,7 +754,7 @@ async function copyElementTextToClipboard(elementId, button) {
 function buildReportActionsHtml(result, apiOrigin, flags) {
   if (!hasSavedReportForActions(result)) {
     return (
-      `<p class="muted report-actions-hint">No saved report from the API — <strong>${REVIEW_THIS_DECISION_LABEL}</strong> and report buttons need a stored record. Use <strong>Production</strong> (or local Universal with <code>AUTO_SAVE_TO_DB=true</code> and Supabase), then moderate again.</p>`
+      `<p class="muted report-actions-hint">No saved report from the API — <strong>${REVIEW_THIS_REPORT_LABEL}</strong> and report buttons need a stored record. Use <strong>Production</strong> (or local Universal with <code>AUTO_SAVE_TO_DB=true</code> and Supabase), then moderate again.</p>`
     );
   }
 
@@ -789,7 +789,7 @@ function buildReportActionsHtml(result, apiOrigin, flags) {
   }
   if (canReview) {
     parts.push(
-      `<button type="button" class="secondary small-btn review-decision-btn">${REVIEW_THIS_DECISION_LABEL}</button>`,
+      `<button type="button" class="secondary small-btn review-decision-btn">${REVIEW_THIS_REPORT_LABEL}</button>`,
     );
   }
   parts.push('</div>');
@@ -1314,7 +1314,7 @@ moderateBtn.addEventListener('click', async () => {
         );
       } else if (actionsHtml.includes('review-decision-btn')) {
         setStatus(
-          `Done. Report actions are above the decision (${REVIEW_THIS_DECISION_LABEL}, email, or open full report).`,
+          `Done. Report actions are above the decision (${REVIEW_THIS_REPORT_LABEL}, email, or open full report).`,
         );
       } else if (actionsHtml.includes('open-report-btn')) {
         setStatus('Done. Click Open full report above the decision.');
