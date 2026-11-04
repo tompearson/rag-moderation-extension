@@ -48,8 +48,9 @@ This guide is for **developers and testers** loading an **unpacked** build from 
 | Guide | When to use it |
 |------|----------------|
 | [Install from Chrome Web Store](https://www.airesearchdog.net/extension/install-chrome-extension) | Normal moderator install |
+| [How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts) | Side panel workflow |
 | [Get a Gemini API key](https://www.airesearchdog.net/extension/get-gemini-api-key) | Optional BYOK after install |
-| [Privacy policy](https://www.airesearchdog.net/extension/privacy) | Data use, BYOK, and contact |
+| [Important — AI-generated analysis](https://www.airesearchdog.net/extension/important-ai-generated-analysis) | Read before acting on moderation suggestions |
 
 ---
 

@@ -51,8 +51,9 @@ The extension includes a small number of **free moderations** on shared capacity
 
 | Guide | When to use it |
 |------|----------------|
+| [How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts) | Side panel workflow after install |
 | [Install (developer / unpacked)](https://www.airesearchdog.net/extension/install-chrome-extension-developer) | Load unpacked or test `dist/store/` |
-| [Privacy policy](https://www.airesearchdog.net/extension/privacy) | Data use, BYOK, and contact |
+| [Important — AI-generated analysis](https://www.airesearchdog.net/extension/important-ai-generated-analysis) | Read before acting on moderation suggestions |
 
 ---
 

@@ -83,6 +83,8 @@ For **RAG Moderation Assistant**: the key stays in **this browser only**; it is 
 
 | Guide | When to use it |
 |------|----------------|
-| [Privacy policy](https://www.airesearchdog.net/extension/privacy) | Data use, BYOK, and contact |
+| [Install RAG Moderation Assistant in Chrome](https://www.airesearchdog.net/extension/install-chrome-extension) | Web Store install and pin |
+| [How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts) | Side panel workflow |
+| [Important — AI-generated analysis](https://www.airesearchdog.net/extension/important-ai-generated-analysis) | Read before acting on moderation suggestions |
 
 **Note:** BYOK on the moderation **website** (Universal web app, Platform Intelligence) is a separate product UI and is **not** described in this guide.

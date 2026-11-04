@@ -23,12 +23,12 @@ assert.match(html, /aria-current="page">Privacy/, 'active nav');
 assert.match(html, /Not affiliated with Nextdoor/, 'disclaimer');
 assert.match(html, /site-footer__legal/, 'legal footer links');
 assert.match(html, /href="\/extension\/terms">Terms of use/, 'terms link');
-assert.match(
-  html,
-  /href="\/extension\/important-ai-generated-analysis">AI-generated analysis/,
-  'ai analysis notice link',
-);
 assert.match(html, /Privacy policy/, 'privacy footer (current page)');
+assert.doesNotMatch(
+  html,
+  /site-footer__legal[\s\S]*important-ai-generated-analysis/,
+  'no AI link in footer',
+);
 assert.match(html, /<main>/, 'main content');
 
 console.log('test-extension-guide-html: ok');

@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 /**
- * Every public/extension/*.html page must include Privacy, Terms, and AI analysis in site-footer__legal.
+ * Every public/extension/*.html page: Privacy + Terms in footer only; AI notice in Related guides.
  */
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { EXTENSION_AI_GENERATED_ANALYSIS_PATH } from './lib/extension-guide-html.mjs';
 
 const extRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const extensionPublicDir = resolve(
@@ -15,31 +16,30 @@ const extensionPublicDir = resolve(
   'extension',
 );
 
-const AI_NOTICE_HREF = '/extension/important-ai-generated-analysis';
 const htmlFiles = readdirSync(extensionPublicDir)
   .filter((name) => name.endsWith('.html'))
   .sort();
 
 assert.ok(htmlFiles.length > 0, 'expected synced HTML under public/extension');
 
+const aiHref = EXTENSION_AI_GENERATED_ANALYSIS_PATH.replace(/\//g, '\\/');
+
 for (const file of htmlFiles) {
   const html = readFileSync(join(extensionPublicDir, file), 'utf8');
   assert.match(html, /site-footer__legal/, `${file}: missing legal footer row`);
   assert.match(html, /Privacy policy/, `${file}: missing privacy in footer`);
   assert.match(html, /Terms of use/, `${file}: missing terms in footer`);
-  assert.match(html, /AI-generated analysis/, `${file}: missing AI notice label in footer`);
-
-  if (file === 'important-ai-generated-analysis.html') {
+  assert.doesNotMatch(
+    html,
+    new RegExp(`site-footer__legal"[\\s\\S]*?${aiHref}`),
+    `${file}: AI notice must not be in footer`,
+  );
+  assert.match(html, new RegExp(`id="related">Related guides`), `${file}: missing Related guides`);
+  if (file !== 'important-ai-generated-analysis.html') {
     assert.match(
       html,
-      /site-footer__legal">[\s\S]*?AI-generated analysis[\s\S]*?<\/p>/,
-      `${file}: AI notice should appear in footer on this page`,
-    );
-  } else {
-    assert.match(
-      html,
-      new RegExp(`href="${AI_NOTICE_HREF.replace(/\//g, '\\/')}">AI-generated analysis`),
-      `${file}: missing AI notice link`,
+      new RegExp(`${aiHref}">Important — AI-generated analysis`),
+      `${file}: missing AI notice in Related guides`,
     );
   }
 }

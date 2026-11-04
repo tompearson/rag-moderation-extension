@@ -16,6 +16,14 @@ const mdPath = join(extRoot, 'docs', 'TERMS_EXTENSION.md');
 const outDir = join(universalDir, 'public', 'extension');
 const outPath = join(outDir, 'terms.html');
 
+function preprocessMarkdown(raw) {
+  return raw.replace(/^## Related guides \{#related\}/m, '## Related guides');
+}
+
+function postprocessBodyHtml(html) {
+  return html.replace(/<h2>Related guides<\/h2>/, '<h2 id="related">Related guides</h2>');
+}
+
 const markdown = readFileSync(mdPath, 'utf8');
 const html = renderExtensionGuideHtml({
   pageTitle: 'Terms of Use — RAG Moderation Assistant',
@@ -23,6 +31,8 @@ const html = renderExtensionGuideHtml({
   pagePath: '/extension/terms',
   showGuideNav: false,
   markdown,
+  preprocessMarkdown,
+  postprocessBodyHtml,
 });
 
 mkdirSync(outDir, { recursive: true });

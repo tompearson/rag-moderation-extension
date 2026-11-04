@@ -1,11 +1,13 @@
 import { marked } from 'marked';
 
-/** Same-origin legal / notice paths (footer on every extension guide page). */
+/** Same-origin legal paths (footer on every extension guide page). */
 export const EXTENSION_GUIDE_FOOTER_PATHS = {
   privacy: '/extension/privacy',
   terms: '/extension/terms',
-  aiGeneratedAnalysis: '/extension/important-ai-generated-analysis',
 };
+
+/** Linked from Related guides sections in extension docs. */
+export const EXTENSION_AI_GENERATED_ANALYSIS_PATH = '/extension/important-ai-generated-analysis';
 
 /** Same-origin guide paths (works on production host). */
 export const EXTENSION_GUIDE_NAV = [
@@ -387,21 +389,17 @@ function renderSiteHeader(pagePath, showGuideNav = true) {
  * @param {string | undefined} pagePath
  */
 function renderSiteFooter(footerText, pagePath) {
-  const { privacy, terms, aiGeneratedAnalysis } = EXTENSION_GUIDE_FOOTER_PATHS;
+  const { privacy, terms } = EXTENSION_GUIDE_FOOTER_PATHS;
   const onPrivacy = pagePath === privacy;
   const onTerms = pagePath === terms;
-  const onAiNotice = pagePath === aiGeneratedAnalysis;
   const privacyLink = onPrivacy
     ? 'Privacy policy'
     : `<a href="${privacy}">Privacy policy</a>`;
   const termsLink = onTerms ? 'Terms of use' : `<a href="${terms}">Terms of use</a>`;
-  const aiNoticeLink = onAiNotice
-    ? 'AI-generated analysis'
-    : `<a href="${aiGeneratedAnalysis}">AI-generated analysis</a>`;
 
   return `<footer class="site-footer">
     <p class="site-footer__line">${footerText}</p>
-    <p class="site-footer__line site-footer__legal">${privacyLink} · ${termsLink} · ${aiNoticeLink}</p>
+    <p class="site-footer__line site-footer__legal">${privacyLink} · ${termsLink}</p>
     <p class="site-footer__line">Not affiliated with Nextdoor, Inc.</p>
   </footer>`;
 }

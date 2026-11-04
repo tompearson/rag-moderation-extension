@@ -53,8 +53,19 @@ The extension interacts with **Google** (optional Gemini API), **your browser**,
 
 We may update these terms or the extension. We will post a new **Last updated** date at the top. Continued use after changes means you accept the updated terms. You may stop using the extension at any time by uninstalling it. We may discontinue features or access with reasonable notice where practicable.
 
+## Related guides {#related}
+
+| Guide | When to use it |
+|------|----------------|
+| [Install RAG Moderation Assistant in Chrome](https://www.airesearchdog.net/extension/install-chrome-extension) | Web Store install and pin |
+| [How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts) | Side panel workflow |
+| [Get a Gemini API key](https://www.airesearchdog.net/extension/get-gemini-api-key) | Optional BYOK |
+| [Important — AI-generated analysis](https://www.airesearchdog.net/extension/important-ai-generated-analysis) | Read before acting on moderation suggestions |
+
 ## Contact
 
 Questions about these terms: **[admin@airesearchdog.net](mailto:admin@airesearchdog.net)**.
+
+Do not use this address to submit posts for moderation; the email moderation product uses separate intake addresses documented on the Community Moderation Tool site.
 
 For how we handle data, see the [Privacy policy](https://www.airesearchdog.net/extension/privacy).

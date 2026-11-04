@@ -16,12 +16,22 @@ const mdPath = join(extRoot, 'docs', 'PRIVACY_POLICY_EXTENSION.md');
 const outDir = join(universalDir, 'public', 'extension');
 const outPath = join(outDir, 'privacy.html');
 
+function preprocessMarkdown(raw) {
+  return raw.replace(/^## Related guides \{#related\}/m, '## Related guides');
+}
+
 /** @param {string} html */
 function postprocessBodyHtml(html) {
-  return html.replace(
-    /<h2>Costs, quotas, and your Gemini key<\/h2>/,
-    '<h2 id="costs-quotas-and-your-gemini-key">Costs, quotas, and your Gemini key</h2>',
-  );
+  return html
+    .replace(
+      /<h2>Costs, quotas, and your Gemini key<\/h2>/,
+      '<h2 id="costs-quotas-and-your-gemini-key">Costs, quotas, and your Gemini key</h2>',
+    )
+    .replace(/<h2>Related guides<\/h2>/, '<h2 id="related">Related guides</h2>')
+    .replace(
+      /<h3>Email and @airesearchdog\.net addresses<\/h3>/,
+      '<h3 id="email-and-airesearchdognet-addresses">Email and @airesearchdog.net addresses</h3>',
+    );
 }
 
 const markdown = readFileSync(mdPath, 'utf8');
@@ -31,6 +41,7 @@ const html = renderExtensionGuideHtml({
   pagePath: '/extension/privacy',
   showGuideNav: false,
   markdown,
+  preprocessMarkdown,
   postprocessBodyHtml,
 });
 

@@ -36,7 +36,11 @@ function postprocessBodyHtml(html) {
       /<h2>Part 2 — Get a Gemini API key \(recommended\)<\/h2>/,
       '<h2 id="gemini">Part 2 — Get a Gemini API key (recommended)</h2>',
     )
-    .replace(/<h2>Related guides<\/h2>/, '<h2 id="related">Related guides</h2>');
+    .replace(/<h2>Related guides<\/h2>/, '<h2 id="related">Related guides</h2>')
+    .replace(
+      /<li><p><strong>Pin the extension to the toolbar<\/strong><\/p>/,
+      '<li id="pin-toolbar"><p><strong>Pin the extension to the toolbar</strong></p>',
+    );
 }
 
 const markdown = readFileSync(mdPath, 'utf8');

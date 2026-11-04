@@ -1,6 +1,6 @@
 # Privacy Policy — RAG Moderation Assistant (Chrome / Edge extension)
 
-**Last updated:** November 3, 2026  
+**Last updated:** November 4, 2026  
 **Operator:** airesearchdog (“we,” “us”)  
 **Contact:** [admin@airesearchdog.net](mailto:admin@airesearchdog.net)  
 
@@ -66,8 +66,22 @@ If you set a **Custom** API origin in Options (for local development or another 
 
 ### 2. Report and feedback actions (only when you use them)
 
-- **Email report:** sends report id and recipient email to airesearchdog’s API.  
-- **Review this Decision:** sends your comment, report id, session id, and optional reporter email to airesearchdog’s API.
+- **Email report:** sends report id and recipient email to airesearchdog’s API; the service then sends the report **to the address you saved** (any domain you choose).  
+- **Review this Decision:** sends your comment, report id, session id, and optional reporter email to airesearchdog’s API; you may receive a short acknowledgement at that reporter email.
+
+### Email and @airesearchdog.net addresses
+
+The extension uses **HTTPS only**—it does **not** send SMTP mail into the moderation API.
+
+| Address | Role relative to this extension |
+|---------|----------------------------------|
+| **Your saved report email** | Recipient when you tap **Email report** (often Gmail or work mail; not fixed to our domain). |
+| **`reports@airesearchdog.net`** | Typical **From** on outbound report and acknowledgement mail. |
+| **`noreply@airesearchdog.net`** | Typical **Reply-To** on those messages; replies there are not processed as new moderations. |
+| **`report@airesearchdog.net`** | **Not used by the extension.** Intake for the separate [email moderation helper](https://www.airesearchdog.net/NEXTDOOR_EMAIL_MODERATION_HELPER.pdf) (mail post text there to receive a report). |
+| **`admin@airesearchdog.net`** | **Support and privacy contact only**—not moderation intake. Do not email post content here expecting an automated report from the extension or the email product. |
+
+Mail sent **to** `report@` is handled by airesearchdog’s inbound-email service (Resend receiving on our domain), not by the Chrome extension.
 
 ### 3. Google Gemini (optional)
 
@@ -113,8 +127,17 @@ Data in transit uses **HTTPS** where supported. Keys and settings rely on **your
 
 We may update this policy when the extension or API behavior changes. We will post the new date at the top and, where required, notify users through the store listing or extension update notes.
 
+## Related guides {#related}
+
+| Guide | When to use it |
+|------|----------------|
+| [Install RAG Moderation Assistant in Chrome](https://www.airesearchdog.net/extension/install-chrome-extension) | Web Store install and pin |
+| [How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts) | Side panel workflow |
+| [Get a Gemini API key](https://www.airesearchdog.net/extension/get-gemini-api-key) | Optional BYOK |
+| [Important — AI-generated analysis](https://www.airesearchdog.net/extension/important-ai-generated-analysis) | Read before acting on moderation suggestions |
+
 ## Contact
 
 Privacy and extension questions: **[admin@airesearchdog.net](mailto:admin@airesearchdog.net)**.
 
-Do not use this address to submit posts for moderation; the email moderation product uses separate intake addresses documented on the Community Moderation Tool site.
+Do not use this address to submit posts for moderation. See [Email and @airesearchdog.net addresses](#email-and-airesearchdognet-addresses) for how extension email differs from **`report@`** intake.

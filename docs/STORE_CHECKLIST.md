@@ -23,6 +23,7 @@ RAG-backed community post moderation for moderators (side panel: paste content, 
   - Install Chrome (Web Store): [install-chrome-extension](https://www.airesearchdog.net/extension/install-chrome-extension)
   - Install unpacked (dev only; not for listing): [install-chrome-extension-developer](https://www.airesearchdog.net/extension/install-chrome-extension-developer)
   - BYOK / Gemini key: [get-gemini-api-key](https://www.airesearchdog.net/extension/get-gemini-api-key)
+  - Moderation workflow: [how-to-moderate-user-posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts)
 
 ## Permissions justification
 
