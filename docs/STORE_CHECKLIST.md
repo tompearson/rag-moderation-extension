@@ -13,7 +13,9 @@ RAG-backed community post moderation for moderators (side panel: paste content, 
 
 - MV3, all logic bundled — no remote JS ([MV3 requirements](https://developer.chrome.com/docs/webstore/program-policies/mv3-requirements)).
 - Icons 16 / 48 / 128 included.
-- Privacy policy URL: [extension/privacy](https://www.airesearchdog.net/extension/privacy) (source [PRIVACY_POLICY_EXTENSION.md](./PRIVACY_POLICY_EXTENSION.md); `npm run sync:privacy-policy` + `deploy:prod`) describing:
+- Privacy policy URL: [extension/privacy](https://www.airesearchdog.net/extension/privacy) (source [PRIVACY_POLICY_EXTENSION.md](./PRIVACY_POLICY_EXTENSION.md); `npm run sync:privacy-policy` + `deploy:prod`)
+- Terms of use URL (optional, recommended): [extension/terms](https://www.airesearchdog.net/extension/terms) (source [TERMS_EXTENSION.md](./TERMS_EXTENSION.md); `npm run sync:terms-extension` + `deploy:prod`)
+- Privacy policy should describe:
   - User-provided text sent to your moderation API
   - Optional **BYOK**: user may supply a Google Gemini API key stored in `chrome.storage.local`; key sent over HTTPS for moderations; validation may call Google directly from the browser
   - No silent full-page scraping: page text only when the moderator uses **Click on Text to Moderate** or the selection context menu (with `activeTab` / user gesture)
