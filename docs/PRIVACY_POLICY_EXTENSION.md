@@ -75,15 +75,11 @@ The extension uses **HTTPS only**—it does **not** send SMTP mail into the mode
 
 | Address | Role relative to this extension |
 |---------|----------------------------------|
-| **Your saved report email** | Recipient when you tap **Email report** (often Gmail or work mail; not fixed to our domain). |
-| **`reports@airesearchdog.net`** | Typical **From** on outbound report and acknowledgement mail. |
-| **`noreply@airesearchdog.net`** | Typical **Reply-To** on those messages; replies there are not processed as new moderations. |
-| **`report@airesearchdog.net`** | **Not used by the extension.** Intake for the separate [email moderation helper](https://www.airesearchdog.net/NEXTDOOR_EMAIL_MODERATION_HELPER.pdf) (mail post text there to receive a report). |
+| **Your saved report email** | Recipient when you tap **Email report** (often Gmail or work mail; not fixed to our domain). Outbound mail is sent by airesearchdog’s mail service on your behalf. |
+| **`noreply@airesearchdog.net`** | Typical **Reply-To** on outbound report and acknowledgement mail; replies there are not processed as new moderations. |
 | **`info@airesearchdog.net`** | **General information**—see [Contact page](https://www.airesearchdog.net/extension/contact#info). Not moderation intake. |
 | **`help@airesearchdog.net`** | **Extension help / troubleshooting**—see [Contact page](https://www.airesearchdog.net/extension/contact#help). Not moderation intake. |
 | **`admin@airesearchdog.net`** | **Privacy, terms, and legal contact**—see [Contact page](https://www.airesearchdog.net/extension/contact#admin). Not moderation intake. |
-
-Mail sent **to** `report@` is handled by airesearchdog’s inbound-email service (Resend receiving on our domain), not by the Chrome extension.
 
 ### 3. Google Gemini (optional)
 
@@ -143,4 +139,4 @@ We may update this policy when the extension or API behavior changes. We will po
 
 Privacy and extension questions: see the **[Contact page](https://www.airesearchdog.net/extension/contact)** (**[info@airesearchdog.net](mailto:info@airesearchdog.net)**, **[help@airesearchdog.net](mailto:help@airesearchdog.net)**, **[admin@airesearchdog.net](mailto:admin@airesearchdog.net)**).
 
-Do not use these addresses to submit posts for moderation; the email moderation product uses separate intake addresses documented on the Community Moderation Tool site.
+Do not use these addresses to submit posts for moderation; use the **extension side panel** instead (see [How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts)).

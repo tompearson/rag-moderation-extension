@@ -67,6 +67,6 @@ We may update these terms or the extension. We will post a new **Last updated** 
 
 Questions about these terms: see the **[Contact page](https://www.airesearchdog.net/extension/contact)** (**[admin@airesearchdog.net](mailto:admin@airesearchdog.net)** for legal/terms topics).
 
-Do not use these addresses to submit posts for moderation; the email moderation product uses separate intake addresses documented on the Community Moderation Tool site.
+Do not use these addresses to submit posts for moderation; use the **extension side panel** instead (see [How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts)).
 
 For how we handle data, see the [Privacy policy](https://www.airesearchdog.net/extension/privacy).

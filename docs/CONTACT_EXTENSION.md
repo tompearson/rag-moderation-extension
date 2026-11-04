@@ -5,7 +5,7 @@
 
 Use the addresses below for **questions about the extension, this website, or our policies**. We read mail sent to each address.
 
-**Do not** email neighbor post or comment text to these addresses expecting an automated moderation report. Use the **extension side panel** or the separate [email moderation helper](https://www.airesearchdog.net/NEXTDOOR_EMAIL_MODERATION_HELPER.pdf) (**`report@airesearchdog.net`**) instead. See [Email and @airesearchdog.net addresses](https://www.airesearchdog.net/extension/privacy#email-and-airesearchdognet-addresses) in the privacy policy for how that differs from the extension.
+**Do not** email neighbor post or comment text to these addresses expecting an automated moderation report. Use the **extension side panel** instead (see [How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts)).
 
 ---
 
