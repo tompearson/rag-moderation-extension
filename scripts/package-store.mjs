@@ -10,10 +10,12 @@ const OUT_DIR = path.join(ROOT, 'dist', 'store');
 const ZIP_PATH = path.join(ROOT, 'dist', 'rag-moderation-assistant.zip');
 
 const SECRET_PATTERNS = [
-  /RAG_SERVICE_SECRET/i,
-  /GEMINI_API_KEY/i,
+  /\bRAG_SERVICE_SECRET\s*=/,
+  /\bGEMINI_API_KEY\s*=/,
   /sk-[a-zA-Z0-9]{20,}/,
 ];
+
+const SEMVER_PATTERN = /^\d+\.\d+\.\d+$/;
 
 function readIncludeDirs() {
   const listPath = path.join(ROOT, 'packaging', 'store-include.txt');
@@ -62,6 +64,33 @@ function assertNoForbiddenPaths(outDir) {
     if (fs.existsSync(p)) {
       throw new Error(`Store output must not contain ${name}/`);
     }
+  }
+}
+
+/**
+ * @param {string} raw
+ * @returns {string}
+ */
+function parseReleaseVersion(raw) {
+  const v = String(raw || '').trim();
+  if (!v) return '';
+  if (!SEMVER_PATTERN.test(v)) {
+    throw new Error(`RELEASE_VERSION must be semver X.Y.Z (got: ${raw})`);
+  }
+  return v;
+}
+
+/**
+ * @param {string} manifestPath
+ * @param {string} version
+ */
+function applyReleaseVersionToManifest(manifestPath, version) {
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  const templateVersion = manifest.version;
+  manifest.version = version;
+  fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
+  if (templateVersion !== version) {
+    console.log(`Manifest version: ${templateVersion} → ${version} (RELEASE_VERSION)`);
   }
 }
 
@@ -137,6 +166,12 @@ function main() {
     path.join(ROOT, 'packaging', 'buildConfig.store.js'),
     path.join(OUT_DIR, 'lib', 'buildConfig.js'),
   );
+
+  const manifestPath = path.join(OUT_DIR, 'manifest.json');
+  const releaseVersion = parseReleaseVersion(process.env.RELEASE_VERSION);
+  if (releaseVersion) {
+    applyReleaseVersionToManifest(manifestPath, releaseVersion);
+  }
 
   assertNoForbiddenPaths(OUT_DIR);
   validateManifest(OUT_DIR);

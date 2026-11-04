@@ -2,6 +2,8 @@
 
 Develop on the repo root (`Load unpacked` as today). When you are ready to QA or upload, build a **store-shaped tree** and a **ZIP** from the same output.
 
+**Automated sideload releases:** push a semver tag (`v0.2.3`) to publish a ZIP on [GitHub Releases](https://github.com/tompearson/rag-moderation-extension/releases/latest). See [RELEASE.md](./RELEASE.md).
+
 ## Build
 
 ```bash

@@ -69,12 +69,22 @@ node scripts/test-unwrap.mjs
 
 Full stack: Universal `npm run test:rag-smoke` then manual matrix in [docs/SMOKE_TEST.md](./docs/SMOKE_TEST.md).
 
+## Download latest build (sideload)
+
+**Production-shaped ZIP** from GitHub Releases (unzip → Load unpacked):
+
+[Download latest release](https://github.com/tompearson/rag-moderation-extension/releases/latest)
+
+Steps: [docs/RELEASE.md](./docs/RELEASE.md) and [developer install guide](https://www.airesearchdog.net/extension/install-chrome-extension-developer).
+
 ## Store / production
 
 See [docs/STORE_CHECKLIST.md](./docs/STORE_CHECKLIST.md), [docs/STORE_PACKAGING.md](./docs/STORE_PACKAGING.md), and [docs/PROD_AUTH_SPIKE.md](./docs/PROD_AUTH_SPIKE.md) before publishing to Chrome Web Store or Edge Add-ons.
 
+Cut a tagged release: [docs/RELEASE.md](./docs/RELEASE.md).
+
 ```bash
-npm run package:store   # dist/store/ + upload ZIP
+npm run package:store   # dist/store/ + dist/rag-moderation-assistant.zip
 ```
 
 ## Related repos
