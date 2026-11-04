@@ -127,6 +127,4 @@ We may update this policy when the extension or API behavior changes. We will po
 
 ## Contact
 
-Privacy questions: **[admin@airesearchdog.net](mailto:admin@airesearchdog.net)**. For **info@**, **help@**, and when to use each address, see the **[Contact page](https://www.airesearchdog.net/extension/contact)**.
-
-Do not email post content to contact addresses for moderation; use the **extension side panel** (see [How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts)).
+Privacy questions: **[admin@airesearchdog.net](mailto:admin@airesearchdog.net)**. For more help see the **[Contact page](https://www.airesearchdog.net/extension/contact)**.

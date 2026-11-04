@@ -4,7 +4,6 @@ import { marked } from 'marked';
 export const EXTENSION_GUIDE_FOOTER_PATHS = {
   privacy: '/extension/privacy',
   terms: '/extension/terms',
-  contact: '/extension/contact',
 };
 
 /** Linked from Related guides sections in extension docs. */
@@ -390,19 +389,17 @@ function renderSiteHeader(pagePath, showGuideNav = true) {
  * @param {string | undefined} pagePath
  */
 function renderSiteFooter(footerText, pagePath) {
-  const { privacy, terms, contact } = EXTENSION_GUIDE_FOOTER_PATHS;
+  const { privacy, terms } = EXTENSION_GUIDE_FOOTER_PATHS;
   const onPrivacy = pagePath === privacy;
   const onTerms = pagePath === terms;
-  const onContact = pagePath === contact;
   const privacyLink = onPrivacy
     ? 'Privacy policy'
     : `<a href="${privacy}">Privacy policy</a>`;
   const termsLink = onTerms ? 'Terms of use' : `<a href="${terms}">Terms of use</a>`;
-  const contactLink = onContact ? 'Contact' : `<a href="${contact}">Contact</a>`;
 
   return `<footer class="site-footer">
     <p class="site-footer__line">${footerText}</p>
-    <p class="site-footer__line site-footer__legal">${privacyLink} · ${termsLink} · ${contactLink}</p>
+    <p class="site-footer__line site-footer__legal">${privacyLink} · ${termsLink}</p>
     <p class="site-footer__line">Not affiliated with Nextdoor, Inc.</p>
   </footer>`;
 }

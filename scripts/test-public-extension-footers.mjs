@@ -29,7 +29,6 @@ for (const file of htmlFiles) {
   assert.match(html, /site-footer__legal/, `${file}: missing legal footer row`);
   assert.match(html, /Privacy policy/, `${file}: missing privacy in footer`);
   assert.match(html, /Terms of use/, `${file}: missing terms in footer`);
-  assert.match(html, /Contact/, `${file}: missing contact in footer`);
   assert.doesNotMatch(
     html,
     new RegExp(`site-footer__legal"[\\s\\S]*?${aiHref}`),
