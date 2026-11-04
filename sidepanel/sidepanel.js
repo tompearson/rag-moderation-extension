@@ -1418,6 +1418,8 @@ async function consumePendingDraftOnLoad() {
 let pickModeInProgress = false;
 /** Bumped when pick is aborted so in-flight START_PICK_MODE responses are ignored. */
 let pickRunGeneration = 0;
+/** Content box before pick started (restore if pick cancelled without a capture). */
+let pickFieldRestoreText = '';
 /** @type {number | null} */
 let activePickTabId = null;
 /** @type {((e: KeyboardEvent) => void) | null} */
@@ -1450,13 +1452,28 @@ function endPickModeUi() {
 }
 
 /** Cancel in-page pick and reset side panel button (e.g. factory reset while pick was active). */
-function abortPickMode() {
+function abortPickMode({ restoreField = 'content' } = {}) {
   pickRunGeneration += 1;
   const tabId = activePickTabId;
   endPickModeUi();
+  if (restoreField) {
+    restorePickFieldIfEmpty(restoreField);
+  }
   if (tabId != null) {
     chrome.runtime.sendMessage({ type: 'CANCEL_PICK_MODE', tabId }).catch(() => {});
   }
+}
+
+/**
+ * @param {CaptureField} field
+ */
+function restorePickFieldIfEmpty(field) {
+  const el = textareaForField(field);
+  if (!el.value.trim() && pickFieldRestoreText) {
+    el.value = pickFieldRestoreText;
+    if (field === 'content') updateModerateBtnPrompt();
+  }
+  pickFieldRestoreText = '';
 }
 
 function syncPickContentButton() {
@@ -1499,32 +1516,39 @@ async function runPickModeForField(field) {
     endPickModeUi();
     return;
   }
-  clearCaptureField(field);
+  pickFieldRestoreText = textareaForField(field).value;
   attachPickEscapeListener(tabId);
   let response;
   try {
     response = await chrome.runtime.sendMessage({ type: 'START_PICK_MODE', tabId });
   } catch (err) {
+    restorePickFieldIfEmpty(field);
     setStatus(err instanceof Error ? err.message : String(err), true);
     endPickModeUi();
     return;
   }
   endPickModeUi();
-  if (runId !== pickRunGeneration) return;
+  if (runId !== pickRunGeneration) {
+    restorePickFieldIfEmpty(field);
+    return;
+  }
   if (!response?.ok) {
     const msg = response?.error || 'Could not capture text.';
+    restorePickFieldIfEmpty(field);
     if (msg.includes('cancelled')) {
-      setStatus('Cancelled.');
+      setStatus('Pick cancelled. Text in the box is unchanged—you can Moderate or pick again from the post tab.');
       return;
     }
     setStatus(msg, true);
     return;
   }
   if (!response.text) {
+    restorePickFieldIfEmpty(field);
     setStatus('Nothing captured.', true);
     return;
   }
   applyPickedText(response.text, field);
+  pickFieldRestoreText = '';
   if (field === 'content') updateModerateBtnPrompt();
 }
 
@@ -1602,6 +1626,13 @@ chrome.runtime.onMessage.addListener((message) => {
 });
 
 document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden' && pickModeInProgress) {
+    abortPickMode();
+    setInfoStatus(
+      'Pick paused. Return to the post tab to capture text, or use the text already in the box—Moderate does not require the post tab.',
+    );
+    return;
+  }
   if (document.visibilityState === 'visible') {
     syncSidePanelFromStorage().catch(() => {});
   }

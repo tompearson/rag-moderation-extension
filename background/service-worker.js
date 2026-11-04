@@ -4,7 +4,7 @@ import { postModerate, moderateTimeoutMs } from '../lib/moderateClient.js';
 import { loadSettings, isFeedLocationConfirmed } from '../lib/userSettings.js';
 import { normalizeReportEmail, isValidReportEmail } from '../lib/validateReportEmail.js';
 import { resolveUserApiKeyForModeration } from '../lib/geminiByok.js';
-import { MODERATION_TARGET_TAB_SESSION_KEY } from '../lib/pageAccess.js';
+import { MODERATION_TARGET_TAB_SESSION_KEY, isReadablePageUrl } from '../lib/pageAccess.js';
 import { startPickModeOnActiveTab, settlePickModeMessage, cancelPickModeOnTab } from '../lib/pickMode.js';
 import {
   registerModerationContextMenu,
@@ -25,7 +25,15 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 });
 
 chrome.tabs.onActivated.addListener(({ tabId }) => {
-  chrome.storage.session.set({ [MODERATION_TARGET_TAB_SESSION_KEY]: tabId }).catch(() => {});
+  chrome.tabs
+    .get(tabId)
+    .then((tab) => {
+      if (isReadablePageUrl(tab.url)) {
+        return chrome.storage.session.set({ [MODERATION_TARGET_TAB_SESSION_KEY]: tabId });
+      }
+      return undefined;
+    })
+    .catch(() => {});
 });
 
 /** @type {Map<string, AbortController>} */
