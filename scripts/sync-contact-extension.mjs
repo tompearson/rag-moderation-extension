@@ -24,22 +24,29 @@ function preprocessMarkdown(raw) {
     .replace(/^## Related guides \{#related\}/m, '## Related guides');
 }
 
-/** @param {string} html */
-function postprocessBodyHtml(html) {
+/**
+ * @param {string} html
+ * @param {string} email
+ * @param {string} id
+ */
+function addContactHeadingId(html, email, id) {
+  const esc = email.replace(/\./g, '\\.');
+  const linked = `<a href="mailto:${email}">${email}</a>`.replace(/\./g, '\\.');
   return html
     .replace(
-      /<h2>info@airesearchdog\.net<\/h2>/,
-      '<h2 id="info">info@airesearchdog.net</h2>',
+      new RegExp(`<h2>${linked}<\\/h2>`),
+      `<h2 id="${id}"><a href="mailto:${email}">${email}</a></h2>`,
     )
-    .replace(
-      /<h2>help@airesearchdog\.net<\/h2>/,
-      '<h2 id="help">help@airesearchdog.net</h2>',
-    )
-    .replace(
-      /<h2>admin@airesearchdog\.net<\/h2>/,
-      '<h2 id="admin">admin@airesearchdog.net</h2>',
-    )
-    .replace(/<h2>Related guides<\/h2>/, '<h2 id="related">Related guides</h2>');
+    .replace(new RegExp(`<h2>${esc}<\\/h2>`), `<h2 id="${id}">${email}</h2>`);
+}
+
+/** @param {string} html */
+function postprocessBodyHtml(html) {
+  let out = html;
+  out = addContactHeadingId(out, 'info@airesearchdog.net', 'info');
+  out = addContactHeadingId(out, 'help@airesearchdog.net', 'help');
+  out = addContactHeadingId(out, 'admin@airesearchdog.net', 'admin');
+  return out.replace(/<h2>Related guides<\/h2>/, '<h2 id="related">Related guides</h2>');
 }
 
 const markdown = readFileSync(mdPath, 'utf8');
