@@ -158,7 +158,7 @@ export const EXTENSION_GUIDE_PAGE_CSS = `
     margin-bottom: 0;
   }
 
-  main > p:has(strong:first-child),
+  main > p:has(strong:first-child):not(:has(strong:only-child)),
   blockquote {
     margin: 1rem 0;
     padding: 12px 14px;
@@ -177,18 +177,18 @@ export const EXTENSION_GUIDE_PAGE_CSS = `
 
   ul { padding-left: 1.35rem; list-style: disc; }
 
-  ol {
+  main > ol {
     counter-reset: guide-step;
   }
 
-  ol > li {
+  main > ol > li {
     counter-increment: guide-step;
     position: relative;
     margin: 0.65rem 0;
     padding-left: 2.25rem;
   }
 
-  ol > li::before {
+  main > ol > li::before {
     content: counter(guide-step);
     position: absolute;
     left: 0;
@@ -204,7 +204,45 @@ export const EXTENSION_GUIDE_PAGE_CSS = `
     text-align: center;
   }
 
+  /* Install guide: sub-steps under main step 6 only */
+  main > ol > li > ol {
+    counter-reset: guide-substep;
+    margin: 0.65rem 0 0.25rem;
+  }
+
+  main > ol > li > ol > li {
+    counter-increment: guide-substep;
+    position: relative;
+    padding-left: 5.35rem;
+    margin: 0.5rem 0;
+  }
+
+  main > ol > li > ol > li::before {
+    content: "Step " counter(guide-substep);
+    position: absolute;
+    left: 0;
+    top: 0.08em;
+    width: auto;
+    height: auto;
+    line-height: 1.45;
+    font-size: 0.92rem;
+    font-weight: 700;
+    background: none;
+    border: none;
+    border-radius: 0;
+    color: var(--green-dark);
+    text-align: left;
+  }
+
+  main > ol > li > ol > li > p {
+    margin-left: 0;
+  }
+
   li { margin: 0.35rem 0; }
+
+  main > ol > li > ol > li img {
+    margin-left: 0;
+  }
 
   a {
     color: var(--green-dark);
@@ -254,6 +292,20 @@ export const EXTENSION_GUIDE_PAGE_CSS = `
     color: var(--green-dark);
     padding: 0.12em 0.35em;
     border-radius: 4px;
+  }
+
+  main img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 1rem 0 1.35rem;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+
+  main ol > li > p {
+    margin: 0.45rem 0 0.45rem 1.25rem;
   }
 
   .site-footer {

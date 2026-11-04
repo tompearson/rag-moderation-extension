@@ -2,7 +2,7 @@
 /**
  * Render docs/INSTALL_RAG_MODERATION_EXTENSION_CHROME.md → Universal public/extension/install-chrome-extension.html
  */
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { renderExtensionGuideHtml } from './lib/extension-guide-html.mjs';
@@ -19,10 +19,9 @@ const outPath = join(outDir, 'install-chrome-extension.html');
 function preprocessMarkdown(raw) {
   return raw
     .replace(/^## Part 1 — Install from the Chrome Web Store \{#install\}/m, '## Part 1 — Install from the Chrome Web Store')
-    .replace(/^## Part 2 — Manage the extension \{#manage\}/m, '## Part 2 — Manage the extension')
     .replace(
-      /^## Part 3 — Get a Gemini API key \(recommended\) \{#gemini\}/m,
-      '## Part 3 — Get a Gemini API key (recommended)',
+      /^## Part 2 — Get a Gemini API key \(recommended\) \{#gemini\}/m,
+      '## Part 2 — Get a Gemini API key (recommended)',
     )
     .replace(/^## Related guides \{#related\}/m, '## Related guides');
 }
@@ -34,14 +33,9 @@ function postprocessBodyHtml(html) {
       '<h2 id="install">Part 1 — Install from the Chrome Web Store</h2>',
     )
     .replace(
-      /<h2>Part 2 — Manage the extension<\/h2>/,
-      '<h2 id="manage">Part 2 — Manage the extension</h2>',
+      /<h2>Part 2 — Get a Gemini API key \(recommended\)<\/h2>/,
+      '<h2 id="gemini">Part 2 — Get a Gemini API key (recommended)</h2>',
     )
-    .replace(
-      /<h2>Part 3 — Get a Gemini API key \(recommended\)<\/h2>/,
-      '<h2 id="gemini">Part 3 — Get a Gemini API key (recommended)</h2>',
-    )
-    .replace(/<h2>Table of contents<\/h2>/, '<h2 id="toc">Table of contents</h2>')
     .replace(/<h2>Related guides<\/h2>/, '<h2 id="related">Related guides</h2>');
 }
 
@@ -56,6 +50,27 @@ const html = renderExtensionGuideHtml({
   postprocessBodyHtml,
 });
 
+const imageOutDir = join(outDir, 'images');
+const guideImages = [
+  'install-chrome-developer-mode.png',
+  'install-chrome-extensions-card-enabled.png',
+  'install-chrome-extensions-puzzle-chicklet.png',
+  'install-chrome-extensions-pin-thumbtack.png',
+  'install-chrome-toolbar-extension-icon.png',
+];
+
 mkdirSync(outDir, { recursive: true });
+mkdirSync(imageOutDir, { recursive: true });
+for (const name of guideImages) {
+  const src = join(extRoot, 'docs', 'images', name);
+  if (!existsSync(src)) {
+    console.warn(`Skip missing guide image: ${src}`);
+    continue;
+  }
+  copyFileSync(src, join(imageOutDir, name));
+}
 writeFileSync(outPath, html, 'utf8');
 console.log(`Wrote ${outPath}`);
+for (const name of guideImages) {
+  console.log(`Wrote ${join(imageOutDir, name)}`);
+}
