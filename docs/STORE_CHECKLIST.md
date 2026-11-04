@@ -18,7 +18,8 @@ RAG-backed community post moderation for moderators (side panel: paste content, 
   - Optional **BYOK**: user may supply a Google Gemini API key stored in `chrome.storage.local`; key sent over HTTPS for moderations; validation may call Google directly from the browser
   - No silent full-page scraping: page text only when the moderator uses **Click on Text to Moderate** or the selection context menu (with `activeTab` / user gesture)
 - **Help / support URLs (optional):** static HTML on your domain (not remote code in the CRX); updates via `npm run sync:public-guides` + Universal `deploy:prod`, no new CRX required:
-  - Install Chrome: [install-chrome-extension](https://www.airesearchdog.net/extension/install-chrome-extension)
+  - Install Chrome (Web Store): [install-chrome-extension](https://www.airesearchdog.net/extension/install-chrome-extension)
+  - Install unpacked (dev only; not for listing): [install-chrome-extension-developer](https://www.airesearchdog.net/extension/install-chrome-extension-developer)
   - BYOK / Gemini key: [get-gemini-api-key](https://www.airesearchdog.net/extension/get-gemini-api-key)
 
 ## Permissions justification

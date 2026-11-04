@@ -1,6 +1,8 @@
 # Install RAG Moderation Assistant extension in Google Chrome
 
-**Start here.** Part 1 walks through **install and pin** in Chrome. Part 2 points you to a **Gemini API key** (optional on shared capacity; **recommended** for regular moderating or your own Google quota).
+**Start here.** Part 1 walks through **install and pin** from the **Chrome Web Store**. Part 2 points you to a **Gemini API key** (optional on shared capacity; **recommended** for regular moderating or your own Google quota).
+
+Installing an **unpacked** build for development or QA? See **[Install (developer / unpacked build)](https://www.airesearchdog.net/extension/install-chrome-extension-developer)** — do not use Developer mode steps below for a normal Web Store install.
 
 ## Part 1 — Install from the Chrome Web Store {#install}
 
@@ -19,27 +21,13 @@
 5. **Confirm permissions**  
    Chrome shows a dialog listing what the extension can access. Review it and click **Add extension**.
 
-6. **Enable the extension in Chrome**
+6. **Pin the extension to the toolbar**
 
-   1. Click the **three vertical dots** in the top-right corner of the Chrome window.
-
-   2. Hover **Extensions** in the dropdown list.
-
-   3. Click **Manage Extensions** in the flyout.
-
-   4. On the extensions page, use the **Developer mode** slider in the upper-right and turn it **on**.
-
-      ![Developer mode toggle turned on](/extension/images/install-chrome-developer-mode.png)
-
-   5. Find **RAG Moderation Assistant** and make sure the **unlabeled slider** at the bottom-right of its card is **enabled** (on). This turns on the extension for use.
-
-      ![RAG Moderation Assistant extension card with the enable slider turned on](/extension/images/install-chrome-extensions-card-enabled.png)
-
-   6. In the upper-right of Chrome, click on the **chicklet** known as the extension toolbar area.
+   1. In the upper-right area of Chrome (known as the extension toolbar), click on the **chicklet**.
 
       ![Extensions puzzle-piece icon in the Chrome toolbar](/extension/images/install-chrome-extensions-puzzle-chicklet.png)
 
-      Find **RAG Moderation Assistant** and click the **thumbtack**.
+   2. Find **RAG Moderation Assistant** and click the **thumbtack**.
 
       ![Pin (thumbtack) for RAG Moderation Assistant in the Extensions menu](/extension/images/install-chrome-extensions-pin-thumbtack.png)
 
@@ -63,6 +51,7 @@ The extension includes a small number of **free moderations** on shared capacity
 
 | Guide | When to use it |
 |------|----------------|
+| [Install (developer / unpacked)](https://www.airesearchdog.net/extension/install-chrome-extension-developer) | Load unpacked or test `dist/store/` |
 | [Privacy policy](https://www.airesearchdog.net/extension/privacy) | Data use, BYOK, and contact |
 
 ---

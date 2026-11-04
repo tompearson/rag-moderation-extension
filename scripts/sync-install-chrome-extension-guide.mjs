@@ -52,8 +52,6 @@ const html = renderExtensionGuideHtml({
 
 const imageOutDir = join(outDir, 'images');
 const guideImages = [
-  'install-chrome-developer-mode.png',
-  'install-chrome-extensions-card-enabled.png',
   'install-chrome-extensions-puzzle-chicklet.png',
   'install-chrome-extensions-pin-thumbtack.png',
   'install-chrome-toolbar-extension-icon.png',
