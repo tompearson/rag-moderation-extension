@@ -390,6 +390,12 @@ button.danger-outline {
   margin-top: 8px;
 }
 
+.status.status-info {
+  color: var(--fg);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .error {
   color: var(--remove);
   font-size: 13px;
@@ -588,6 +594,18 @@ button.link-btn:hover {
   margin: 4px 0 0;
   font-size: 0.85rem;
   text-align: right;
+}
+
+#review-decision-modal-desc {
+  margin: 0 0 8px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+.review-decision-modal-note {
+  margin: 0 0 10px;
+  font-size: 0.88rem;
+  line-height: 1.45;
 }
 
 .review-decision-rating {

@@ -30,7 +30,15 @@ import {
 } from '../lib/usStates.js';
 import { createStatePicker } from '../lib/statePicker.js';
 import { resolveApiConfig, formatApiProfileUiLabel } from '../lib/envProfiles.js';
-import { hasSavedGeminiKey, isByokConfigured } from '../lib/geminiByok.js';
+import {
+  byokQuotaWithSharedPoolHint,
+  hasSavedGeminiKey,
+  isByokConfigured,
+  isLikelyGeminiKeyAuthFailure,
+  sharedPoolActiveStatusMessage,
+  shouldClearByokWithoutKey,
+  switchedToSharedPoolStatusMessage,
+} from '../lib/geminiByok.js';
 import {
   GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL,
   INSTALL_CHROME_EXTENSION_GUIDE_URL,
@@ -41,7 +49,7 @@ import { formatExtensionVersionLabel, getExtensionVersion } from '../lib/extensi
 import { STORAGE_KEYS } from '../lib/userSettings.js';
 import { ensureHostPermission } from '../lib/permissions.js';
 import { openOptionsPage, toggleOptionsPage } from '../lib/optionsPage.js';
-import { EXTENSION_UI_SYNC } from '../lib/extensionUiSync.js';
+import { BYOK_CONTINUE_SHARED_POOL, EXTENSION_UI_SYNC } from '../lib/extensionUiSync.js';
 import {
   PENDING_DRAFT_SESSION_KEY,
   consumePendingModerationDraft,
@@ -355,6 +363,14 @@ async function refreshConnectionBadge() {
   await refreshByokBadge(settings);
 }
 
+async function refreshSharedPoolStatusHint() {
+  if (!statusEl) return;
+  if (activeModerationRequestId != null) return;
+  const settings = await loadSettings();
+  if (hasSavedGeminiKey(settings)) return;
+  setInfoStatus(sharedPoolActiveStatusMessage());
+}
+
 async function refreshByokBadge(settingsIn) {
   if (!byokBadge) return;
   const settings = settingsIn || (await loadSettings());
@@ -377,7 +393,7 @@ async function refreshByokBadge(settingsIn) {
   } else {
     byokBadge.classList.add('byok-badge--off', 'byok-badge--no-key');
     byokBadge.textContent = 'Your key · Off';
-    byokBadge.title = 'No key saved — click to open Options and Save key';
+    byokBadge.title = `Moderations use the shared pool — click for details (optional: add your key in Options)`;
     byokBadge.setAttribute('aria-pressed', 'false');
   }
 }
@@ -388,8 +404,16 @@ async function handleByokBadgeClick() {
   const on = isByokConfigured(settings);
 
   if (!hasKey) {
-    setStatus('No Gemini key saved. In Options, paste your key and choose Save key.', true);
-    await openOptionsPage({ focusGeminiKey: true });
+    try {
+      if (shouldClearByokWithoutKey(settings)) {
+        await saveSettingsPatch({ geminiByokEnabled: false });
+      }
+      setInfoStatus(sharedPoolActiveStatusMessage());
+      await refreshByokBadge(await loadSettings());
+      await openOptionsPage({ focusGeminiKey: true });
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : String(err), true);
+    }
     return;
   }
 
@@ -409,10 +433,15 @@ async function handleByokBadgeClick() {
 
 /** Pull latest settings into header badges, location picker, etc. */
 async function syncSidePanelFromStorage() {
-  await refreshConnectionBadge();
   const settings = await loadSettings();
-  if (!statePickerBusy() && hasValidUserLocation(settings.userLocation)) {
-    setPickerValues(settings.userLocation);
+  if (shouldClearByokWithoutKey(settings)) {
+    await saveSettingsPatch({ geminiByokEnabled: false });
+  }
+  await refreshConnectionBadge();
+  await refreshSharedPoolStatusHint();
+  const refreshed = await loadSettings();
+  if (!statePickerBusy() && hasValidUserLocation(refreshed.userLocation)) {
+    setPickerValues(refreshed.userLocation);
   }
 }
 
@@ -547,25 +576,38 @@ chrome.storage.onChanged.addListener((changes, area) => {
 });
 
 function setStatus(msg, isError = false) {
+  statusEl.classList.remove('status-info');
   statusEl.textContent = msg || '';
   statusEl.classList.toggle('error', isError);
 }
 
-function setGeminiQuotaHelpStatus() {
+/** Non-error guidance under Moderate (e.g. borrowed key / no BYOK). */
+function setInfoStatus(msg) {
+  statusEl.classList.remove('error');
+  statusEl.classList.add('status-info');
+  statusEl.textContent = msg || '';
+}
+
+function setGeminiQuotaHelpStatus(byokWasOn = false) {
+  statusEl.classList.remove('status-info');
   statusEl.classList.add('error');
   statusEl.replaceChildren();
-  statusEl.append(
-    document.createTextNode(
-      'Gemini API quota exceeded. Try again later. Manage or create a key in ',
-    ),
-  );
+  if (byokWasOn) {
+    statusEl.append(document.createTextNode(`${byokQuotaWithSharedPoolHint()} `));
+  } else {
+    statusEl.append(
+      document.createTextNode(
+        'Gemini API quota exceeded. Try again later. Manage or create a key in ',
+      ),
+    );
+  }
   const link = document.createElement('a');
   link.href = GOOGLE_AI_STUDIO_KEYS_URL;
   link.target = '_blank';
   link.rel = 'noopener noreferrer';
   link.textContent = 'Google AI Studio';
   statusEl.append(link);
-  statusEl.append(document.createTextNode('.'));
+  statusEl.append(document.createTextNode(byokWasOn ? '' : '.'));
 }
 
 /** @param {string} message */
@@ -642,7 +684,7 @@ function stopModerationProgress() {
  * @param {string} bodyId
  * @param {string} plainText
  */
-const GIVE_FEEDBACK_ABOUT_DECISION_LABEL = 'Give feedback about this Decision';
+const REVIEW_THIS_DECISION_LABEL = 'Review this Decision';
 
 /**
  * @param {string} decision
@@ -712,7 +754,7 @@ async function copyElementTextToClipboard(elementId, button) {
 function buildReportActionsHtml(result, apiOrigin, flags) {
   if (!hasSavedReportForActions(result)) {
     return (
-      `<p class="muted report-actions-hint">No saved report from the API — <strong>${GIVE_FEEDBACK_ABOUT_DECISION_LABEL}</strong> and report buttons need a stored record. Use <strong>Production</strong> (or local Universal with <code>AUTO_SAVE_TO_DB=true</code> and Supabase), then moderate again.</p>`
+      `<p class="muted report-actions-hint">No saved report from the API — <strong>${REVIEW_THIS_DECISION_LABEL}</strong> and report buttons need a stored record. Use <strong>Production</strong> (or local Universal with <code>AUTO_SAVE_TO_DB=true</code> and Supabase), then moderate again.</p>`
     );
   }
 
@@ -747,7 +789,7 @@ function buildReportActionsHtml(result, apiOrigin, flags) {
   }
   if (canReview) {
     parts.push(
-      `<button type="button" class="secondary small-btn review-decision-btn">${GIVE_FEEDBACK_ABOUT_DECISION_LABEL}</button>`,
+      `<button type="button" class="secondary small-btn review-decision-btn">${REVIEW_THIS_DECISION_LABEL}</button>`,
     );
   }
   parts.push('</div>');
@@ -1189,6 +1231,10 @@ moderateBtn.addEventListener('click', async () => {
   resultsEl.classList.add('hidden');
 
   const settings = await loadSettings();
+  const byokActiveForRequest = isByokConfigured(settings);
+  if (shouldClearByokWithoutKey(settings)) {
+    await saveSettingsPatch({ geminiByokEnabled: false });
+  }
   if (!isFeedLocationConfirmed(settings)) {
     setPickerValues(settings.userLocation);
     showLocationModal(true);
@@ -1243,8 +1289,12 @@ moderateBtn.addEventListener('click', async () => {
     }
     if (isModerationFailureResult(response.result)) {
       const reason = sanitizeModerationReason(String(response.result?.reason || ''));
-      if (isGeminiQuotaOrBillingIssue(reason)) {
-        setGeminiQuotaHelpStatus();
+      if (byokActiveForRequest && isLikelyGeminiKeyAuthFailure(reason)) {
+        await saveSettingsPatch({ geminiByokEnabled: false });
+        await refreshByokBadge(await loadSettings());
+        setStatus(switchedToSharedPoolStatusMessage(), true);
+      } else if (isGeminiQuotaOrBillingIssue(reason)) {
+        setGeminiQuotaHelpStatus(byokActiveForRequest);
       } else {
         setStatus(moderationFailureStatusMessage(response.result), true);
       }
@@ -1264,7 +1314,7 @@ moderateBtn.addEventListener('click', async () => {
         );
       } else if (actionsHtml.includes('review-decision-btn')) {
         setStatus(
-          `Done. Report actions are above the decision (${GIVE_FEEDBACK_ABOUT_DECISION_LABEL}, email, or open full report).`,
+          `Done. Report actions are above the decision (${REVIEW_THIS_DECISION_LABEL}, email, or open full report).`,
         );
       } else if (actionsHtml.includes('open-report-btn')) {
         setStatus('Done. Click Open full report above the decision.');
@@ -1540,6 +1590,11 @@ chrome.storage.onChanged.addListener((changes, area) => {
 });
 
 chrome.runtime.onMessage.addListener((message) => {
+  if (message?.type === BYOK_CONTINUE_SHARED_POOL) {
+    setInfoStatus(sharedPoolActiveStatusMessage());
+    refreshByokBadge(loadSettings()).catch(() => {});
+    return false;
+  }
   if (message?.type === EXTENSION_UI_SYNC) {
     syncSidePanelFromStorage().catch(() => {});
   }
@@ -1568,7 +1623,9 @@ byokBadge?.addEventListener('click', (e) => {
   });
 });
 
-refreshConnectionBadge().catch(() => {});
+refreshConnectionBadge()
+  .then(() => refreshSharedPoolStatusHint())
+  .catch(() => {});
 consumePendingDraftOnLoad().catch(() => {});
 initLocationUi().catch((err) => {
   setStatus(err instanceof Error ? err.message : String(err), true);

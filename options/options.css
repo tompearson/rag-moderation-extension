@@ -163,6 +163,22 @@ select {
   font-size: 0.9rem;
 }
 
+.byok-shared-pool-row {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--border) 18%, transparent);
+}
+
+.byok-shared-pool-row .muted {
+  margin: 0 0 10px;
+}
+
+.byok-shared-pool-row button {
+  width: 100%;
+}
+
 #section-gemini-byok {
   scroll-margin-top: 12px;
 }

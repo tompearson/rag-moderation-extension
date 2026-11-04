@@ -19,6 +19,7 @@ import {
   formatGeminiKeySuffixLabel,
   hasSavedGeminiKey,
   isRagProviderId,
+  sharedPoolStillWorksSuffix,
 } from '../lib/geminiByok.js';
 import {
   GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL,
@@ -29,6 +30,7 @@ import {
   EXTENSION_HOW_TO_MODERATE_URL,
 } from '../lib/geminiKeyUserHelp.js';
 import {
+  BYOK_CONTINUE_SHARED_POOL,
   FOCUS_GEMINI_KEY_SETUP,
   GEMINI_BYOK_OPTIONS_HASH,
   notifyExtensionUiSync,
@@ -37,6 +39,7 @@ import { normalizeGeminiApiKey } from '../lib/validateGeminiClient.js';
 import { validateGeminiKeyForOptions } from '../lib/validateGeminiRagStyle.js';
 import {
   computeReadinessFromValidateResult,
+  GEMINI_KEY_READINESS,
   shouldRunRagStyleProbes,
 } from '../lib/geminiKeyReadiness.js';
 import { STORAGE_KEYS } from '../lib/userSettings.js';
@@ -133,6 +136,8 @@ const geminiByokDetailsList = document.getElementById('gemini-byok-details-list'
 const geminiByokTurnOnRow = document.getElementById('gemini-byok-turn-on-row');
 const geminiByokTurnOnBtn = document.getElementById('gemini-byok-turn-on');
 const geminiByokTurnOnDismiss = document.getElementById('gemini-byok-turn-on-dismiss');
+const geminiByokSharedPoolRow = document.getElementById('gemini-byok-shared-pool-row');
+const geminiByokContinueSharedPool = document.getElementById('gemini-byok-continue-shared-pool');
 
 /** @type {string[]} */
 let geminiByokStatusDetails = [];
@@ -204,10 +209,15 @@ function renderGeminiByokDetails() {
 }
 
 function applyGeminiValidateDisplay(result, isError = false) {
-  const { summary, details } = computeReadinessFromValidateResult(result);
+  const { readiness, summary, details } = computeReadinessFromValidateResult(result);
   geminiByokStatusDetails = details;
   geminiByokDetailsExpanded = false;
-  setGeminiByokStatus(summary, isError);
+  const showSharedPoolHint =
+    isError && (readiness === GEMINI_KEY_READINESS.INVALID || result?.valid !== true);
+  setGeminiByokStatus(
+    showSharedPoolHint ? `${summary}${sharedPoolStillWorksSuffix()}` : summary,
+    isError,
+  );
   renderGeminiByokDetails();
 }
 
@@ -239,7 +249,10 @@ function focusGeminiKeySetupUI() {
     }
     window.setTimeout(() => geminiApiKeyInput.classList.remove('gemini-key-input--attention'), 4500);
   }
-  setGeminiByokStatus('Paste your Gemini API key below (or use Paste), then choose Save key.');
+  setGeminiByokStatus(
+    'Paste your Gemini API key below (or use Paste), then choose Save key — or choose Continue with shared pool.',
+  );
+  updateByokSharedPoolRowVisibility(true);
 }
 
 function maybeFocusGeminiKeySetupFromUrl() {
@@ -285,7 +298,15 @@ function setGeminiKeyFieldError(message) {
   }
 }
 
+function updateByokSharedPoolRowVisibility(hasKey) {
+  if (!geminiByokSharedPoolRow) return;
+  const show = !hasKey;
+  geminiByokSharedPoolRow.classList.toggle('hidden', !show);
+  geminiByokSharedPoolRow.hidden = !show;
+}
+
 function refreshGeminiKeyStoredUi(hasKey) {
+  updateByokSharedPoolRowVisibility(hasKey);
   if (geminiApiKeyLabel) {
     geminiApiKeyLabel.textContent = hasKey
       ? 'Gemini API key (already added)'
@@ -386,14 +407,14 @@ async function handleGeminiKeySave() {
       raw = stored;
       setGeminiByokStatus('Re-checking saved key with Google…');
     } else {
-      setGeminiKeyFieldError('You must enter a Gemini API key.');
+      setGeminiKeyFieldError(`You must enter a Gemini API key.${sharedPoolStillWorksSuffix()}`);
       return;
     }
   }
   const granted = await ensureGeminiApiPermission();
   if (!granted) {
     setGeminiByokStatus(
-      'Allow access to Google Generative Language API to test your key.',
+      `Allow access to Google Generative Language API to test your key.${sharedPoolStillWorksSuffix()}`,
       true,
     );
     return;
@@ -444,7 +465,7 @@ async function handleGeminiKeyRemove() {
   hideGeminiByokTurnOnPrompt();
   geminiByokStatusDetails = [];
   renderGeminiByokDetails();
-  setGeminiByokStatus('Key removed from this device.');
+  setGeminiByokStatus(`Key removed from this device. Moderations use the shared pool.`);
   notifyExtensionUiSync();
 }
 
@@ -910,6 +931,31 @@ async function handleCloseOptions() {
 for (const btn of document.querySelectorAll('.close-options')) {
   btn.addEventListener('click', handleCloseOptions);
 }
+
+async function handleContinueWithSharedPool() {
+  skipDevSettingsSync = true;
+  try {
+    await saveSettingsPatch({ geminiByokEnabled: false });
+    notifyExtensionUiSync();
+    chrome.runtime.sendMessage({ type: BYOK_CONTINUE_SHARED_POOL }).catch(() => {});
+  } finally {
+    queueMicrotask(() => {
+      skipDevSettingsSync = false;
+    });
+  }
+  optLocationPicker.closeList();
+  closeOptionsPageIfOpen()
+    .catch(() => {})
+    .finally(() => {
+      window.close();
+    });
+}
+
+geminiByokContinueSharedPool?.addEventListener('click', () => {
+  handleContinueWithSharedPool().catch((err) => {
+    setGeminiByokStatus(err instanceof Error ? err.message : String(err), true);
+  });
+});
 
 if (ragProvider) {
   fillRagProviderSelect(ragProvider, DEFAULT_RAG_PROVIDER);

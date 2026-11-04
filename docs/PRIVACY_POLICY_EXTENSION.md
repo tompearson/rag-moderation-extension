@@ -29,7 +29,7 @@ The extension is intended for **moderators and administrators**, not for general
 | **Optional report email** | Email address for “Email report” | Stored locally; may be sent with moderation requests and when you email a report |
 | **Optional Gemini API key (BYOK)** | Key you paste in Options | Stored locally in **`chrome.storage.local`**; sent to Google (validation) and to airesearchdog’s API when “use my key” is on |
 | **Dev identifiers (Advanced)** | `moderatorId`, `deviceId` defaults or values you set | Stored locally; sent with each moderation request |
-| **Feedback you choose to send** | Comment on “Give feedback about this Decision” | Sent to airesearchdog’s API with a random **`feedbackSessionId`** in **`chrome.storage.session`** (browser session, not synced across devices) |
+| **Feedback you choose to send** | Comment on “Review this Decision” | Sent to airesearchdog’s API with a random **`feedbackSessionId`** in **`chrome.storage.session`** (browser session, not synced across devices) |
 | **Short-lived session data** | Pending draft from context menu, active tab id for pick mode | **`chrome.storage.session`**; cleared when the browser session ends |
 
 The extension does **not** use `chrome.storage.sync`. It does **not** include third-party analytics or crash-reporting SDKs in the extension package.
@@ -60,14 +60,14 @@ When you click **Moderate**, the extension sends HTTPS requests to **airesearchd
 - Optional **`reporterEmail`** if you saved one  
 - Optional **`userApiKey`** if BYOK is enabled  
 
-airesearchdog may **store** submitted content, decisions, and report metadata in databases and logs according to our service configuration and policies. Saved reports may receive a **`moderationHistoryId`**, which enables **Open full report**, **Email report**, and **Give feedback about this Decision** in the extension.
+airesearchdog may **store** submitted content, decisions, and report metadata in databases and logs according to our service configuration and policies. Saved reports may receive a **`moderationHistoryId`**, which enables **Open full report**, **Email report**, and **Review this Decision** in the extension.
 
 If you set a **Custom** API origin in Options (for local development or another deployment), your data is sent to **that** server instead; airesearchdog does not control third-party deployments.
 
 ### 2. Report and feedback actions (only when you use them)
 
 - **Email report:** sends report id and recipient email to airesearchdog’s API; the service then sends the report **to the address you saved** (any domain you choose).  
-- **Give feedback about this Decision:** sends your comment, report id, session id, and optional reporter email to airesearchdog’s API; you may receive a short acknowledgement at that reporter email.
+- **Review this Decision:** sends your comment, report id, session id, and optional reporter email to airesearchdog’s API; you may receive a short acknowledgement at that reporter email.
 
 The extension uses **HTTPS only** for the moderation API—it does **not** accept post content by SMTP. **Email report** sends a copy to the **report email you saved** in the extension (any address you choose).
 

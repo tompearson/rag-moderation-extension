@@ -110,6 +110,15 @@
 
     <section id="section-gemini-byok" class="gemini-byok-section">
       <h2>Your Gemini API key (recommended)</h2>
+      <div id="gemini-byok-shared-pool-row" class="byok-shared-pool-row hidden">
+        <p class="muted">
+          A personal key is <strong>optional</strong>. Until you save one, moderations use the
+          <strong>shared pool</strong> (same as “Your key · Off” in the side panel).
+        </p>
+        <button type="button" id="gemini-byok-continue-shared-pool" class="primary">
+          Continue with shared pool
+        </button>
+      </div>
       <p class="muted">
         Stored only in this browser. When enabled, your key is sent over HTTPS for each moderation (your Google quota,
         not the shared pool). Get a key from
@@ -197,6 +206,19 @@
       <button type="button" class="close-options secondary">Close</button>
     </div>
 
+    <script>
+      (function showExtensionVersionLabel() {
+        try {
+          var v = chrome.runtime.getManifest().version;
+          var el = document.getElementById('extension-version-label');
+          if (el && v) {
+            el.textContent = 'v' + v;
+            el.hidden = false;
+            el.title = 'Extension version ' + v;
+          }
+        } catch (_) {}
+      })();
+    </script>
     <script type="module" src="options.js"></script>
   </body>
 </html>
