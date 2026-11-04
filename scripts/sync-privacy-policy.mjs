@@ -27,11 +27,7 @@ function postprocessBodyHtml(html) {
       /<h2>Costs, quotas, and your Gemini key<\/h2>/,
       '<h2 id="costs-quotas-and-your-gemini-key">Costs, quotas, and your Gemini key</h2>',
     )
-    .replace(/<h2>Related guides<\/h2>/, '<h2 id="related">Related guides</h2>')
-    .replace(
-      /<h3>Email and @airesearchdog\.net addresses<\/h3>/,
-      '<h3 id="email-and-airesearchdognet-addresses">Email and @airesearchdog.net addresses</h3>',
-    );
+    .replace(/<h2>Related guides<\/h2>/, '<h2 id="related">Related guides</h2>');
 }
 
 const markdown = readFileSync(mdPath, 'utf8');

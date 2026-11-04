@@ -2,7 +2,7 @@
 
 **Last updated:** November 4, 2026  
 **Operator:** airesearchdog (“we,” “us”)  
-**Contact:** [Contact page](https://www.airesearchdog.net/extension/contact) — **info@**, **help@**, and **admin@**  
+**Contact:** [admin@airesearchdog.net](mailto:admin@airesearchdog.net) (terms). Other addresses: [Contact page](https://www.airesearchdog.net/extension/contact).  
 
 By installing or using **RAG Moderation Assistant**, you agree to these Terms of Use and our [Privacy policy](https://www.airesearchdog.net/extension/privacy). If you do not agree, do not use the extension.
 
@@ -65,8 +65,8 @@ We may update these terms or the extension. We will post a new **Last updated** 
 
 ## Contact
 
-Questions about these terms: see the **[Contact page](https://www.airesearchdog.net/extension/contact)** (**[admin@airesearchdog.net](mailto:admin@airesearchdog.net)** for legal/terms topics).
+Questions about these terms: **[admin@airesearchdog.net](mailto:admin@airesearchdog.net)**. For other contact options, see the **[Contact page](https://www.airesearchdog.net/extension/contact)**.
 
-Do not use these addresses to submit posts for moderation; use the **extension side panel** instead (see [How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts)).
+Do not email post content to contact addresses for moderation; use the **extension side panel** (see [How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts)).
 
 For how we handle data, see the [Privacy policy](https://www.airesearchdog.net/extension/privacy).

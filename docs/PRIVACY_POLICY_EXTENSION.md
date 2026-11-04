@@ -2,7 +2,7 @@
 
 **Last updated:** November 4, 2026  
 **Operator:** airesearchdog (“we,” “us”)  
-**Contact:** [Contact page](https://www.airesearchdog.net/extension/contact) — **info@**, **help@**, and **admin@**  
+**Contact:** [admin@airesearchdog.net](mailto:admin@airesearchdog.net) (privacy). Other addresses: [Contact page](https://www.airesearchdog.net/extension/contact).  
 
 ## Summary
 
@@ -69,17 +69,7 @@ If you set a **Custom** API origin in Options (for local development or another 
 - **Email report:** sends report id and recipient email to airesearchdog’s API; the service then sends the report **to the address you saved** (any domain you choose).  
 - **Review this Decision:** sends your comment, report id, session id, and optional reporter email to airesearchdog’s API; you may receive a short acknowledgement at that reporter email.
 
-### Email and @airesearchdog.net addresses
-
-The extension uses **HTTPS only**—it does **not** send SMTP mail into the moderation API.
-
-| Address | Role relative to this extension |
-|---------|----------------------------------|
-| **Your saved report email** | Recipient when you tap **Email report** (often Gmail or work mail; not fixed to our domain). Outbound mail is sent by airesearchdog’s mail service on your behalf. |
-| **`noreply@airesearchdog.net`** | Typical **Reply-To** on outbound report and acknowledgement mail; replies there are not processed as new moderations. |
-| **`info@airesearchdog.net`** | **General information**—see [Contact page](https://www.airesearchdog.net/extension/contact#info). Not moderation intake. |
-| **`help@airesearchdog.net`** | **Extension help / troubleshooting**—see [Contact page](https://www.airesearchdog.net/extension/contact#help). Not moderation intake. |
-| **`admin@airesearchdog.net`** | **Privacy, terms, and legal contact**—see [Contact page](https://www.airesearchdog.net/extension/contact#admin). Not moderation intake. |
+The extension uses **HTTPS only** for the moderation API—it does **not** accept post content by SMTP. **Email report** sends a copy to the **report email you saved** in the extension (any address you choose).
 
 ### 3. Google Gemini (optional)
 
@@ -137,6 +127,6 @@ We may update this policy when the extension or API behavior changes. We will po
 
 ## Contact
 
-Privacy and extension questions: see the **[Contact page](https://www.airesearchdog.net/extension/contact)** (**[info@airesearchdog.net](mailto:info@airesearchdog.net)**, **[help@airesearchdog.net](mailto:help@airesearchdog.net)**, **[admin@airesearchdog.net](mailto:admin@airesearchdog.net)**).
+Privacy questions: **[admin@airesearchdog.net](mailto:admin@airesearchdog.net)**. For **info@**, **help@**, and when to use each address, see the **[Contact page](https://www.airesearchdog.net/extension/contact)**.
 
-Do not use these addresses to submit posts for moderation; use the **extension side panel** instead (see [How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts)).
+Do not email post content to contact addresses for moderation; use the **extension side panel** (see [How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts)).
