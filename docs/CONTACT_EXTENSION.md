@@ -7,6 +7,15 @@ Use the addresses below for **questions about the extension, this website, or ou
 
 **Do not** email neighbor post or comment text to these addresses expecting an automated moderation report. Use the **extension side panel** instead (see [How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts)).
 
+## Outside the extension {#scope}
+
+We can only help with **RAG Moderation Assistant**, this site’s extension guides, and our policies. We **cannot** troubleshoot problems that are not under our control, including:
+
+- **Google Chrome or Microsoft Edge** — browser crashes, updates, profiles, enterprise policies, or OS-level issues (see [Chrome Help](https://support.google.com/chrome) or your browser vendor).  
+- **Google Gemini API keys** — AI Studio signup, billing, project quotas, rate limits, or errors returned directly from Google’s API (see [Google AI Studio](https://aistudio.google.com/) and [Gemini API documentation](https://ai.google.dev/gemini-api/docs)).
+
+For those topics, **searching the web** for your exact error message or symptom is often the fastest way to find an answer. Our [Get a Gemini API key](https://www.airesearchdog.net/extension/get-gemini-api-key) guide covers **extension BYOK setup only**, not Google account support.
+
 ---
 
 ## info@airesearchdog.net {#info}
@@ -33,7 +42,7 @@ Use the addresses below for **questions about the extension, this website, or ou
 - Chrome Web Store install, pinning the toolbar icon, or side panel will not open  
 - Feed location, environment profile (Production vs Local dev), or API connection errors  
 - **Email report** or **Open full report** not working as expected  
-- Optional **Gemini API key (BYOK)** — where to paste the key, validation errors, or switching key on/off (see also the [Gemini key guide](https://www.airesearchdog.net/extension/get-gemini-api-key))
+- Extension **BYOK** UI — where to paste a key, turn “Your key” on/off, or connection to **airesearchdog’s API** with your key (not Google billing or quota issues; see [Outside the extension](#scope))
 
 **[help@airesearchdog.net](mailto:help@airesearchdog.net)**
 

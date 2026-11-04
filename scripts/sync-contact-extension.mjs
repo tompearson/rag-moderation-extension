@@ -18,6 +18,7 @@ const outPath = join(outDir, 'contact.html');
 
 function preprocessMarkdown(raw) {
   return raw
+    .replace(/^## Outside the extension \{#scope\}/m, '## Outside the extension')
     .replace(/^## info@airesearchdog\.net \{#info\}/m, '## info@airesearchdog.net')
     .replace(/^## help@airesearchdog\.net \{#help\}/m, '## help@airesearchdog.net')
     .replace(/^## admin@airesearchdog\.net \{#admin\}/m, '## admin@airesearchdog.net')
@@ -42,7 +43,10 @@ function addContactHeadingId(html, email, id) {
 
 /** @param {string} html */
 function postprocessBodyHtml(html) {
-  let out = html;
+  let out = html.replace(
+    /<h2>Outside the extension<\/h2>/,
+    '<h2 id="scope">Outside the extension</h2>',
+  );
   out = addContactHeadingId(out, 'info@airesearchdog.net', 'info');
   out = addContactHeadingId(out, 'help@airesearchdog.net', 'help');
   out = addContactHeadingId(out, 'admin@airesearchdog.net', 'admin');
