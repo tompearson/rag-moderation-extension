@@ -2,7 +2,7 @@
 
 **Last updated:** November 4, 2026  
 **Operator:** airesearchdog (“we,” “us”)  
-**Contact:** [admin@airesearchdog.net](mailto:admin@airesearchdog.net)  
+**Contact:** [Contact page](https://www.airesearchdog.net/extension/contact) — **info@**, **help@**, and **admin@**  
 
 ## Summary
 
@@ -79,7 +79,9 @@ The extension uses **HTTPS only**—it does **not** send SMTP mail into the mode
 | **`reports@airesearchdog.net`** | Typical **From** on outbound report and acknowledgement mail. |
 | **`noreply@airesearchdog.net`** | Typical **Reply-To** on those messages; replies there are not processed as new moderations. |
 | **`report@airesearchdog.net`** | **Not used by the extension.** Intake for the separate [email moderation helper](https://www.airesearchdog.net/NEXTDOOR_EMAIL_MODERATION_HELPER.pdf) (mail post text there to receive a report). |
-| **`admin@airesearchdog.net`** | **Support and privacy contact only**—not moderation intake. Do not email post content here expecting an automated report from the extension or the email product. |
+| **`info@airesearchdog.net`** | **General information**—see [Contact page](https://www.airesearchdog.net/extension/contact#info). Not moderation intake. |
+| **`help@airesearchdog.net`** | **Extension help / troubleshooting**—see [Contact page](https://www.airesearchdog.net/extension/contact#help). Not moderation intake. |
+| **`admin@airesearchdog.net`** | **Privacy, terms, and legal contact**—see [Contact page](https://www.airesearchdog.net/extension/contact#admin). Not moderation intake. |
 
 Mail sent **to** `report@` is handled by airesearchdog’s inbound-email service (Resend receiving on our domain), not by the Chrome extension.
 
@@ -135,9 +137,10 @@ We may update this policy when the extension or API behavior changes. We will po
 | [How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts) | Side panel workflow |
 | [Get a Gemini API key](https://www.airesearchdog.net/extension/get-gemini-api-key) | Optional BYOK |
 | [Important — AI-generated analysis](https://www.airesearchdog.net/extension/important-ai-generated-analysis) | Read before acting on moderation suggestions |
+| [Contact](https://www.airesearchdog.net/extension/contact) | **info@**, **help@**, and **admin@** — when to use each |
 
 ## Contact
 
-Privacy and extension questions: **[admin@airesearchdog.net](mailto:admin@airesearchdog.net)**.
+Privacy and extension questions: see the **[Contact page](https://www.airesearchdog.net/extension/contact)** (**[info@airesearchdog.net](mailto:info@airesearchdog.net)**, **[help@airesearchdog.net](mailto:help@airesearchdog.net)**, **[admin@airesearchdog.net](mailto:admin@airesearchdog.net)**).
 
-Do not use this address to submit posts for moderation. See [Email and @airesearchdog.net addresses](#email-and-airesearchdognet-addresses) for how extension email differs from **`report@`** intake.
+Do not use these addresses to submit posts for moderation; the email moderation product uses separate intake addresses documented on the Community Moderation Tool site.

@@ -2,7 +2,7 @@
 
 **Last updated:** November 4, 2026  
 **Operator:** airesearchdog (“we,” “us”)  
-**Contact:** [admin@airesearchdog.net](mailto:admin@airesearchdog.net)  
+**Contact:** [Contact page](https://www.airesearchdog.net/extension/contact) — **info@**, **help@**, and **admin@**  
 
 By installing or using **RAG Moderation Assistant**, you agree to these Terms of Use and our [Privacy policy](https://www.airesearchdog.net/extension/privacy). If you do not agree, do not use the extension.
 
@@ -61,11 +61,12 @@ We may update these terms or the extension. We will post a new **Last updated** 
 | [How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts) | Side panel workflow |
 | [Get a Gemini API key](https://www.airesearchdog.net/extension/get-gemini-api-key) | Optional BYOK |
 | [Important — AI-generated analysis](https://www.airesearchdog.net/extension/important-ai-generated-analysis) | Read before acting on moderation suggestions |
+| [Contact](https://www.airesearchdog.net/extension/contact) | **info@**, **help@**, and **admin@** — when to use each |
 
 ## Contact
 
-Questions about these terms: **[admin@airesearchdog.net](mailto:admin@airesearchdog.net)**.
+Questions about these terms: see the **[Contact page](https://www.airesearchdog.net/extension/contact)** (**[admin@airesearchdog.net](mailto:admin@airesearchdog.net)** for legal/terms topics).
 
-Do not use this address to submit posts for moderation; the email moderation product uses separate intake addresses documented on the Community Moderation Tool site.
+Do not use these addresses to submit posts for moderation; the email moderation product uses separate intake addresses documented on the Community Moderation Tool site.
 
 For how we handle data, see the [Privacy policy](https://www.airesearchdog.net/extension/privacy).

@@ -15,6 +15,7 @@ RAG-backed community post moderation for moderators (side panel: paste content, 
 - Icons 16 / 48 / 128 included.
 - Privacy policy URL: [extension/privacy](https://www.airesearchdog.net/extension/privacy) (source [PRIVACY_POLICY_EXTENSION.md](./PRIVACY_POLICY_EXTENSION.md); `npm run sync:privacy-policy` + `deploy:prod`)
 - Terms of use URL (optional, recommended): [extension/terms](https://www.airesearchdog.net/extension/terms) (source [TERMS_EXTENSION.md](./TERMS_EXTENSION.md); `npm run sync:terms-extension` + `deploy:prod`)
+- Contact / support URL (optional): [extension/contact](https://www.airesearchdog.net/extension/contact) (source [CONTACT_EXTENSION.md](./CONTACT_EXTENSION.md); `npm run sync:contact-extension` + `deploy:prod`)
 - Privacy policy should describe:
   - User-provided text sent to your moderation API
   - Optional **BYOK**: user may supply a Google Gemini API key stored in `chrome.storage.local`; key sent over HTTPS for moderations; validation may call Google directly from the browser

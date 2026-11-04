@@ -5,6 +5,7 @@ import {
   INSTALL_CHROME_EXTENSION_GUIDE_URL,
   INSTALL_CHROME_EXTENSION_DEVELOPER_GUIDE_URL,
   EXTENSION_PRIVACY_POLICY_URL,
+  EXTENSION_CONTACT_URL,
 } from '../lib/geminiKeyUserHelp.js';
 
 assert.equal(
@@ -27,6 +28,10 @@ assert.equal(
 assert.equal(
   EXTENSION_PRIVACY_POLICY_URL,
   'https://www.airesearchdog.net/extension/privacy',
+);
+assert.equal(
+  EXTENSION_CONTACT_URL,
+  'https://www.airesearchdog.net/extension/contact',
 );
 
 console.log('test-gemini-key-user-help-url: ok');
