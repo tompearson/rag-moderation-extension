@@ -26,6 +26,7 @@ const SECTION_IDS = [
   ['Run Moderate and watch progress', 'run-moderate'],
   ['Read the results', 'read-the-results'],
   ['Decision Breakdown and your call', 'decision-breakdown'],
+  ['When you agree: copy into Nextdoor Notes', 'copy-notes'],
   ['After a run: clear, stop, or repeat', 'after-a-run'],
   ['Optional: your Gemini key, reports, and feedback', 'optional-byok-reports'],
   ['Related guides', 'related'],

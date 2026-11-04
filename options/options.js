@@ -40,6 +40,7 @@ import {
   shouldRunRagStyleProbes,
 } from '../lib/geminiKeyReadiness.js';
 import { STORAGE_KEYS } from '../lib/userSettings.js';
+import { formatExtensionVersionLabel, getExtensionVersion } from '../lib/extensionVersion.js';
 
 const GEMINI_RAG_STYLE_TEST_STORAGE = 'geminiRagStyleTest';
 
@@ -112,6 +113,14 @@ function wirePublicGuideLinks() {
 }
 
 wirePublicGuideLinks();
+
+const extensionVersionLabel = document.getElementById('extension-version-label');
+const versionLabel = formatExtensionVersionLabel();
+if (extensionVersionLabel && versionLabel) {
+  extensionVersionLabel.textContent = versionLabel;
+  extensionVersionLabel.hidden = false;
+  extensionVersionLabel.title = `Extension version ${getExtensionVersion() ?? ''}`.trim();
+}
 
 function applyStoreTargetGuideLinks() {
   if (!isStoreBuild()) return;

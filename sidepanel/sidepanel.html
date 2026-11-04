@@ -56,21 +56,42 @@
     >
       <div class="modal-card email-send-mode">
         <div class="modal-card-header">
-          <h2 id="review-decision-modal-title">Review this Decision</h2>
+          <h2 id="review-decision-modal-title">Give feedback about this Decision</h2>
           <button type="button" id="review-decision-close" class="modal-close" aria-label="Close">×</button>
         </div>
-        <p id="review-decision-modal-desc" class="muted">
-          Your note is stored with this saved report (same as feedback on the full report page). For now it is
-          recorded as <strong>needs work</strong> (👎). If you set a report email in Options, your comment is
-          included in the acknowledgement email (sent shortly after you submit).
-        </p>
         <p id="review-decision-preflight" class="muted review-decision-preflight hidden" aria-live="polite"></p>
-        <label for="review-decision-input">Your feedback</label>
+        <div
+          class="review-decision-rating"
+          role="group"
+          aria-label="Rate this decision"
+        >
+          <button
+            type="button"
+            id="review-decision-thumb-up"
+            class="thumb-btn"
+            aria-pressed="false"
+            aria-label="Thumbs up"
+            title="Thumbs up"
+          >
+            👍
+          </button>
+          <button
+            type="button"
+            id="review-decision-thumb-down"
+            class="thumb-btn"
+            aria-pressed="false"
+            aria-label="Thumbs down"
+            title="Thumbs down"
+          >
+            👎
+          </button>
+        </div>
+        <label for="review-decision-input">Leave a message</label>
         <textarea
           id="review-decision-input"
           rows="5"
           maxlength="1000"
-          placeholder="Is the decision wrong? What else is wrong?"
+          placeholder="Optional details about this decision"
         ></textarea>
         <p id="review-decision-char-count" class="muted char-count">0 / 1000</p>
         <p id="review-decision-error" class="error hidden"></p>
@@ -83,7 +104,10 @@
 
     <header>
       <div class="header-row">
-        <h1>RAG Moderation</h1>
+        <div class="header-title-block">
+          <h1>RAG Moderation</h1>
+          <p id="extension-version-label" class="extension-version muted" hidden></p>
+        </div>
         <button type="button" id="options-btn" class="header-btn options-toggle-btn">Options</button>
       </div>
       <p id="connection-badge" class="badge muted">Connecting…</p>
@@ -122,7 +146,7 @@
         type="button"
         id="pick-content-btn"
         class="pick-btn"
-        title="Click post or comment text on the page (or drag to select)"
+        title="Click on the text you want to capture on the page"
       >
         Click on Text to Moderate
       </button>

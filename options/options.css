@@ -27,10 +27,18 @@
   font-size: 13px;
 }
 
-.options-header h1 {
-  margin: 0;
+.options-header-title {
   flex: 1;
   min-width: 0;
+}
+
+.options-header-title h1 {
+  margin: 0;
+}
+
+.extension-version {
+  margin: 4px 0 0;
+  font-size: 12px;
 }
 
 button.header-btn {

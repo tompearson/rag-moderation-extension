@@ -46,6 +46,18 @@ Chrome and Edge **cannot** load a `.zip` directly in developer mode.
 
 This build defaults to the **Production** API (`https://www.airesearchdog.net`). Options hide Local dev / custom origin (store-shaped package).
 
+### Pin the icon (toolbar)
+
+**Pinning is not done on the extensions details page.** After Load unpacked:
+
+1. Open **`chrome://extensions`** and confirm **RAG Moderation Assistant** is listed and **Enabled** (fix any red **Errors** first — often a wrong folder or nested unzip path).
+2. Click the **extensions puzzle piece** on the Chrome toolbar → find **RAG Moderation Assistant** → click the **pin** icon so it stays on the toolbar.
+3. Click the **pinned icon** to open the **side panel** (not a popup).
+
+If the extension does not appear in the list at all, **Load unpacked** again and select the folder that contains **`manifest.json` at its top level** (not a parent of that folder). See [Install (developer)](https://www.airesearchdog.net/extension/install-chrome-extension-developer#pin-toolbar).
+
+The side panel and Options show **`vX.Y.Z`** under the title so you can confirm which release ZIP you loaded (also shown on `chrome://extensions`).
+
 ## What the automation runs
 
 On tag push, [.github/workflows/release.yml](../.github/workflows/release.yml):

@@ -303,14 +303,81 @@ export const EXTENSION_GUIDE_PAGE_CSS = `
     border-radius: 4px;
   }
 
-  main img {
+  .guide-image-expand {
+    display: block;
+    width: 100%;
+    margin: 1rem 0 1.35rem;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: zoom-in;
+    text-align: left;
+    border-radius: 10px;
+  }
+
+  .guide-image-expand:focus-visible {
+    outline: 2px solid var(--green);
+    outline-offset: 3px;
+  }
+
+  main img,
+  .guide-image-expand img {
     display: block;
     max-width: 100%;
     height: auto;
-    margin: 1rem 0 1.35rem;
+    margin: 0;
     border-radius: 10px;
     border: 1px solid var(--border);
     box-shadow: var(--shadow);
+  }
+
+  .guide-image-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    box-sizing: border-box;
+    background: rgba(15, 23, 42, 0.92);
+  }
+
+  .guide-image-lightbox.hidden {
+    display: none;
+  }
+
+  .guide-image-lightbox__img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    margin: 0;
+  }
+
+  .guide-image-lightbox__close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 1;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    font-size: 1.75rem;
+    line-height: 1;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .guide-image-lightbox__close:hover {
+    background: rgba(255, 255, 255, 0.2);
   }
 
   main ol > li > p {
@@ -341,9 +408,33 @@ export const EXTENSION_GUIDE_PAGE_CSS = `
   @media (max-width: 480px) {
     main { margin-left: 12px; margin-right: 12px; padding: 22px 18px 28px; }
   }
+
+  /* Visual walkthrough: screenshots are ~1024px wide — use a wider column than default 42rem */
+  body.guide-page--walkthrough {
+    --guide-content-max: 64rem;
+  }
+
+  body.guide-page--walkthrough .site-header__inner,
+  body.guide-page--walkthrough .site-nav,
+  body.guide-page--walkthrough main,
+  body.guide-page--walkthrough .site-footer {
+    max-width: var(--guide-content-max);
+  }
+
+  body.guide-page--walkthrough .guide-image-expand img {
+    width: 100%;
+  }
 `.trim();
 
-function externalLinkRenderer() {
+/** @param {string} s */
+function escapeHtmlAttr(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;');
+}
+
+function extensionGuideMarkdownRenderer() {
   const renderer = new marked.Renderer();
   renderer.link = ({ href, title, text }) => {
     const isExternal =
@@ -352,11 +443,73 @@ function externalLinkRenderer() {
       !href.startsWith('https://www.airesearchdog.net');
     const rel = isExternal ? ' rel="noopener noreferrer"' : '';
     const target = isExternal ? ' target="_blank"' : '';
-    const titleAttr = title ? ` title="${title}"` : '';
+    const titleAttr = title ? ` title="${escapeHtmlAttr(title)}"` : '';
     return `<a href="${href}"${titleAttr}${target}${rel}>${text}</a>`;
+  };
+  renderer.image = ({ href, title, text }) => {
+    const src = typeof href === 'string' ? href : '';
+    const alt = text || title || 'Guide screenshot';
+    const label = escapeHtmlAttr(alt);
+    return `<button type="button" class="guide-image-expand" data-guide-image-src="${escapeHtmlAttr(src)}" aria-label="View full size: ${label}">
+<img src="${src}" alt="${label}" loading="lazy">
+</button>`;
   };
   return renderer;
 }
+
+const GUIDE_IMAGE_LIGHTBOX_HTML = `<div id="guide-image-lightbox" class="guide-image-lightbox hidden" role="dialog" aria-modal="true" aria-label="Full size image" hidden>
+  <button type="button" class="guide-image-lightbox__close" aria-label="Close full size image">×</button>
+  <img class="guide-image-lightbox__img" src="" alt="">
+</div>`;
+
+const GUIDE_IMAGE_LIGHTBOX_SCRIPT = `<script>
+(function () {
+  var lb = document.getElementById('guide-image-lightbox');
+  if (!lb) return;
+  var lbImg = lb.querySelector('.guide-image-lightbox__img');
+  var closeBtn = lb.querySelector('.guide-image-lightbox__close');
+  var lastFocus = null;
+
+  function openLightbox(src, alt) {
+    if (!src || !lbImg) return;
+    lastFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    lbImg.src = src;
+    lbImg.alt = alt || '';
+    lb.classList.remove('hidden');
+    lb.hidden = false;
+    document.body.style.overflow = 'hidden';
+    closeBtn.focus();
+  }
+
+  function closeLightbox() {
+    lb.classList.add('hidden');
+    lb.hidden = true;
+    if (lbImg) {
+      lbImg.removeAttribute('src');
+      lbImg.alt = '';
+    }
+    document.body.style.overflow = '';
+    if (lastFocus) lastFocus.focus();
+    lastFocus = null;
+  }
+
+  document.addEventListener('click', function (e) {
+    var btn = e.target && e.target.closest && e.target.closest('.guide-image-expand');
+    if (!btn) return;
+    var src = btn.getAttribute('data-guide-image-src');
+    var img = btn.querySelector('img');
+    openLightbox(src, img && img.alt ? img.alt : '');
+  });
+
+  closeBtn.addEventListener('click', closeLightbox);
+  lb.addEventListener('click', function (e) {
+    if (e.target === lb || e.target === lbImg) closeLightbox();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !lb.hidden) closeLightbox();
+  });
+})();
+</script>`;
 
 /**
  * @param {string | undefined} pagePath e.g. /extension/privacy
@@ -411,6 +564,7 @@ function renderSiteFooter(footerText, pagePath) {
  * @param {string} opts.markdown
  * @param {string} [opts.pagePath] — highlights active item in guide nav
  * @param {boolean} [opts.showGuideNav] — Install / Gemini key / Privacy links under header (default true)
+ * @param {string} [opts.bodyClass] — extra classes on `<body>` (e.g. guide-page--walkthrough)
  * @param {(md: string) => string} [opts.preprocessMarkdown]
  * @param {(html: string) => string} [opts.postprocessBodyHtml]
  */
@@ -418,10 +572,12 @@ export function renderExtensionGuideHtml(opts) {
   const preprocess = opts.preprocessMarkdown ?? ((s) => s);
   const postprocess = opts.postprocessBodyHtml ?? ((s) => s);
 
-  marked.setOptions({ gfm: true, renderer: externalLinkRenderer() });
+  marked.setOptions({ gfm: true, renderer: extensionGuideMarkdownRenderer() });
 
   let bodyHtml = marked.parse(preprocess(opts.markdown));
   bodyHtml = postprocess(bodyHtml);
+
+  const bodyClass = opts.bodyClass ? ` class="${escapeHtmlAttr(opts.bodyClass)}"` : '';
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -431,12 +587,14 @@ export function renderExtensionGuideHtml(opts) {
   <title>${opts.pageTitle}</title>
   <style>${EXTENSION_GUIDE_PAGE_CSS}</style>
 </head>
-<body>
+<body${bodyClass}>
   ${renderSiteHeader(opts.pagePath, opts.showGuideNav !== false)}
   <main>
 ${bodyHtml}
   </main>
   ${renderSiteFooter(opts.footerText, opts.pagePath)}
+  ${GUIDE_IMAGE_LIGHTBOX_HTML}
+  ${GUIDE_IMAGE_LIGHTBOX_SCRIPT}
 </body>
 </html>
 `;

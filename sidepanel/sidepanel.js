@@ -37,6 +37,7 @@ import {
   EXTENSION_CONTACT_URL,
 } from '../lib/geminiKeyUserHelp.js';
 import { isStoreBuild } from '../lib/buildConfig.js';
+import { formatExtensionVersionLabel, getExtensionVersion } from '../lib/extensionVersion.js';
 import { STORAGE_KEYS } from '../lib/userSettings.js';
 import { ensureHostPermission } from '../lib/permissions.js';
 import { openOptionsPage, toggleOptionsPage } from '../lib/optionsPage.js';
@@ -78,6 +79,8 @@ const reviewDecisionCharCount = document.getElementById('review-decision-char-co
 const reviewDecisionSend = document.getElementById('review-decision-send');
 const reviewDecisionCancel = document.getElementById('review-decision-cancel');
 const reviewDecisionClose = document.getElementById('review-decision-close');
+const reviewDecisionThumbUp = document.getElementById('review-decision-thumb-up');
+const reviewDecisionThumbDown = document.getElementById('review-decision-thumb-down');
 const mainPanel = document.getElementById('main-panel');
 const connectionBadge = document.getElementById('connection-badge');
 const byokBadge = document.getElementById('byok-badge');
@@ -98,6 +101,14 @@ if (sidepanelContactLink) {
 if (isStoreBuild()) {
   if (installExtensionGuideLink) installExtensionGuideLink.hidden = true;
   if (sidepanelGuideSepInstall) sidepanelGuideSepInstall.hidden = true;
+}
+
+const extensionVersionLabel = document.getElementById('extension-version-label');
+const versionLabel = formatExtensionVersionLabel();
+if (extensionVersionLabel && versionLabel) {
+  extensionVersionLabel.textContent = versionLabel;
+  extensionVersionLabel.hidden = false;
+  extensionVersionLabel.title = `Extension version ${getExtensionVersion() ?? ''}`.trim();
 }
 const modalLocationPicker = createStatePicker(document.getElementById('modal-location'), {
   initialValue: DEFAULT_USER_LOCATION,
@@ -146,6 +157,9 @@ let lastReportContext = {
 
 /** @type {boolean} */
 let reviewDecisionSubmitBlocked = false;
+
+/** @type {1 | -1 | null} */
+let reviewDecisionRating = null;
 
 /** Fingerprint of last successful moderation (skip duplicate API runs). */
 /** @type {string | null} */
@@ -487,6 +501,12 @@ reviewDecisionSend?.addEventListener('click', () => {
   });
 });
 reviewDecisionInput?.addEventListener('input', () => updateReviewDecisionCharCount());
+reviewDecisionThumbUp?.addEventListener('click', () => {
+  setReviewDecisionRating(reviewDecisionRating === 1 ? null : 1);
+});
+reviewDecisionThumbDown?.addEventListener('click', () => {
+  setReviewDecisionRating(reviewDecisionRating === -1 ? null : -1);
+});
 
 locationPicker.onChange(async (selected) => {
   const settings = await loadSettings();
@@ -558,20 +578,37 @@ function setErrorStatus(message) {
   setStatus(msg, true);
 }
 
-/**
- * @param {number} timeoutSec
- */
-function startModerateBtnPrompt() {
-  if (!(moderateBtn instanceof HTMLButtonElement) || moderateBtn.disabled) return;
-  if (!contentInput.value.trim()) return;
-  moderateBtn.classList.add(MODERATE_BTN_PROMPT_CLASS);
+function currentModerationRequestKey() {
+  return moderationRequestKey(
+    contentInput.value.trim(),
+    postContextInput.value.trim(),
+    analysisSelect.value,
+    badWordsCheckbox.checked,
+  );
+}
+
+function isModerateReadyToPrompt() {
+  if (!(moderateBtn instanceof HTMLButtonElement) || moderateBtn.disabled) return false;
+  if (!contentInput.value.trim()) return false;
+  if (activeModerationRequestId) return false;
+  return currentModerationRequestKey() !== lastSuccessfulModerationKey;
+}
+
+function applyModerateBtnPromptClass(on) {
+  if (!(moderateBtn instanceof HTMLButtonElement)) return;
+  moderateBtn.classList.toggle(MODERATE_BTN_PROMPT_CLASS, on);
 }
 
 function stopModerateBtnPrompt() {
-  moderateBtn?.classList.remove(MODERATE_BTN_PROMPT_CLASS);
+  applyModerateBtnPromptClass(false);
+}
+
+function updateModerateBtnPrompt() {
+  applyModerateBtnPromptClass(isModerateReadyToPrompt());
 }
 
 function startModerationProgress(timeoutSec) {
+  abortPickMode();
   stopModerateBtnPrompt();
   moderationProgress.classList.remove('hidden');
   moderationLimit.textContent = `/ ${timeoutSec}s max`;
@@ -584,6 +621,7 @@ function startModerationProgress(timeoutSec) {
   }, 100);
   abortModerateBtn.disabled = false;
   moderateBtn.disabled = true;
+  syncPickContentButton();
 }
 
 function stopModerationProgress() {
@@ -595,6 +633,8 @@ function stopModerationProgress() {
   activeModerationRequestId = null;
   moderateBtn.disabled = false;
   abortModerateBtn.disabled = true;
+  syncPickContentButton();
+  updateModerateBtnPrompt();
 }
 
 /**
@@ -602,6 +642,24 @@ function stopModerationProgress() {
  * @param {string} bodyId
  * @param {string} plainText
  */
+const GIVE_FEEDBACK_ABOUT_DECISION_LABEL = 'Give feedback about this Decision';
+
+/**
+ * @param {string} decision
+ */
+function decisionResultBlock(decision) {
+  const text = escapeHtml(decision);
+  const cls = decisionClass(decision);
+  return `
+    <div class="copy-block decision-result-block">
+      <div class="copy-block-header">
+        <span class="copy-block-label">Decision</span>
+      </div>
+      <p class="decision ${cls}" id="result-decision">${text}</p>
+    </div>
+  `;
+}
+
 function copyBlockSection(label, bodyId, plainText) {
   const body = escapeHtml(plainText);
   return `
@@ -654,7 +712,7 @@ async function copyElementTextToClipboard(elementId, button) {
 function buildReportActionsHtml(result, apiOrigin, flags) {
   if (!hasSavedReportForActions(result)) {
     return (
-      '<p class="muted report-actions-hint">No saved report from the API — <strong>Review this Decision</strong> and report buttons need a stored record. Use <strong>Production</strong> (or local Universal with <code>AUTO_SAVE_TO_DB=true</code> and Supabase), then moderate again.</p>'
+      `<p class="muted report-actions-hint">No saved report from the API — <strong>${GIVE_FEEDBACK_ABOUT_DECISION_LABEL}</strong> and report buttons need a stored record. Use <strong>Production</strong> (or local Universal with <code>AUTO_SAVE_TO_DB=true</code> and Supabase), then moderate again.</p>`
     );
   }
 
@@ -689,7 +747,7 @@ function buildReportActionsHtml(result, apiOrigin, flags) {
   }
   if (canReview) {
     parts.push(
-      '<button type="button" class="secondary small-btn review-decision-btn">Review this Decision</button>',
+      `<button type="button" class="secondary small-btn review-decision-btn">${GIVE_FEEDBACK_ABOUT_DECISION_LABEL}</button>`,
     );
   }
   parts.push('</div>');
@@ -737,6 +795,27 @@ function rememberReportContext(result, apiOrigin) {
   };
 }
 
+function syncReviewDecisionThumbButtons() {
+  const upSelected = reviewDecisionRating === 1;
+  const downSelected = reviewDecisionRating === -1;
+  if (reviewDecisionThumbUp instanceof HTMLButtonElement) {
+    reviewDecisionThumbUp.classList.toggle('thumb-btn--selected', upSelected);
+    reviewDecisionThumbUp.setAttribute('aria-pressed', upSelected ? 'true' : 'false');
+  }
+  if (reviewDecisionThumbDown instanceof HTMLButtonElement) {
+    reviewDecisionThumbDown.classList.toggle('thumb-btn--selected', downSelected);
+    reviewDecisionThumbDown.setAttribute('aria-pressed', downSelected ? 'true' : 'false');
+  }
+}
+
+/**
+ * @param {1 | -1 | null} rating
+ */
+function setReviewDecisionRating(rating) {
+  reviewDecisionRating = rating;
+  syncReviewDecisionThumbButtons();
+}
+
 function setReviewDecisionError(msg) {
   if (!reviewDecisionError) return;
   if (!msg) {
@@ -778,6 +857,7 @@ function showReviewDecisionModal(show) {
 
 function closeReviewDecisionModal() {
   reviewDecisionSubmitBlocked = false;
+  setReviewDecisionRating(null);
   setReviewDecisionPreflight('');
   setReviewDecisionError('');
   if (reviewDecisionSend instanceof HTMLButtonElement) {
@@ -796,6 +876,7 @@ async function openReviewDecisionModal() {
   }
 
   reviewDecisionSubmitBlocked = false;
+  setReviewDecisionRating(null);
   setReviewDecisionPreflight('Checking prior feedback…');
   setReviewDecisionError('');
   if (reviewDecisionInput) reviewDecisionInput.value = '';
@@ -842,9 +923,14 @@ async function sendReviewDecisionFromModal() {
     return;
   }
 
+  if (reviewDecisionRating !== 1 && reviewDecisionRating !== -1) {
+    setReviewDecisionError('Choose thumbs up or thumbs down.');
+    return;
+  }
+
   const comment = reviewDecisionInput?.value.trim() ?? '';
   if (!comment) {
-    setReviewDecisionError('Enter your feedback before sending.');
+    setReviewDecisionError('Leave a message before sending.');
     return;
   }
   if (comment.length > 1000) {
@@ -870,12 +956,7 @@ async function sendReviewDecisionFromModal() {
 
   try {
     const feedbackSessionId = await getOrCreateFeedbackSessionId();
-    let appVersion = null;
-    try {
-      appVersion = chrome.runtime.getManifest().version;
-    } catch {
-      appVersion = null;
-    }
+    const appVersion = getExtensionVersion();
     const reporterEmail = normalizeReportEmail(settings.reportShareRecipientEmail);
     const reporterForApi =
       reporterEmail && isValidReportEmail(reporterEmail) ? reporterEmail : null;
@@ -883,7 +964,7 @@ async function sendReviewDecisionFromModal() {
       moderationId,
       comment,
       feedbackSessionId,
-      rating: -1,
+      rating: reviewDecisionRating,
       provider: lastReportContext.provider,
       analysisType: lastReportContext.analysisType,
       appVersion,
@@ -1064,7 +1145,7 @@ function renderResults(result, apiOrigin, flags) {
 
   resultsEl.innerHTML = `
     ${reportActions}
-    <p class="decision ${decisionClass(decision)}">${escapeHtml(decision)}</p>
+    ${decisionResultBlock(decision)}
     ${geminiHint}
     ${copyBlockSection('Reason', 'result-reason', reasonPlain)}
     ${breakdownPlain.trim() ? copyBlockSection('Breakdown', 'result-breakdown', breakdownPlain) : ''}
@@ -1183,7 +1264,7 @@ moderateBtn.addEventListener('click', async () => {
         );
       } else if (actionsHtml.includes('review-decision-btn')) {
         setStatus(
-          'Done. Report actions are above the decision (Review this Decision, email, or open full report).',
+          `Done. Report actions are above the decision (${GIVE_FEEDBACK_ABOUT_DECISION_LABEL}, email, or open full report).`,
         );
       } else if (actionsHtml.includes('open-report-btn')) {
         setStatus('Done. Click Open full report above the decision.');
@@ -1315,7 +1396,7 @@ function detachPickEscapeListener() {
 function endPickModeUi() {
   pickModeInProgress = false;
   detachPickEscapeListener();
-  setPickButtonActive(false);
+  syncPickContentButton();
 }
 
 /** Cancel in-page pick and reset side panel button (e.g. factory reset while pick was active). */
@@ -1328,15 +1409,15 @@ function abortPickMode() {
   }
 }
 
-/**
- * @param {boolean} active
- */
-function setPickButtonActive(active) {
+function syncPickContentButton() {
   if (!(pickContentBtn instanceof HTMLButtonElement)) return;
-  pickContentBtn.disabled = active;
-  pickContentBtn.classList.toggle('pick-btn-active', active);
-  pickContentBtn.setAttribute('aria-busy', active ? 'true' : 'false');
-  pickContentBtn.textContent = active ? 'Click text on the page…' : 'Click on Text to Moderate';
+  const pickActive = pickModeInProgress;
+  const moderating = activeModerationRequestId != null;
+  pickContentBtn.disabled = pickActive || moderating;
+  pickContentBtn.classList.toggle('pick-btn-active', pickActive);
+  pickContentBtn.classList.toggle('pick-btn-muted', moderating && !pickActive);
+  pickContentBtn.setAttribute('aria-busy', pickActive ? 'true' : 'false');
+  pickContentBtn.textContent = pickActive ? 'Click text on the page…' : 'Click on Text to Moderate';
 }
 
 /**
@@ -1348,14 +1429,18 @@ async function runPickModeForField(field) {
     setStatus('Confirm feed location in the dialog first.', true);
     return;
   }
+  if (activeModerationRequestId) {
+    setStatus('Wait for moderation to finish.', true);
+    return;
+  }
   if (pickModeInProgress) {
     setStatus('Already waiting for a click on the page. Click text there or press Esc.', true);
     return;
   }
   const runId = ++pickRunGeneration;
   pickModeInProgress = true;
-  setPickButtonActive(true);
-  setStatus('On the page: drag to select text, or click one line. Esc cancels (here or on the page).');
+  syncPickContentButton();
+  setStatus('On the page: click on the text you want to capture. Esc cancels (here or on the page).');
   let tabId;
   try {
     tabId = await prepareTabCaptureFromSidePanel();
@@ -1390,6 +1475,7 @@ async function runPickModeForField(field) {
     return;
   }
   applyPickedText(response.text, field);
+  if (field === 'content') updateModerateBtnPrompt();
 }
 
 function applyContentFromClipboard(text) {
@@ -1398,18 +1484,18 @@ function applyContentFromClipboard(text) {
     return;
   }
   applyCapturedText(text, 'content');
-  startModerateBtnPrompt();
+  updateModerateBtnPrompt();
 }
 
 contentInput.addEventListener('paste', () => {
-  requestAnimationFrame(() => {
-    if (contentInput.value.trim()) startModerateBtnPrompt();
-  });
+  requestAnimationFrame(() => updateModerateBtnPrompt());
 });
 
-contentInput.addEventListener('input', () => {
-  if (!contentInput.value.trim()) stopModerateBtnPrompt();
-});
+contentInput.addEventListener('input', () => updateModerateBtnPrompt());
+
+analysisSelect.addEventListener('change', () => updateModerateBtnPrompt());
+badWordsCheckbox.addEventListener('change', () => updateModerateBtnPrompt());
+postContextInput.addEventListener('input', () => updateModerateBtnPrompt());
 
 /** Call readText in the same turn as the click — async/await can drop user activation. */
 function pasteFromClipboard() {

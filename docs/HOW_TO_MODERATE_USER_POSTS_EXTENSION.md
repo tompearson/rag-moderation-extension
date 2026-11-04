@@ -2,6 +2,8 @@
 
 **Overview.** This guide is for **community moderators** who already installed **RAG Moderation Assistant** in Chrome. It explains the day-to-day workflow: open the side panel, put post or comment text into the tool, run **Moderate**, and use the AI-assisted result as **input to your judgment**—not as the final platform decision. For installation or API keys, use the related guides at the end; for limits and liability, read **Important — AI-generated analysis** before you rely on any suggestion.
 
+**Quick usage.** For a pictorial step-by-step guide with screenshots, see **[Visual moderation step by step](https://www.airesearchdog.net/extension/visual-moderation-step-by-step)**.
+
 ## On this page {#toc}
 
 - [Before you moderate](#before-you-moderate)
@@ -12,6 +14,7 @@
 - [Run Moderate and watch progress](#run-moderate)
 - [Read the results](#read-the-results)
 - [Decision Breakdown and your call](#decision-breakdown)
+- [When you agree: copy into Nextdoor Notes](#copy-notes)
 - [After a run: clear, stop, or repeat](#after-a-run)
 - [Optional: your Gemini key, reports, and feedback](#optional-byok-reports)
 - [Related guides](#related)
@@ -87,8 +90,9 @@ Connection errors usually mean the API is unreachable, host permission was denie
 
 When the run finishes, the **Results** section appears below the buttons. You typically see:
 
-- A **decision** or recommendation (for example, remove, keep, or escalate—wording depends on the provider).
-- Supporting **rationale** and retrieved **guideline** excerpts when using the RAG provider.
+- **Decision** — the labeled line under the report-action buttons (for example **Remove**, **Maybe Remove**, or **Keep**).
+- **Reason** — the main rationale, with a **Copy** button beside it.
+- **Breakdown** — optional longer explanation, also with **Copy**, when the run returns one.
 - Links or actions when the server **saved a full report** (production setup).
 
 Scan the summary first, then drill into sections that matter for the case at hand.
@@ -97,11 +101,24 @@ Scan the summary first, then drill into sections that matter for the case at han
 
 ## Decision Breakdown and your call {#decision-breakdown}
 
-Open or scroll to **Decision Breakdown** (or equivalent sections in the result) to see **why** the model leaned a certain way—which rules or snippets weighed in, and how the text was interpreted.
+Open or scroll to **Breakdown** in **Results** to see **why** the model leaned a certain way—which rules or snippets weighed in, and how the text was interpreted.
 
 Use that breakdown to **double-check** the AI, not to skip reading the actual post. Compare the reasoning to your platform’s current guidelines and the full thread context. If the AI missed sarcasm, local norms, or a policy exception, **your** decision overrides the suggestion.
 
-When anything looks wrong, use **Review this Decision** (when a saved report exists) to send feedback, or note the case for your team’s process.
+When anything looks wrong, use **Give feedback about this Decision** (when a saved report exists) to send feedback, or note the case for your team’s process.
+
+---
+
+## When you agree: copy into Nextdoor Notes {#copy-notes}
+
+On Nextdoor, the moderation report includes **Notes — Additional Info**. Use the extension to fill that field **only when you agree with the Reason** after reading the post and the **Decision** / **Breakdown** sections—not when you are overriding the tool or still unsure.
+
+1. Run **Moderate** and wait for **Results** (report-action buttons may appear above the **Decision** label).
+2. Read the **Decision** line and the **Reason** below it.
+3. If you **agree with the Reason**, click **Copy** beside **Reason**, open the Nextdoor report, click into **Notes — Additional Info**, and paste (**Ctrl+V** / **Cmd+V**). Edit briefly if your team expects shorter or local wording—you remain responsible for what you submit.
+4. If you **do not** agree with the Reason, do **not** paste it—write your own notes instead, or use **Give feedback about this Decision** when that button is available.
+
+If **Copy** does nothing, allow clipboard access when Chrome prompts, or select the **Reason** text in the panel and copy manually.
 
 ---
 
@@ -121,11 +138,7 @@ Move to the next post by capturing new text with paste, pick mode, or the contex
 
 **Report email** — Optionally save an email in **Options** or when prompted. Then, on results tied to a **saved report**, **Email report** can send you a copy of the full moderation report.
 
-**Review this Decision** — Opens a short feedback form when the API stored a report id. Your comment is recorded as needing improvement and may be included in an acknowledgement email if report email is set.
-
-These features depend on **Production** (or a dev stack with report saving enabled). If buttons are missing, the result may not have a stored report id—moderate again on Production or ask your admin.
-
-**Options** also holds **Provider** (RAG vs non-RAG Nextdoor prompts), **timeout**, and advanced dev settings. Store builds use **Production** only.
+**Give feedback about this Decision** — Opens a short feedback form when the API stored a report id. Your comment is recorded as needing improvement and may be included in an acknowledgement email if report email is set.
 
 ---
 
@@ -133,6 +146,7 @@ These features depend on **Production** (or a dev stack with report saving enabl
 
 | Guide | When to use it |
 |------|----------------|
+| [Visual moderation step by step](https://www.airesearchdog.net/extension/visual-moderation-step-by-step) | Screenshots: capture text, Moderate, Results |
 | [Install RAG Moderation Assistant in Chrome](https://www.airesearchdog.net/extension/install-chrome-extension) | First-time Web Store install and pin |
 | [Get a Gemini API key](https://www.airesearchdog.net/extension/get-gemini-api-key) | Optional BYOK for regular volume |
 | [Important — AI-generated analysis](https://www.airesearchdog.net/extension/important-ai-generated-analysis) | Required reading before acting on suggestions |

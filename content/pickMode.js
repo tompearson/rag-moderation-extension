@@ -21,6 +21,8 @@
 
   /** @type {HTMLElement | null} */
   let highlightEl = null;
+  /** @type {{ position: string; zIndex: string } | null} */
+  let highlightStyleRestore = null;
   /** @type {boolean} */
   let pointerDown = false;
   /** @type {boolean} */
@@ -38,14 +40,14 @@
     inset: '0',
     zIndex: '2147483646',
     cursor: 'crosshair',
-    background: 'rgba(15, 23, 42, 0.12)',
-    pointerEvents: 'auto',
+    background: 'rgba(15, 23, 42, 0.22)',
+    pointerEvents: 'none',
   });
 
   const banner = document.createElement('div');
   banner.id = BANNER_ID;
   banner.textContent =
-    'Drag to select text, or click a post line · Esc cancels (page or extension side panel)';
+    'Click on the text you want to capture · Esc cancels (page or extension side panel)';
   Object.assign(banner.style, {
     position: 'fixed',
     top: '12px',
@@ -81,10 +83,7 @@
    * @returns {Element | null}
    */
   function elementUnderPagePoint(x, y) {
-    overlay.style.pointerEvents = 'none';
-    const el = document.elementFromPoint(x, y);
-    overlay.style.pointerEvents = 'auto';
-    return el;
+    return document.elementFromPoint(x, y);
   }
 
   function cleanup() {
@@ -93,9 +92,9 @@
     document.removeEventListener('click', swallowPageActivation, true);
     document.removeEventListener('auxclick', swallowPageActivation, true);
     document.removeEventListener('pointerup', swallowPageActivation, true);
-    overlay.removeEventListener('mousemove', onMove);
-    overlay.removeEventListener('mousedown', onMouseDown);
-    overlay.removeEventListener('mouseup', onMouseUp);
+    document.removeEventListener('mousemove', onMove, true);
+    document.removeEventListener('mousedown', onMouseDown, true);
+    document.removeEventListener('mouseup', onMouseUp, true);
     clearHoverHighlight();
     try {
       window.getSelection()?.removeAllRanges();
@@ -272,6 +271,13 @@
     if (!highlightEl) return;
     highlightEl.style.outline = '';
     highlightEl.style.outlineOffset = '';
+    highlightEl.style.backgroundColor = '';
+    highlightEl.style.boxShadow = '';
+    if (highlightStyleRestore) {
+      highlightEl.style.position = highlightStyleRestore.position;
+      highlightEl.style.zIndex = highlightStyleRestore.zIndex;
+      highlightStyleRestore = null;
+    }
     highlightEl = null;
   }
 
@@ -281,8 +287,18 @@
     clearHoverHighlight();
     highlightEl = block;
     if (block) {
+      highlightStyleRestore = {
+        position: block.style.position,
+        zIndex: block.style.zIndex,
+      };
       block.style.outline = '2px solid #2563eb';
       block.style.outlineOffset = '2px';
+      block.style.backgroundColor = 'rgba(37, 99, 235, 0.14)';
+      block.style.boxShadow = '0 0 0 1px rgba(37, 99, 235, 0.35)';
+      if (getComputedStyle(block).position === 'static') {
+        block.style.position = 'relative';
+      }
+      block.style.zIndex = '2147483645';
     }
   }
 
@@ -314,6 +330,8 @@
 
   /** @param {MouseEvent} e */
   function onMove(e) {
+    if (isPickChrome(/** @type {Element} */ (e.target))) return;
+
     if (pointerDown && (e.buttons & 1)) {
       const dx = e.clientX - anchorX;
       const dy = e.clientY - anchorY;
@@ -383,8 +401,8 @@
   document.addEventListener('click', swallowPageActivation, true);
   document.addEventListener('auxclick', swallowPageActivation, true);
   document.addEventListener('pointerup', swallowPageActivation, true);
-  overlay.addEventListener('mousemove', onMove);
-  overlay.addEventListener('mousedown', onMouseDown);
-  overlay.addEventListener('mouseup', onMouseUp);
+  document.addEventListener('mousemove', onMove, true);
+  document.addEventListener('mousedown', onMouseDown, true);
+  document.addEventListener('mouseup', onMouseUp, true);
   document.body.append(banner, overlay);
 })();
