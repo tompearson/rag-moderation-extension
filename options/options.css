@@ -338,3 +338,148 @@ button {
 .status.error {
   color: #b91c1c;
 }
+
+button.options-inline-link {
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  color: #2563eb;
+  text-decoration: underline;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  vertical-align: baseline;
+}
+
+@media (prefers-color-scheme: dark) {
+  button.options-inline-link {
+    color: #60a5fa;
+  }
+}
+
+textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px;
+  margin-top: 4px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  min-height: 100px;
+  resize: vertical;
+}
+
+@media (prefers-color-scheme: dark) {
+  textarea {
+    border-color: #334155;
+  }
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 1000;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-card {
+  background: var(--bg, #fff);
+  color: inherit;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.modal-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.modal-card-header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.modal-close {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  line-height: 1;
+  font-size: 1.25rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  cursor: pointer;
+}
+
+.modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.modal-actions .secondary {
+  margin-top: 0;
+}
+
+.char-count {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  text-align: right;
+}
+
+.error.hidden {
+  display: none;
+}
+
+.error {
+  margin: 8px 0 0;
+  font-size: 0.9rem;
+  color: #b91c1c;
+}
+
+.options-extension-contact-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 12px 0 0;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.options-extension-contact-checkbox input {
+  margin-top: 3px;
+}
+
+.extension-contact-email-row {
+  margin-top: 8px;
+}
+
+.extension-contact-email-row.hidden {
+  display: none;
+}
+
+#options-extension-contact-saved-email-note:not(.hidden) {
+  margin: 8px 0 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}

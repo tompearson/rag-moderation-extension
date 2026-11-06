@@ -110,6 +110,52 @@
       </div>
     </div>
 
+    <div
+      id="extension-contact-modal"
+      class="modal hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="extension-contact-modal-title"
+    >
+      <div class="modal-card">
+        <div class="modal-card-header">
+          <h2 id="extension-contact-modal-title">Contact</h2>
+          <button type="button" id="extension-contact-close" class="modal-close" aria-label="Close">×</button>
+        </div>
+        <p id="extension-contact-modal-desc" class="muted">
+          Please send a message to <strong>Help</strong>. Say what you are commenting about—a <strong>bug</strong> or a
+          <strong>feature request</strong>.
+        </p>
+        <p id="extension-contact-saved-email-note" class="muted hidden"></p>
+        <label class="extension-contact-checkbox">
+          <input type="checkbox" id="extension-contact-want-reply" />
+          I want a direct reply
+        </label>
+        <div id="extension-contact-email-row" class="extension-contact-email-row hidden">
+          <label for="extension-contact-reply">Your email (for replies)</label>
+          <input
+            id="extension-contact-reply"
+            type="email"
+            autocomplete="email"
+            placeholder="you@example.com"
+          />
+        </div>
+        <label for="extension-contact-message">Message</label>
+        <textarea
+          id="extension-contact-message"
+          rows="5"
+          maxlength="8000"
+          placeholder="How can we help?"
+        ></textarea>
+        <p id="extension-contact-char-count" class="muted char-count">0 / 8000</p>
+        <p id="extension-contact-error" class="error hidden"></p>
+        <div class="modal-actions">
+          <button type="button" id="extension-contact-send" class="primary">Send</button>
+          <button type="button" id="extension-contact-cancel" class="secondary">Cancel</button>
+        </div>
+      </div>
+    </div>
+
     <header>
       <div class="header-row">
         <div class="header-title-block">
@@ -139,9 +185,9 @@
           >Install in Chrome</a
         ><span id="sidepanel-guide-sep-install" aria-hidden="true"> · </span
         ><a id="gemini-key-guide-link" href="#" target="_blank" rel="noopener noreferrer"
-          >Get a Gemini key (guide)</a
+          >Get a Gemini key</a
         ><span id="sidepanel-guide-sep-contact" aria-hidden="true"> · </span
-        ><a id="extension-contact-link" href="#">Contact</a>
+        ><button type="button" id="extension-contact-open-btn" class="link-btn">Contact</button>
       </p>
     </header>
 

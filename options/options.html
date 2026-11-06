@@ -35,7 +35,7 @@
       ><span class="options-legal-sep" aria-hidden="true"> · </span
       ><a id="extension-terms-link" href="#" target="_blank" rel="noopener noreferrer">Terms of use</a
       ><span class="options-legal-sep" aria-hidden="true"> · </span
-      ><a id="extension-contact-link" href="#">Contact</a>
+      ><button type="button" id="options-extension-contact-open" class="options-inline-link">Contact</button>
     </p>
 
     <details class="options-advanced-panel" id="section-environment">
@@ -202,6 +202,54 @@
       </p>
       <button type="button" id="factory-reset" class="danger">Reset to clean state…</button>
     </section>
+
+    <div
+      id="options-extension-contact-modal"
+      class="modal hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="options-extension-contact-modal-title"
+    >
+      <div class="modal-card">
+        <div class="modal-card-header">
+          <h2 id="options-extension-contact-modal-title">Contact</h2>
+          <button type="button" id="options-extension-contact-close" class="modal-close" aria-label="Close">
+            ×
+          </button>
+        </div>
+        <p id="options-extension-contact-desc" class="muted">
+          Please send a message to <strong>Help</strong>. Say what you are commenting about—a <strong>bug</strong> or a
+          <strong>feature request</strong>.
+        </p>
+        <p id="options-extension-contact-saved-email-note" class="muted hidden"></p>
+        <label class="options-extension-contact-checkbox">
+          <input type="checkbox" id="options-extension-contact-want-reply" />
+          I want a direct reply
+        </label>
+        <div id="options-extension-contact-email-row" class="extension-contact-email-row hidden">
+          <label for="options-extension-contact-reply">Your email (for replies)</label>
+          <input
+            id="options-extension-contact-reply"
+            type="email"
+            autocomplete="email"
+            placeholder="you@example.com"
+          />
+        </div>
+        <label for="options-extension-contact-message">Message</label>
+        <textarea
+          id="options-extension-contact-message"
+          rows="5"
+          maxlength="8000"
+          placeholder="How can we help?"
+        ></textarea>
+        <p id="options-extension-contact-char-count" class="char-count muted">0 / 8000</p>
+        <p id="options-extension-contact-error" class="error hidden" role="alert"></p>
+        <div class="modal-actions">
+          <button type="button" id="options-extension-contact-send" class="primary">Send</button>
+          <button type="button" id="options-extension-contact-cancel" class="secondary">Cancel</button>
+        </div>
+      </div>
+    </div>
 
     <div class="options-close-row">
       <button type="button" class="close-options secondary">Close</button>

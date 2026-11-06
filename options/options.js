@@ -14,6 +14,7 @@ import { factoryResetExtension } from '../lib/factoryReset.js';
 import { closeOptionsPageIfOpen } from '../lib/optionsPage.js';
 import { normalizeReportEmail, isValidReportEmail } from '../lib/validateReportEmail.js';
 import { fillRagProviderSelect, DEFAULT_RAG_PROVIDER } from '../lib/ragProviders.js';
+import { postExtensionContact } from '../lib/extensionContactClient.js';
 import { isStoreBuild } from '../lib/buildConfig.js';
 import {
   formatGeminiKeySuffixLabel,
@@ -26,7 +27,6 @@ import {
   INSTALL_CHROME_EXTENSION_GUIDE_URL,
   EXTENSION_PRIVACY_POLICY_URL,
   EXTENSION_TERMS_URL,
-  EXTENSION_HELP_MAILTO,
   EXTENSION_HOW_TO_MODERATE_URL,
 } from '../lib/geminiKeyUserHelp.js';
 import {
@@ -95,7 +95,6 @@ const extensionInstallGuideLink = document.getElementById('extension-install-gui
 const extensionHowToGuideLink = document.getElementById('extension-how-to-guide-link');
 const extensionPrivacyLink = document.getElementById('extension-privacy-link');
 const extensionTermsLink = document.getElementById('extension-terms-link');
-const extensionContactLink = document.getElementById('extension-contact-link');
 
 function wirePublicGuideLinks() {
   if (extensionInstallGuideLink) {
@@ -109,9 +108,6 @@ function wirePublicGuideLinks() {
   }
   if (extensionTermsLink) {
     extensionTermsLink.href = EXTENSION_TERMS_URL;
-  }
-  if (extensionContactLink) {
-    extensionContactLink.href = EXTENSION_HELP_MAILTO;
   }
 }
 
@@ -155,6 +151,279 @@ let skipDevSettingsSync = false;
 const envProfileControls = document.getElementById('env-profile-controls');
 const envStoreNote = document.getElementById('env-store-note');
 const devIdentitySection = document.getElementById('section-dev-identity');
+
+const optionsExtensionContactModal = document.getElementById('options-extension-contact-modal');
+const optionsExtensionContactOpen = document.getElementById('options-extension-contact-open');
+const optionsExtensionContactMessage = /** @type {HTMLTextAreaElement | null} */ (
+  document.getElementById('options-extension-contact-message')
+);
+const optionsExtensionContactReply = /** @type {HTMLInputElement | null} */ (
+  document.getElementById('options-extension-contact-reply')
+);
+const optionsExtensionContactCharCount = document.getElementById('options-extension-contact-char-count');
+const optionsExtensionContactError = document.getElementById('options-extension-contact-error');
+const optionsExtensionContactSend = document.getElementById('options-extension-contact-send');
+const optionsExtensionContactCancel = document.getElementById('options-extension-contact-cancel');
+const optionsExtensionContactClose = document.getElementById('options-extension-contact-close');
+const optionsExtensionContactWantReply = /** @type {HTMLInputElement | null} */ (
+  document.getElementById('options-extension-contact-want-reply')
+);
+const optionsExtensionContactEmailRow = document.getElementById('options-extension-contact-email-row');
+const optionsExtensionContactSavedEmailNote = document.getElementById('options-extension-contact-saved-email-note');
+
+/** While Options contact modal is open: saved report email existed when modal opened. */
+let optionsExtensionContactModalHadSavedEmail = false;
+
+/** @type {ReturnType<typeof setTimeout> | null} */
+let optionsExtensionContactReplySaveTimer = null;
+
+function clearOptionsExtensionContactReplySaveTimer() {
+  if (optionsExtensionContactReplySaveTimer != null) {
+    clearTimeout(optionsExtensionContactReplySaveTimer);
+    optionsExtensionContactReplySaveTimer = null;
+  }
+}
+
+/**
+ * Persist Options contact “Your email” to report email once valid (auto-save while typing).
+ */
+async function maybeSaveOptionsExtensionContactReplyEmail() {
+  if (optionsExtensionContactModalHadSavedEmail) return;
+  if (!optionsExtensionContactWantReply?.checked) return;
+  if (!optionsExtensionContactReply) return;
+  const raw = normalizeReportEmail(optionsExtensionContactReply.value);
+  if (!raw || !isValidReportEmail(raw)) return;
+  let settings = await loadSettings();
+  if (normalizeReportEmail(settings.reportShareRecipientEmail || '') === raw) {
+    optionsExtensionContactModalHadSavedEmail = true;
+    if (reportShareEmail) reportShareEmail.value = raw;
+    refreshOptionsExtensionContactSavedEmailNote(raw);
+    updateOptionsExtensionContactEmailRowVisibility();
+    return;
+  }
+  try {
+    await saveSettingsPatch({
+      reportShareRecipientEmail: raw,
+      reportEmailPromptComplete: true,
+    });
+    optionsExtensionContactModalHadSavedEmail = true;
+    if (reportShareEmail) reportShareEmail.value = raw;
+    refreshOptionsExtensionContactSavedEmailNote(raw);
+    updateOptionsExtensionContactEmailRowVisibility();
+  } catch {
+    // non-fatal
+  }
+}
+
+function scheduleMaybeSaveOptionsExtensionContactReplyEmail() {
+  if (optionsExtensionContactModalHadSavedEmail) return;
+  if (!optionsExtensionContactWantReply?.checked) return;
+  clearOptionsExtensionContactReplySaveTimer();
+  optionsExtensionContactReplySaveTimer = setTimeout(() => {
+    optionsExtensionContactReplySaveTimer = null;
+    void maybeSaveOptionsExtensionContactReplyEmail();
+  }, 500);
+}
+
+/**
+ * @param {string} savedDisplay
+ */
+function refreshOptionsExtensionContactSavedEmailNote(savedDisplay) {
+  if (!optionsExtensionContactSavedEmailNote) return;
+  optionsExtensionContactSavedEmailNote.textContent = `We’ll use your saved report email (${savedDisplay}) when you ask for a direct reply.`;
+  optionsExtensionContactSavedEmailNote.classList.remove('hidden');
+}
+
+function setOptionsExtensionContactError(msg) {
+  if (!optionsExtensionContactError) return;
+  if (!msg) {
+    optionsExtensionContactError.classList.add('hidden');
+    optionsExtensionContactError.textContent = '';
+    return;
+  }
+  optionsExtensionContactError.textContent = msg;
+  optionsExtensionContactError.classList.remove('hidden');
+}
+
+function updateOptionsExtensionContactCharCount() {
+  if (!optionsExtensionContactCharCount || !optionsExtensionContactMessage) return;
+  optionsExtensionContactCharCount.textContent = `${optionsExtensionContactMessage.value.length} / 8000`;
+}
+
+/**
+ * @param {import('../lib/userSettings.js').SettingsSnapshot} settings
+ */
+function applyOptionsExtensionContactModalOpenState(settings) {
+  const saved = normalizeReportEmail(settings.reportShareRecipientEmail || '');
+  optionsExtensionContactModalHadSavedEmail = Boolean(saved && isValidReportEmail(saved));
+
+  if (optionsExtensionContactSavedEmailNote) {
+    if (optionsExtensionContactModalHadSavedEmail) {
+      refreshOptionsExtensionContactSavedEmailNote(saved);
+    } else {
+      optionsExtensionContactSavedEmailNote.textContent = '';
+      optionsExtensionContactSavedEmailNote.classList.add('hidden');
+    }
+  }
+
+  if (optionsExtensionContactWantReply) {
+    optionsExtensionContactWantReply.checked = optionsExtensionContactModalHadSavedEmail;
+  }
+
+  updateOptionsExtensionContactEmailRowVisibility();
+}
+
+function updateOptionsExtensionContactEmailRowVisibility() {
+  const showEmailField =
+    !optionsExtensionContactModalHadSavedEmail && Boolean(optionsExtensionContactWantReply?.checked);
+  if (optionsExtensionContactEmailRow) {
+    optionsExtensionContactEmailRow.classList.toggle('hidden', !showEmailField);
+  }
+  if (optionsExtensionContactReply && !showEmailField) {
+    optionsExtensionContactReply.value = '';
+  }
+}
+
+async function showOptionsExtensionContactModal() {
+  if (!optionsExtensionContactModal) return;
+  setOptionsExtensionContactError('');
+  let s;
+  try {
+    s = await loadSettings();
+  } catch (err) {
+    setOptionsExtensionContactError(err instanceof Error ? err.message : String(err));
+    return;
+  }
+  applyOptionsExtensionContactModalOpenState(s);
+  if (optionsExtensionContactMessage) optionsExtensionContactMessage.value = '';
+  updateOptionsExtensionContactCharCount();
+  optionsExtensionContactModal.classList.remove('hidden');
+  optionsExtensionContactMessage?.focus();
+}
+
+function hideOptionsExtensionContactModal() {
+  if (!optionsExtensionContactModal) return;
+  clearOptionsExtensionContactReplySaveTimer();
+  optionsExtensionContactModal.classList.add('hidden');
+  setOptionsExtensionContactError('');
+}
+
+async function sendOptionsExtensionContact() {
+  if (!optionsExtensionContactSend || !optionsExtensionContactMessage) return;
+  setOptionsExtensionContactError('');
+  const message = optionsExtensionContactMessage.value.trim();
+  if (!message) {
+    setOptionsExtensionContactError('Enter a message.');
+    return;
+  }
+  let settings;
+  try {
+    settings = await loadSettings();
+  } catch (err) {
+    setOptionsExtensionContactError(err instanceof Error ? err.message : String(err));
+    return;
+  }
+  const wantReply = Boolean(optionsExtensionContactWantReply?.checked);
+  if (wantReply && !optionsExtensionContactModalHadSavedEmail) {
+    await maybeSaveOptionsExtensionContactReplyEmail();
+    try {
+      settings = await loadSettings();
+    } catch (err) {
+      setOptionsExtensionContactError(err instanceof Error ? err.message : String(err));
+      return;
+    }
+  }
+  const saved = normalizeReportEmail(settings.reportShareRecipientEmail || '');
+  const hasSaved = Boolean(saved && isValidReportEmail(saved));
+
+  /** @type {string | undefined} */
+  let replyEmail;
+  if (wantReply && hasSaved && optionsExtensionContactModalHadSavedEmail) {
+    replyEmail = saved;
+  } else if (wantReply && !hasSaved) {
+    const raw = optionsExtensionContactReply?.value.trim() || '';
+    if (!raw) {
+      setOptionsExtensionContactError(
+        'Enter your email for a direct reply, or turn off “I want a direct reply”.',
+      );
+      return;
+    }
+    if (!isValidReportEmail(raw)) {
+      setOptionsExtensionContactError('Enter a valid email address.');
+      return;
+    }
+    replyEmail = raw;
+  } else {
+    replyEmail = undefined;
+  }
+
+  const api = resolveApiConfig(
+    /** @type {import('../lib/envProfiles.js').EnvProfileId} */ (envProfile.value),
+    customOrigin.value,
+  );
+  if (!api.apiOrigin) {
+    setOptionsExtensionContactError('Invalid API origin.');
+    return;
+  }
+  const permitted = await ensureHostPermission(api.apiOrigin);
+  if (!permitted) {
+    setOptionsExtensionContactError(
+      `Host permission denied for ${formatApiProfileUiLabel(api)}. Use Grant host permission below.`,
+    );
+    return;
+  }
+  optionsExtensionContactSend.disabled = true;
+  try {
+    await postExtensionContact(api.apiOrigin, { message, replyEmail });
+    hideOptionsExtensionContactModal();
+    setStatus(
+      wantReply && replyEmail
+        ? 'Message sent. We may reply at your email.'
+        : 'Message sent.',
+    );
+  } catch (err) {
+    setOptionsExtensionContactError(err instanceof Error ? err.message : String(err));
+  } finally {
+    optionsExtensionContactSend.disabled = false;
+  }
+}
+
+optionsExtensionContactOpen?.addEventListener('click', () => {
+  showOptionsExtensionContactModal().catch((err) => {
+    setOptionsExtensionContactError(err instanceof Error ? err.message : String(err));
+  });
+});
+optionsExtensionContactSend?.addEventListener('click', () => {
+  sendOptionsExtensionContact().catch((err) => {
+    setOptionsExtensionContactError(err instanceof Error ? err.message : String(err));
+  });
+});
+optionsExtensionContactCancel?.addEventListener('click', () => hideOptionsExtensionContactModal());
+optionsExtensionContactClose?.addEventListener('click', () => hideOptionsExtensionContactModal());
+optionsExtensionContactMessage?.addEventListener('input', () => updateOptionsExtensionContactCharCount());
+optionsExtensionContactWantReply?.addEventListener('change', () => {
+  if (!optionsExtensionContactWantReply?.checked) {
+    clearOptionsExtensionContactReplySaveTimer();
+  }
+  updateOptionsExtensionContactEmailRowVisibility();
+  if (optionsExtensionContactWantReply?.checked) {
+    scheduleMaybeSaveOptionsExtensionContactReplyEmail();
+  }
+});
+optionsExtensionContactReply?.addEventListener('input', () => {
+  scheduleMaybeSaveOptionsExtensionContactReplyEmail();
+});
+optionsExtensionContactReply?.addEventListener('blur', () => {
+  clearOptionsExtensionContactReplySaveTimer();
+  void maybeSaveOptionsExtensionContactReplyEmail();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (optionsExtensionContactModal && !optionsExtensionContactModal.classList.contains('hidden')) {
+    hideOptionsExtensionContactModal();
+  }
+});
 
 function applyStoreTargetUi() {
   if (!isStoreBuild()) return;

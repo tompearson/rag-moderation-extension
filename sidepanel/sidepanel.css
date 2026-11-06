@@ -594,6 +594,38 @@ button.link-btn:hover {
   opacity: 0.85;
 }
 
+.extension-contact-checkbox,
+.options-extension-contact-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 10px 0 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.extension-contact-checkbox input,
+.options-extension-contact-checkbox input {
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.extension-contact-email-row {
+  margin-top: 8px;
+}
+
+.extension-contact-email-row.hidden {
+  display: none;
+}
+
+#extension-contact-saved-email-note:not(.hidden),
+#options-extension-contact-saved-email-note:not(.hidden) {
+  margin: 8px 0 0;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
 .char-count {
   margin: 4px 0 0;
   font-size: 0.85rem;
