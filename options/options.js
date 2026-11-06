@@ -26,7 +26,7 @@ import {
   INSTALL_CHROME_EXTENSION_GUIDE_URL,
   EXTENSION_PRIVACY_POLICY_URL,
   EXTENSION_TERMS_URL,
-  EXTENSION_CONTACT_URL,
+  EXTENSION_HELP_MAILTO,
   EXTENSION_HOW_TO_MODERATE_URL,
 } from '../lib/geminiKeyUserHelp.js';
 import {
@@ -111,7 +111,7 @@ function wirePublicGuideLinks() {
     extensionTermsLink.href = EXTENSION_TERMS_URL;
   }
   if (extensionContactLink) {
-    extensionContactLink.href = EXTENSION_CONTACT_URL;
+    extensionContactLink.href = EXTENSION_HELP_MAILTO;
   }
 }
 

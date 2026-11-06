@@ -42,7 +42,7 @@ import {
 import {
   GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL,
   INSTALL_CHROME_EXTENSION_GUIDE_URL,
-  EXTENSION_CONTACT_URL,
+  EXTENSION_HELP_MAILTO,
 } from '../lib/geminiKeyUserHelp.js';
 import { isStoreBuild } from '../lib/buildConfig.js';
 import { formatExtensionVersionLabel, getExtensionVersion } from '../lib/extensionVersion.js';
@@ -59,6 +59,7 @@ import {
   decisionClass,
   formatReportCategory,
   renderRagSourcesFoldHtml,
+  renderGeminiAiDisclaimerAfterRagHtml,
   renderContextImpactHtml,
   escapeHtml,
 } from '../lib/formatters.js';
@@ -104,7 +105,7 @@ if (geminiKeyGuideLink) {
   geminiKeyGuideLink.href = GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL;
 }
 if (sidepanelContactLink) {
-  sidepanelContactLink.href = EXTENSION_CONTACT_URL;
+  sidepanelContactLink.href = EXTENSION_HELP_MAILTO;
 }
 if (isStoreBuild()) {
   if (installExtensionGuideLink) installExtensionGuideLink.hidden = true;
@@ -1197,6 +1198,7 @@ function renderResults(result, apiOrigin, flags) {
     ${timingLine}
     ${renderContextImpactHtml(result.contextImpact)}
     ${renderRagSourcesFoldHtml(result.ragSources)}
+    ${renderGeminiAiDisclaimerAfterRagHtml()}
   `;
   resultsEl.classList.remove('hidden');
 }

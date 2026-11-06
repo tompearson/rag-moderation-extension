@@ -7,6 +7,7 @@ import {
   EXTENSION_PRIVACY_POLICY_URL,
   EXTENSION_TERMS_URL,
   EXTENSION_CONTACT_URL,
+  EXTENSION_HELP_MAILTO,
   EXTENSION_HOW_TO_MODERATE_URL,
 } from '../lib/geminiKeyUserHelp.js';
 
@@ -35,6 +36,7 @@ assert.equal(
   EXTENSION_CONTACT_URL,
   'https://www.airesearchdog.net/extension/contact',
 );
+assert.equal(EXTENSION_HELP_MAILTO, 'mailto:help@airesearchdog.net');
 assert.equal(
   EXTENSION_TERMS_URL,
   'https://www.airesearchdog.net/extension/terms',

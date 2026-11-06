@@ -95,6 +95,10 @@ header {
   color: var(--primary);
 }
 
+#install-extension-guide-link {
+  color: var(--muted);
+}
+
 .header-row {
   display: flex;
   align-items: center;
@@ -713,4 +717,10 @@ details summary {
 
 .results details.rag-sources-fold ul {
   margin-top: 6px;
+}
+
+.results p.rag-ai-notice {
+  margin-top: 10px;
+  font-size: 0.88rem;
+  line-height: 1.35;
 }
