@@ -91,3 +91,7 @@ npm run package:store   # dist/store/ + dist/rag-moderation-assistant.zip
 
 - **first-rag-system** — RAG HTTP API (`/moderate`)
 - **Moderation-Tool-Universal** — moderation API + Bad Words + RAG client
+
+## Preview extension web guides locally
+
+To sync Markdown → HTML and open the same `/extension/...` pages as production on the Universal Vite dev server (no deploy), see **[docs/DEV_WEB_DOCS.md](./docs/DEV_WEB_DOCS.md)**.
