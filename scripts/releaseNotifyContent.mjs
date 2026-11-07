@@ -1,4 +1,5 @@
-const INSTALL_DEV_URL = 'https://www.airesearchdog.net/extension/install-chrome-extension-developer';
+const INSTALL_DEV_URL =
+  'https://www.airesearchdog.net/extension/install-chrome-extension-developer#release-email';
 const HOW_TO_MODERATE_URL = 'https://www.airesearchdog.net/extension/how-to-moderate-user-posts';
 
 /**
