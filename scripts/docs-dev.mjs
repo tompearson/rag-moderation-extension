@@ -20,6 +20,7 @@ const EXTENSION_PATHS = [
   '/extension/terms',
   '/extension/important-ai-generated-analysis',
   '/extension/how-to-moderate-user-posts',
+  '/extension/how-to-test-extension',
   '/extension/visual-moderation-step-by-step',
   '/extension/contact',
 ];

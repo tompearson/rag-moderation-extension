@@ -12,6 +12,7 @@ assert.match(subject, /v1\.2\.3/);
 assert.match(textBody, /abc123/);
 assert.match(textBody, /install-chrome-extension-developer/);
 assert.match(textBody, /how-to-moderate-user-posts/);
+assert.match(textBody, /how-to-test-extension/);
 assert.match(htmlBody, /abc123/);
 assert.match(markdownBody, /rag-moderation-assistant-1\.2\.3\.zip/);
 assert.equal(

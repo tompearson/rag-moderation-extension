@@ -10,7 +10,7 @@ You may get email from **info@airesearchdog.net** when a new **sideload** build 
 2. **Optional:** compare **SHA256** in the email with the file on your machine (`sha256sum` on Linux, `shasum -a 256` on macOS).
 3. **Unzip** the download to a folder.
 4. Chrome cannot install the `.zip` directly — continue below with **Part 1**, then choose that **unzipped folder** when you click **Load unpacked**.
-5. After install, follow **[How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts)**.
+5. After install, run **[How to test the extension](https://www.airesearchdog.net/extension/how-to-test-extension)** (QA), then use **[How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts)** for workflow.
 
 ## Part 1 — Enable an unpacked extension {#developer}
 
@@ -56,6 +56,7 @@ You may get email from **info@airesearchdog.net** when a new **sideload** build 
 | Guide | When to use it |
 |------|----------------|
 | [Install from Chrome Web Store](https://www.airesearchdog.net/extension/install-chrome-extension) | Normal moderator install |
+| [How to test the extension](https://www.airesearchdog.net/extension/how-to-test-extension) | Sideload QA after install |
 | [How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts) | Side panel workflow |
 | [Get a Gemini API key](https://www.airesearchdog.net/extension/get-gemini-api-key) | Optional BYOK after install |
 | [Important — AI-generated analysis](https://www.airesearchdog.net/extension/important-ai-generated-analysis) | Read before acting on moderation suggestions |

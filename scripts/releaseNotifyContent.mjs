@@ -1,6 +1,7 @@
 const INSTALL_DEV_URL =
   'https://www.airesearchdog.net/extension/install-chrome-extension-developer#release-email';
 const HOW_TO_MODERATE_URL = 'https://www.airesearchdog.net/extension/how-to-moderate-user-posts';
+const HOW_TO_TEST_URL = 'https://www.airesearchdog.net/extension/how-to-test-extension';
 
 /**
  * @param {{ repository: string; refName: string; zipSha: string }} params
@@ -29,6 +30,7 @@ export function buildReleaseNotifyContent({ repository, refName, zipSha }) {
     'chrome://extensions or edge://extensions → Developer mode → Load unpacked.',
     `Install guide: ${INSTALL_DEV_URL}`,
     `How to moderate: ${HOW_TO_MODERATE_URL}`,
+    `How to test (QA): ${HOW_TO_TEST_URL}`,
     '',
     'Production API: https://www.airesearchdog.net',
     '',
@@ -50,6 +52,7 @@ export function buildReleaseNotifyContent({ repository, refName, zipSha }) {
 <li><code>chrome://extensions</code> or <code>edge://extensions</code> → Developer mode → <strong>Load unpacked</strong>.</li>
 <li><a href="${INSTALL_DEV_URL}">Install (developer / unpacked)</a></li>
 <li><a href="${HOW_TO_MODERATE_URL}">How to moderate user posts</a></li>
+<li><a href="${HOW_TO_TEST_URL}">How to test the extension (QA)</a></li>
 </ol>
 <p>Production API: <a href="https://www.airesearchdog.net">www.airesearchdog.net</a></p>
 <p><a href="${escapeHtml(releasesUrl)}">All releases</a> · <a href="${escapeHtml(latestUrl)}">Latest</a></p>
@@ -67,6 +70,7 @@ export function buildReleaseNotifyContent({ repository, refName, zipSha }) {
 2. Open \`chrome://extensions\` or \`edge://extensions\`, enable **Developer mode**, **Load unpacked**, select that folder.
 3. **Install (developer / unpacked):** ${INSTALL_DEV_URL}
 4. **How to moderate user posts:** ${HOW_TO_MODERATE_URL}
+5. **How to test (QA):** ${HOW_TO_TEST_URL}
 
 This build uses the **Production** API profile (\`https://www.airesearchdog.net\`) by default.
 
