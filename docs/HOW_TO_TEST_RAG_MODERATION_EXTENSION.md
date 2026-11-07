@@ -45,7 +45,7 @@ Install the build first: **[Install (developer / unpacked)](https://www.airesear
 
 | # | Step | Expected |
 |---|------|----------|
-| 1 | Pin the extension; open the **side panel** | Version label visible; connection badge leaves “Connecting…” |
+| 1 | Complete **[Part 1 — Enable an unpacked extension](https://www.airesearchdog.net/extension/install-chrome-extension-developer.html#developer)** (Developer mode, **Load unpacked**, enable the card, pin the toolbar icon) | Extension pinned; open the **side panel** — version label visible; connection badge leaves “Connecting…” |
 | 2 | Complete **Confirm feed location** (first run) | Main panel enabled; state shows in **Feed location** |
 | 3 | **Paste** sample text into **Content to moderate** | Field filled |
 | 4 | **Quick** analysis → **Moderate** | **Results**: **Decision** + **Reason** (label does not matter) |
