@@ -61,7 +61,9 @@ Clean paths are implemented in Universal **`vite.config.js`** (dev/preview) usin
 
 ## Sync only one guide
 
-See **`package.json`** scripts: `sync:gemini-guide`, `sync:install-chrome-guide`, `sync:privacy-policy`, `sync:how-to-moderate-guide`, etc., or run all with **`sync:public-guides`**.
+See **`package.json`** scripts: `sync:gemini-guide`, `sync:install-chrome-guide`, `sync:install-chrome-developer-guide`, `sync:privacy-policy`, `sync:how-to-moderate-guide`, etc., or run all with **`sync:public-guides`**.
+
+**Fast loop (developer install page):** edit `docs/INSTALL_RAG_MODERATION_EXTENSION_CHROME_DEVELOPER.md` → from extension repo `npm run sync:install-chrome-developer-guide` → reload [install-chrome-extension-developer](http://127.0.0.1:3000/extension/install-chrome-extension-developer) on Universal `npm run dev` (no `deploy:prod` until copy is final).
 
 ## What this does not start
 
