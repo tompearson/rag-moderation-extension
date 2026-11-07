@@ -35,9 +35,10 @@ Install the build first: **[Install (developer / unpacked)](https://www.airesear
 ## Before you test {#before-you-test}
 
 1. Load the **sideload** build (unzipped release or `dist/store/`) with **Production** API (default on store-shaped builds).
-2. Open a normal **https** page (any site is fine for UI tests; use a community page if you test **pick** or **context menu**).
-3. Keep a simple pass/fail list (spreadsheet or printed tables below).
-4. For **saved report** actions (Open / Email / Review), Production must persist reports—if buttons never appear, moderate once more and check for the hint about missing saved records.
+2. **Help docs:** use **`/extension/...`** URLs only. The site **home page** (`https://www.airesearchdog.net/`) is the gated Community Moderation web app (login/passcode), not the extension guides.
+3. Open a normal **https** page (any site is fine for UI tests; use a community page if you test **pick** or **context menu**).
+4. Keep a simple pass/fail list (spreadsheet or printed tables below).
+5. For **saved report** actions (Open / Email / Review), Production must persist reports—if buttons never appear, moderate once more and check for the hint about missing saved records.
 
 ---
 
