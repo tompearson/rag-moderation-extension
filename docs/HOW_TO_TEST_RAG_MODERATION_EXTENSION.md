@@ -143,13 +143,13 @@ Mark each row Pass / Fail / Skip.
 | Feed location | Options state picker | Matches panel; **Reset location** shows modal again |
 | Factory reset | **Reset to clean state** | Onboarding flows return |
 
-**Options screenshots (use 2–3 crops, not one full-page scroll):**
+![Options: version, timeout, report email](/extension/images/how-to-test-options-report-timeout.png)
 
-1. **`how-to-test-options-report-timeout.png`** — Top of Options: version label, legal links, **Moderation request** (timeout), **Saved full report** (email + **Enable “Email report”**).
-2. **`how-to-test-options-advanced-production.png`** — **Advanced** expanded: Production note (“This build uses the Production profile”), **Platform intelligence** provider dropdown (store build: no Local/Custom profile).
-3. **`how-to-test-options-feed-save.png`** (optional) — **Feed location** picker and **Save all settings** / **Reset location** (bottom of the page).
+![Options: feed location, save, reset](/extension/images/how-to-test-options-feed-save.png)
 
-Capture at normal browser zoom (~100%); one viewport height per file is enough.
+Use a **placeholder report email** (or blur) in public screenshots if you prefer not to show a personal address.
+
+Still useful for checklist **H** (Production + provider): one crop with **Advanced** expanded on a **store/sideload** build showing the Production note and **Platform intelligence** provider (`how-to-test-options-advanced-production.png` — add when captured).
 
 ### I. Contact
 
@@ -168,6 +168,8 @@ _Screenshot (capture during QA): Contact modal with message ready to send._
 | Invalid key | Bad key → **Save key** | Error; not stored |
 | Valid key | **Save key** → **Turn on my key** | **Your key · On** in header; toggle works |
 | Remove | **Remove key** | Badge gone; moderate without BYOK |
+
+![Options: Gemini BYOK (optional)](/extension/images/how-to-test-options-gemini-byok.png)
 
 Details: **[Get a Gemini API key](https://www.airesearchdog.net/extension/get-gemini-api-key)** and **[BYOK_GEMINI.md](https://github.com/tompearson/rag-moderation-extension/blob/master/docs/BYOK_GEMINI.md)** (repo).
 
@@ -197,16 +199,13 @@ Details: **[Get a Gemini API key](https://www.airesearchdog.net/extension/get-ge
 
 This page reuses the [visual walkthrough](https://www.airesearchdog.net/extension/visual-moderation-step-by-step) images for panel, pick, and results.
 
-**Add during QA** (under `docs/images/` in the extension repo):
-
-| File | What to capture |
-|------|-----------------|
-| `how-to-test-options-report-timeout.png` | Options — timeout + report email (see § H) |
-| `how-to-test-options-advanced-production.png` | Options — Advanced open, Production + provider |
-| `how-to-test-options-feed-save.png` | Optional — feed location + save row |
-| `how-to-test-contact-modal.png` | Contact modal (fits one screen) |
-
-Then run `npm run sync:how-to-test-guide` and deploy Universal.
+| File | Status |
+|------|--------|
+| `how-to-test-options-report-timeout.png` | In repo |
+| `how-to-test-options-feed-save.png` | In repo |
+| `how-to-test-options-gemini-byok.png` | In repo (optional § J) |
+| `how-to-test-options-advanced-production.png` | Still needed — Advanced open, Production + provider |
+| `how-to-test-contact-modal.png` | Still needed |
 
 ---
 
