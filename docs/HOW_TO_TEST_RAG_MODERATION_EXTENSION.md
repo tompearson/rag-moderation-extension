@@ -143,7 +143,13 @@ Mark each row Pass / Fail / Skip.
 | Feed location | Options state picker | Matches panel; **Reset location** shows modal again |
 | Factory reset | **Reset to clean state** | Onboarding flows return |
 
-_Screenshot (capture during QA): Options on Production — report email, timeout, provider._
+**Options screenshots (use 2–3 crops, not one full-page scroll):**
+
+1. **`how-to-test-options-report-timeout.png`** — Top of Options: version label, legal links, **Moderation request** (timeout), **Saved full report** (email + **Enable “Email report”**).
+2. **`how-to-test-options-advanced-production.png`** — **Advanced** expanded: Production note (“This build uses the Production profile”), **Platform intelligence** provider dropdown (store build: no Local/Custom profile).
+3. **`how-to-test-options-feed-save.png`** (optional) — **Feed location** picker and **Save all settings** / **Reset location** (bottom of the page).
+
+Capture at normal browser zoom (~100%); one viewport height per file is enough.
 
 ### I. Contact
 
@@ -189,7 +195,18 @@ Details: **[Get a Gemini API key](https://www.airesearchdog.net/extension/get-ge
 
 ## Screenshots {#screenshots}
 
-This page reuses the [visual walkthrough](https://www.airesearchdog.net/extension/visual-moderation-step-by-step) images for panel, pick, and results. Add **Options (Production)** and **Contact** screenshots when you capture them during QA; drop files in the extension repo as `docs/images/how-to-test-options-production.png` and `docs/images/how-to-test-contact-modal.png`, then re-run `npm run sync:how-to-test-guide`.
+This page reuses the [visual walkthrough](https://www.airesearchdog.net/extension/visual-moderation-step-by-step) images for panel, pick, and results.
+
+**Add during QA** (under `docs/images/` in the extension repo):
+
+| File | What to capture |
+|------|-----------------|
+| `how-to-test-options-report-timeout.png` | Options — timeout + report email (see § H) |
+| `how-to-test-options-advanced-production.png` | Options — Advanced open, Production + provider |
+| `how-to-test-options-feed-save.png` | Optional — feed location + save row |
+| `how-to-test-contact-modal.png` | Contact modal (fits one screen) |
+
+Then run `npm run sync:how-to-test-guide` and deploy Universal.
 
 ---
 
