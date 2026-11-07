@@ -48,6 +48,10 @@ import { formatExtensionVersionLabel, getExtensionVersion } from '../lib/extensi
 import { STORAGE_KEYS } from '../lib/userSettings.js';
 import { ensureHostPermission } from '../lib/permissions.js';
 import { postExtensionContact } from '../lib/extensionContactClient.js';
+import {
+  appendLastReportToContactMessage,
+  persistLastModerationContactContext,
+} from '../lib/lastModerationContactContext.js';
 import { openOptionsPage, toggleOptionsPage } from '../lib/optionsPage.js';
 import { BYOK_CONTINUE_SHARED_POOL, EXTENSION_UI_SYNC } from '../lib/extensionUiSync.js';
 import {
@@ -63,6 +67,11 @@ import {
   renderContextImpactHtml,
   escapeHtml,
 } from '../lib/formatters.js';
+import {
+  moderationTextForDisplay,
+  moderationTextToLinkedHtml,
+  stripMarkdownLinksToPlainText,
+} from '../lib/moderationLinkedHtml.js';
 
 const modal = document.getElementById('location-modal');
 const modalError = document.getElementById('modal-error');
@@ -562,7 +571,8 @@ async function sendExtensionContactFromModal() {
   }
   extensionContactSend.disabled = true;
   try {
-    await postExtensionContact(api.apiOrigin, { message, replyEmail });
+    const messageWithReport = await appendLastReportToContactMessage(message);
+    await postExtensionContact(api.apiOrigin, { message: messageWithReport, replyEmail });
     hideExtensionContactModal();
     setStatus(
       wantReply && replyEmail
@@ -967,22 +977,37 @@ function decisionResultBlock(decision) {
   `;
 }
 
-function copyBlockSection(label, bodyId, plainText) {
-  const body = escapeHtml(plainText);
+/**
+ * @param {string} label
+ * @param {string} bodyId
+ * @param {string} plainText
+ * @param {{ linked?: boolean }} [opts]
+ */
+function copyBlockSection(label, bodyId, plainText, opts = {}) {
+  const linked = Boolean(opts.linked);
+  const body = linked ? moderationTextToLinkedHtml(plainText) : escapeHtml(plainText);
+  const copyPlain = linked ? stripMarkdownLinksToPlainText(plainText) : String(plainText ?? '');
+  const copyDataAttr =
+    linked && copyPlain
+      ? ` data-copy-plain="${encodeURIComponent(copyPlain)}"`
+      : '';
   return `
     <div class="copy-block">
       <div class="copy-block-header">
         <span class="copy-block-label">${escapeHtml(label)}</span>
         <button type="button" class="copy-btn" data-for="${bodyId}" aria-label="Copy ${escapeHtml(label)} to clipboard">Copy</button>
       </div>
-      <p class="copy-block-body" id="${bodyId}">${body}</p>
+      <p class="copy-block-body moderation-linked-prose" id="${bodyId}"${copyDataAttr}>${body}</p>
     </div>
   `;
 }
 
 async function copyElementTextToClipboard(elementId, button) {
   const el = document.getElementById(elementId);
-  const text = el?.textContent?.trim() ?? '';
+  const encoded = el?.getAttribute('data-copy-plain');
+  const text = (
+    encoded != null ? decodeURIComponent(encoded) : (el?.textContent ?? '')
+  ).trim();
   if (!text) {
     setStatus('Nothing to copy.', true);
     return;
@@ -1093,13 +1118,25 @@ function rememberReportContext(result, apiOrigin) {
   const historyId = normalizeModerationHistoryId(result.moderationHistoryId);
   const reportUrl =
     typeof result.moderationReportUrl === 'string' ? result.moderationReportUrl.trim() : '';
+  const provider = providerNameFromResult(result);
+  const analysisType = analysisTypeFromResult(result);
   lastReportContext = {
     moderationHistoryId: historyId,
     moderationReportUrl: reportUrl || null,
     apiOrigin: apiOrigin || null,
-    provider: providerNameFromResult(result),
-    analysisType: analysisTypeFromResult(result),
+    provider,
+    analysisType,
   };
+  if (historyId || reportUrl) {
+    void persistLastModerationContactContext(
+      result,
+      apiOrigin ?? null,
+      historyId,
+      reportUrl || null,
+      provider,
+      analysisType,
+    );
+  }
 }
 
 function syncReviewDecisionThumbButtons() {
@@ -1423,6 +1460,15 @@ resultsEl.addEventListener('click', (e) => {
   });
 });
 
+/** Scroll the results section into view after new content (side panel body scroll). */
+function scrollResultsIntoView() {
+  if (!resultsEl || resultsEl.classList.contains('hidden')) return;
+  const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+  requestAnimationFrame(() => {
+    resultsEl.scrollIntoView({ block: 'start', behavior });
+  });
+}
+
 /**
  * @param {Record<string, unknown>} result
  * @param {string | null | undefined} apiOrigin
@@ -1431,10 +1477,12 @@ resultsEl.addEventListener('click', (e) => {
 function renderResults(result, apiOrigin, flags) {
   rememberReportContext(result, apiOrigin);
   const decision = String(result.decision || 'Unknown');
-  const reasonPlain = sanitizeModerationReason(String(result.reason || ''));
-  const breakdownPlain = String(result.decisionBreakdown || '');
+  const reasonPlain = sanitizeModerationReason(moderationTextForDisplay(result.reason));
+  const breakdownPlain = moderationTextForDisplay(result.decisionBreakdown);
   const category = formatReportCategory(result.reportCategory);
-  const revision = escapeHtml(String(result.suggestedRevision || ''));
+  const revisionRaw = String(result.suggestedRevision || '');
+  const revisionLinked =
+    revisionRaw && revisionRaw !== 'N/A' ? moderationTextToLinkedHtml(revisionRaw) : '';
   const mode = escapeHtml(String(result.moderationMode || ''));
   const contract = escapeHtml(String(result.promptContractId || result.provider?.promptContractId || ''));
   const timings = result.ragTimings;
@@ -1454,10 +1502,14 @@ function renderResults(result, apiOrigin, flags) {
     ${reportActions}
     ${decisionResultBlock(decision)}
     ${geminiHint}
-    ${copyBlockSection('Reason', 'result-reason', reasonPlain)}
-    ${breakdownPlain.trim() ? copyBlockSection('Breakdown', 'result-breakdown', breakdownPlain) : ''}
+    ${copyBlockSection('Reason', 'result-reason', reasonPlain, { linked: true })}
+    ${breakdownPlain.trim() ? copyBlockSection('Breakdown', 'result-breakdown', breakdownPlain, { linked: true }) : ''}
     ${category ? `<p><strong>Report category:</strong> ${escapeHtml(category)}</p>` : ''}
-    ${revision && revision !== 'N/A' ? `<p><strong>Suggested revision:</strong> ${revision}</p>` : ''}
+    ${
+      revisionLinked
+        ? `<p class="moderation-linked-prose"><strong>Suggested revision:</strong> ${revisionLinked}</p>`
+        : ''
+    }
     ${mode ? `<p class="muted">Mode: ${mode}${contract ? ` · ${contract}` : ''}</p>` : ''}
     ${timingLine}
     ${renderContextImpactHtml(result.contextImpact)}
@@ -1465,6 +1517,7 @@ function renderResults(result, apiOrigin, flags) {
     ${renderGeminiAiDisclaimerAfterRagHtml()}
   `;
   resultsEl.classList.remove('hidden');
+  scrollResultsIntoView();
 }
 
 moderateBtn.addEventListener('click', async () => {
@@ -1489,7 +1542,7 @@ moderateBtn.addEventListener('click', async () => {
       true,
     );
     resultsEl.classList.remove('hidden');
-    resultsEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    scrollResultsIntoView();
     return;
   }
 

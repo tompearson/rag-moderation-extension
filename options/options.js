@@ -15,6 +15,7 @@ import { closeOptionsPageIfOpen } from '../lib/optionsPage.js';
 import { normalizeReportEmail, isValidReportEmail } from '../lib/validateReportEmail.js';
 import { fillRagProviderSelect, DEFAULT_RAG_PROVIDER } from '../lib/ragProviders.js';
 import { postExtensionContact } from '../lib/extensionContactClient.js';
+import { appendLastReportToContactMessage } from '../lib/lastModerationContactContext.js';
 import { isStoreBuild } from '../lib/buildConfig.js';
 import {
   formatGeminiKeySuffixLabel,
@@ -374,7 +375,8 @@ async function sendOptionsExtensionContact() {
   }
   optionsExtensionContactSend.disabled = true;
   try {
-    await postExtensionContact(api.apiOrigin, { message, replyEmail });
+    const messageWithReport = await appendLastReportToContactMessage(message);
+    await postExtensionContact(api.apiOrigin, { message: messageWithReport, replyEmail });
     hideOptionsExtensionContactModal();
     setStatus(
       wantReply && replyEmail

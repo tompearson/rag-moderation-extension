@@ -480,6 +480,12 @@ button.danger-outline {
   word-break: break-word;
 }
 
+.results .moderation-linked-prose a,
+.copy-block-body a {
+  color: var(--link, #2563eb);
+  text-decoration: underline;
+}
+
 .results ul {
   margin: 0;
   padding-left: 1.2rem;

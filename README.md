@@ -95,3 +95,5 @@ npm run package:store   # dist/store/ + dist/rag-moderation-assistant.zip
 ## Preview extension web guides locally
 
 To sync Markdown → HTML and open the same `/extension/...` pages as production on the Universal Vite dev server (no deploy), see **[docs/DEV_WEB_DOCS.md](./docs/DEV_WEB_DOCS.md)**.
+
+Hyperlink rendering (Reason / Breakdown) is vendored from Universal — after changing `utils/linkify.js` there, run **`npm run sync:linkify`** and see **[docs/VENDORED_FROM_UNIVERSAL.md](./docs/VENDORED_FROM_UNIVERSAL.md)**.
