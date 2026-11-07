@@ -34,11 +34,9 @@ Install the build first: **[Install (developer / unpacked)](https://www.airesear
 
 ## Before you test {#before-you-test}
 
-1. Load the **sideload** build (unzipped release or `dist/store/`) with **Production** API (default on store-shaped builds).
-2. **Help docs:** use **`/extension/...`** URLs only. The site **home page** (`https://www.airesearchdog.net/`) is the gated Community Moderation web app (login/passcode), not the extension guides.
-3. Open a normal **https** page (any site is fine for UI tests; use a community page if you test **pick** or **context menu**).
-4. Keep a simple pass/fail list (spreadsheet or printed tables below).
-5. For **saved report** actions (Open / Email / Review), Production must persist reports—if buttons never appear, moderate once more and check for the hint about missing saved records.
+1. Install the **sideload** build using **[Install (developer / unpacked)](https://www.airesearchdog.net/extension/install-chrome-extension-developer.html)** — download and unzip the release ZIP, turn on **Developer mode** in `chrome://extensions`, **Load unpacked** on the folder that contains `manifest.json`, and pin **RAG Moderation Assistant** on the toolbar. That guide also covers the release-email flow (SHA256, **Assets** download). Store-shaped builds already target **Production** (`https://www.airesearchdog.net`); you do not need Local dev in Options.
+2. Keep a simple pass/fail list (spreadsheet or printed tables below).
+3. For **saved report** actions (Open / Email / Review), Production must persist reports—if buttons never appear, moderate once more and check for the hint about missing saved records.
 
 ---
 
