@@ -28,12 +28,14 @@ npm run docs:dev:open
 In **Moderation-Tool-Universal** (API not required for static pages):
 
 ```bash
-npm run dev
+npm run dev:extension-guides
 ```
 
-Vite serves **`public/`** at **`http://127.0.0.1:3000`** (see `vite.config.js`).
+That starts Vite on **`http://127.0.0.1:3000`** and opens the **developer install** guide (not the login page).
 
-**Do not use the site root for extension docs:** `http://127.0.0.1:3000/` loads the **Community Moderation** web app (passcode login). Open an **`/extension/...`** URL instead (table below). Production is the same: `https://www.airesearchdog.net/` is gated; guides are under `https://www.airesearchdog.net/extension/...`.
+**Avoid the root URL in dev:** `http://127.0.0.1:3000/` is the **Community Moderation** web app (passcode login). Use **`/extension/...`** only (table below). Same on production: guides live under `https://www.airesearchdog.net/extension/...`, not the home page.
+
+For full-stack work on the moderation SPA, use `npm run dev` or `npm run dev:full` and sign in with your passcode—but that is separate from previewing extension HTML.
 
 ## URLs (production parity)
 

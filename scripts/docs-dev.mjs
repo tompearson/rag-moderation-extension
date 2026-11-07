@@ -71,5 +71,5 @@ for (const p of EXTENSION_PATHS) {
 console.log('\nDetails: docs/DEV_WEB_DOCS.md\n');
 
 if (openBrowser) {
-  tryOpenUrl(`${BASE}/extension/how-to-moderate-user-posts`);
+  tryOpenUrl(`${BASE}/extension/how-to-test-extension`);
 }
