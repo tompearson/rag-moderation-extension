@@ -201,9 +201,13 @@ This page reuses the [visual walkthrough](https://www.airesearchdog.net/extensio
 
 | File | Status |
 |------|--------|
-| `how-to-test-options-report-timeout.png` | In repo |
-| `how-to-test-options-feed-save.png` | In repo |
-| `how-to-test-options-gemini-byok.png` | In repo (optional § J) |
+| [how-to-moderate-walkthrough-01-panel-ready.png](/extension/images/how-to-moderate-walkthrough-01-panel-ready.png) | In repo (critical path / § B) |
+| [how-to-moderate-walkthrough-02-pick-mode.png](/extension/images/how-to-moderate-walkthrough-02-pick-mode.png) | In repo (§ C) |
+| [how-to-moderate-walkthrough-03-content-ready.png](/extension/images/how-to-moderate-walkthrough-03-content-ready.png) | In repo (critical path / § B) |
+| [how-to-moderate-walkthrough-04-results.png](/extension/images/how-to-moderate-walkthrough-04-results.png) | In repo (critical path / § B) |
+| [how-to-test-options-report-timeout.png](/extension/images/how-to-test-options-report-timeout.png) | In repo (§ H) |
+| [how-to-test-options-feed-save.png](/extension/images/how-to-test-options-feed-save.png) | In repo (§ H) |
+| [how-to-test-options-gemini-byok.png](/extension/images/how-to-test-options-gemini-byok.png) | In repo (optional § J) |
 | `how-to-test-options-advanced-production.png` | Still needed — Advanced open, Production + provider |
 | `how-to-test-contact-modal.png` | Still needed |
 

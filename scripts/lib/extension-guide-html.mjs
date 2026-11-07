@@ -441,8 +441,12 @@ function extensionGuideMarkdownRenderer() {
       typeof href === 'string' &&
       (href.startsWith('http://') || href.startsWith('https://')) &&
       !href.startsWith('https://www.airesearchdog.net');
-    const rel = isExternal ? ' rel="noopener noreferrer"' : '';
-    const target = isExternal ? ' target="_blank"' : '';
+    const isGuideImage =
+      typeof href === 'string' &&
+      (/^\/extension\/images\//.test(href) || /\.(png|jpe?g|webp|gif)(\?.*)?$/i.test(href));
+    const openNewTab = isExternal || isGuideImage;
+    const rel = openNewTab ? ' rel="noopener noreferrer"' : '';
+    const target = openNewTab ? ' target="_blank"' : '';
     const titleAttr = title ? ` title="${escapeHtmlAttr(title)}"` : '';
     return `<a href="${href}"${titleAttr}${target}${rel}>${text}</a>`;
   };
