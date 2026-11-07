@@ -1,12 +1,10 @@
 # Install RAG Moderation Assistant (developer / unpacked build)
 
-**Not for Chrome Web Store installs.** If you are installing from the [Chrome Web Store listing](https://chromewebstore.google.com/), use **[Install RAG Moderation Assistant in Google Chrome](https://www.airesearchdog.net/extension/install-chrome-extension)** instead.
-
-This guide is for **developers and testers** loading an **unpacked** build from source (`Load unpacked` in Chrome) or validating a local store-shaped package (`dist/store/`).
+Look for **RAG Moderation Assistant** in the [Chrome Web Store listing](https://chromewebstore.google.com/). [The installation information here is for testers.](#release-email)
 
 ## If you received a release email {#release-email}
 
-You may get mail to **info@airesearchdog.net** (or your own forward) when a new **sideload** build is published. That message is for **this install path** — not the Chrome Web Store.
+You may get email from **info@airesearchdog.net** (or your own forward) when a new **sideload** build is published. That message is for **this install path** — not the Chrome Web Store.
 
 1. **Use the ZIP link in the email** (or open [GitHub Releases — latest](https://github.com/tompearson/rag-moderation-extension/releases/latest) and download `rag-moderation-assistant-<version>.zip`).
 2. **Optional:** compare **SHA256** in the email with the file on your machine (`sha256sum` on Linux, `shasum -a 256` on macOS).
