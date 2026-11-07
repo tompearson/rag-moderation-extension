@@ -16,9 +16,43 @@ Until the extension is on the Chrome Web Store, **GitHub Releases** is the prima
 
 3. Open **Actions** → **Release** workflow on that tag.
 4. When it finishes, the release page has **`rag-moderation-assistant-0.2.3.zip`** attached.
-5. Share the [latest releases](https://github.com/tompearson/rag-moderation-extension/releases/latest) link with testers.
+5. Share the [latest releases](https://github.com/tompearson/rag-moderation-extension/releases/latest) link with testers (release notes include **SHA256**, install guide, and moderation guide links).
 
 Tag format: `vX.Y.Z` (leading `v`; CI sets `RELEASE_VERSION` to `X.Y.Z` in the packaged `manifest.json`).
+
+### Automatic email on release
+
+After each tag build, the Release workflow sends mail via **Resend** to **`info@airesearchdog.net`** (ZIP link, SHA256, install guide, how-to-moderate).
+
+**One-time setup:** GitHub repo **Settings → Secrets and variables → Actions** → add **`RESEND_API_KEY`** (same Resend key as Universal / Vercel is fine). Without it, the workflow **fails** on the email step.
+
+Optional overrides (workflow env or change [release.yml](../.github/workflows/release.yml)):
+
+| Variable | Default |
+|----------|---------|
+| `RELEASE_NOTIFY_TO` | `info@airesearchdog.net` |
+| `RELEASE_NOTIFY_FROM` | `RAG Moderation Assistant <noreply@airesearchdog.net>` |
+
+Local dry-run of copy only: `node scripts/test-release-notify-content.mjs`.
+
+### Share with testers (email / chat)
+
+Each GitHub Release lists:
+
+- Direct **ZIP** link and **SHA256** of `rag-moderation-assistant-<version>.zip`
+- [Install (developer / unpacked)](https://www.airesearchdog.net/extension/install-chrome-extension-developer)
+- [How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts)
+
+Short copy you can paste:
+
+```text
+RAG Moderation Assistant vX.Y.Z (sideload)
+ZIP: <asset URL from the release page>
+SHA256: <from release notes>
+Unzip → chrome://extensions → Developer mode → Load unpacked (manifest.json at folder top).
+Install: https://www.airesearchdog.net/extension/install-chrome-extension-developer
+How to moderate: https://www.airesearchdog.net/extension/how-to-moderate-user-posts
+```
 
 ### Local verification (optional)
 
@@ -28,9 +62,16 @@ From **rag-moderation-extension**:
 npm test
 RELEASE_VERSION=0.2.3 npm run package:store
 npm run verify:store-zip
+npm run print:release-zip-sha256
 ```
 
 Load unpacked from **`dist/store/`** for a quick check.
+
+Compare local SHA256 to the value on the GitHub Release when testing a downloaded asset:
+
+```bash
+sha256sum rag-moderation-assistant-0.2.3.zip
+```
 
 ## For testers — install from a release ZIP
 
@@ -63,7 +104,9 @@ The side panel and Options show **`vX.Y.Z`** under the title so you can confirm 
 On tag push, [.github/workflows/release.yml](../.github/workflows/release.yml):
 
 - `npm ci` → `npm test` → `RELEASE_VERSION=<tag>` `npm run package:store` → `npm run verify:store-zip`
+- SHA256 of the versioned ZIP, install guide URL, and how-to-moderate URL in release notes
 - Creates a GitHub Release and uploads the versioned ZIP
+- Resend email to **`info@airesearchdog.net`** with the same details (requires **`RESEND_API_KEY`** repo secret)
 
 Every push/PR to `master` runs [.github/workflows/ci.yml](../.github/workflows/ci.yml) (tests + packaging smoke).
 
