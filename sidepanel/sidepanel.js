@@ -50,8 +50,9 @@ import { ensureHostPermission } from '../lib/permissions.js';
 import { postExtensionContact } from '../lib/extensionContactClient.js';
 import { buildExtensionContactOptionsSnapshot } from '../lib/extensionContactSettingsSnapshot.js';
 import {
-  appendLastReportToContactMessage,
+  loadLastModerationContactContext,
   persistLastModerationContactContext,
+  serializeLastModerationReportForContact,
 } from '../lib/lastModerationContactContext.js';
 import { openOptionsPage, toggleOptionsPage } from '../lib/optionsPage.js';
 import { BYOK_CONTINUE_SHARED_POOL, EXTENSION_UI_SYNC } from '../lib/extensionUiSync.js';
@@ -572,14 +573,16 @@ async function sendExtensionContactFromModal() {
   }
   extensionContactSend.disabled = true;
   try {
-    const messageWithReport = await appendLastReportToContactMessage(message);
+    const lastCtx = await loadLastModerationContactContext();
     const optionsSnapshot = buildExtensionContactOptionsSnapshot(settings, {
       analysisType: analysisSelect?.value || undefined,
       badWordsEnabled: badWordsCheckbox?.checked,
     });
     await postExtensionContact(api.apiOrigin, {
-      message: messageWithReport,
+      message,
       replyEmail,
+      wantsDirectReply: Boolean(replyEmail),
+      lastModerationReport: serializeLastModerationReportForContact(lastCtx),
       optionsSnapshot,
     });
     hideExtensionContactModal();

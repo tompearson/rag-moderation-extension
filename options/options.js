@@ -16,7 +16,10 @@ import { normalizeReportEmail, isValidReportEmail } from '../lib/validateReportE
 import { fillRagProviderSelect, DEFAULT_RAG_PROVIDER } from '../lib/ragProviders.js';
 import { postExtensionContact } from '../lib/extensionContactClient.js';
 import { buildExtensionContactOptionsSnapshot } from '../lib/extensionContactSettingsSnapshot.js';
-import { appendLastReportToContactMessage } from '../lib/lastModerationContactContext.js';
+import {
+  loadLastModerationContactContext,
+  serializeLastModerationReportForContact,
+} from '../lib/lastModerationContactContext.js';
 import { isStoreBuild } from '../lib/buildConfig.js';
 import {
   formatGeminiKeySuffixLabel,
@@ -376,7 +379,7 @@ async function sendOptionsExtensionContact() {
   }
   optionsExtensionContactSend.disabled = true;
   try {
-    const messageWithReport = await appendLastReportToContactMessage(message);
+    const lastCtx = await loadLastModerationContactContext();
     const mergedSettings = {
       ...settings,
       envProfileId: /** @type {import('../lib/envProfiles.js').EnvProfileId} */ (envProfile.value),
@@ -394,8 +397,10 @@ async function sendOptionsExtensionContact() {
       geminiRagStyleTest: Boolean(geminiRagStyleTest?.checked),
     });
     await postExtensionContact(api.apiOrigin, {
-      message: messageWithReport,
+      message,
       replyEmail,
+      wantsDirectReply: Boolean(replyEmail),
+      lastModerationReport: serializeLastModerationReportForContact(lastCtx),
       optionsSnapshot,
     });
     hideOptionsExtensionContactModal();
