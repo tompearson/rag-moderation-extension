@@ -26,6 +26,7 @@ import {
   hasSavedGeminiKey,
   isRagProviderId,
   sharedPoolStillWorksSuffix,
+  sharedPoolActiveStatusMessage,
 } from '../lib/geminiByok.js';
 import {
   GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL,
@@ -49,8 +50,21 @@ import {
 } from '../lib/geminiKeyReadiness.js';
 import { STORAGE_KEYS } from '../lib/userSettings.js';
 import { formatExtensionVersionLabel, getExtensionVersion } from '../lib/extensionVersion.js';
+import {
+  buildSettingsExport,
+  downloadSettingsBackup,
+  parseSettingsImportFile,
+  applySettingsImport,
+  formatImportConfirmSummary,
+  readSettingsFileAsText,
+  GEMINI_RAG_STYLE_TEST_STORAGE,
+} from '../lib/settingsBackup.js';
 
-const GEMINI_RAG_STYLE_TEST_STORAGE = 'geminiRagStyleTest';
+const settingsExportBtn = document.getElementById('settings-export');
+const settingsImportBtn = document.getElementById('settings-import');
+const settingsImportFile = /** @type {HTMLInputElement | null} */ (
+  document.getElementById('settings-import-file')
+);
 
 const envProfile = /** @type {HTMLSelectElement} */ (document.getElementById('env-profile'));
 const moderateTimeoutSec = /** @type {HTMLInputElement} */ (
@@ -67,7 +81,6 @@ const optLocationPicker = createStatePicker(optLocationHost, {
   initialValue: DEFAULT_USER_LOCATION,
   triggerId: 'opt-location-trigger',
 });
-const saveBtn = document.getElementById('save');
 const resetLocationBtn = document.getElementById('reset-location');
 const factoryResetBtn = document.getElementById('factory-reset');
 const saveStatus = document.getElementById('save-status');
@@ -549,7 +562,6 @@ function focusGeminiKeySetupUI() {
   setGeminiByokStatus(
     'Paste your Gemini API key below (or use Paste), then choose Save key — or choose Continue with shared pool.',
   );
-  updateByokSharedPoolRowVisibility(true);
 }
 
 function maybeFocusGeminiKeySetupFromUrl() {
@@ -682,7 +694,15 @@ async function syncGeminiByokFromStorage() {
 async function persistGeminiByokEnabled(showFeedback = false) {
   await saveSettingsPatch({ geminiByokEnabled: geminiByokEnabled.checked });
   updateByokRagHint();
-  if (showFeedback) setGeminiByokStatus('BYOK preference saved.');
+  const s = await loadSettings();
+  refreshGeminiKeyStoredUi(hasSavedGeminiKey(s));
+  if (showFeedback) {
+    setGeminiByokStatus(
+      geminiByokEnabled.checked
+        ? 'BYOK preference saved.'
+        : `Your key is off for moderations — using the shared pool. ${sharedPoolStillWorksSuffix()}`,
+    );
+  }
 }
 
 async function resolveOptionsApiOrigin() {
@@ -697,9 +717,12 @@ async function handleGeminiKeySave() {
   renderGeminiByokDetails();
   clearGeminiKeyFieldError();
   setGeminiByokStatus('');
+  const settingsBeforeSave = await loadSettings();
+  const hadKeyBeforeSave = hasSavedGeminiKey(settingsBeforeSave);
+  let savedFromInput = false;
   let raw = normalizeGeminiApiKey(geminiApiKeyInput?.value || '');
   if (!raw) {
-    const stored = normalizeGeminiApiKey((await loadSettings()).geminiApiKey || '');
+    const stored = normalizeGeminiApiKey(settingsBeforeSave.geminiApiKey || '');
     if (stored) {
       raw = stored;
       setGeminiByokStatus('Re-checking saved key with Google…');
@@ -707,6 +730,8 @@ async function handleGeminiKeySave() {
       setGeminiKeyFieldError(`You must enter a Gemini API key.${sharedPoolStillWorksSuffix()}`);
       return;
     }
+  } else {
+    savedFromInput = true;
   }
   const granted = await ensureGeminiApiPermission();
   if (!granted) {
@@ -728,13 +753,19 @@ async function handleGeminiKeySave() {
       applyGeminiValidateDisplay(result, true);
       return;
     }
-    const useForModeration = !!geminiByokEnabled?.checked;
+    const useForModeration =
+      !hadKeyBeforeSave && savedFromInput
+        ? true
+        : !!geminiByokEnabled?.checked;
     await saveSettingsPatch({
       geminiApiKey: raw,
       geminiByokEnabled: useForModeration,
     });
     if (geminiApiKeyInput) geminiApiKeyInput.value = '';
     refreshGeminiKeyStoredUi(true);
+    if (geminiByokEnabled) {
+      geminiByokEnabled.checked = useForModeration;
+    }
     updateByokRagHint();
     geminiByokStatusDetails = [];
     geminiByokDetailsExpanded = false;
@@ -920,6 +951,46 @@ async function persistCustomOrigin(showFeedback = false) {
   }
 }
 
+async function handleSettingsExport() {
+  const s = await loadSettings();
+  const exportObj = buildSettingsExport(s, {
+    extensionVersion: getExtensionVersion() || '',
+    geminiRagStyleTest: Boolean(geminiRagStyleTest?.checked),
+  });
+  downloadSettingsBackup(exportObj);
+  setStatus('Settings file downloaded.');
+}
+
+/**
+ * @param {File} file
+ */
+async function handleSettingsImportFile(file) {
+  const text = await readSettingsFileAsText(file);
+  const parsed = parseSettingsImportFile(text);
+  if (!window.confirm(formatImportConfirmSummary(parsed))) {
+    return;
+  }
+  await applySettingsImport(parsed);
+  if (geminiRagStyleTest) {
+    geminiRagStyleTest.checked = parsed.localPrefs.geminiRagStyleTest;
+  }
+  await loadForm();
+  const s = await loadSettings();
+  let msg = 'Settings imported.';
+  if (s.geminiByokEnabled && !hasSavedGeminiKey(s)) {
+    msg += ' Use my key is on but no key is stored—add a key or turn BYOK off.';
+  }
+  if (!isStoreBuild()) {
+    const api = resolveApiConfig(s.envProfileId, s.customApiOrigin);
+    if (api.apiOrigin && (s.envProfileId === 'local' || s.envProfileId === 'custom')) {
+      await ensureHostPermission(api.apiOrigin).catch(() => {});
+      await refreshPermissionStatus();
+      msg += ' Use Grant host permission if the API host changed.';
+    }
+  }
+  setStatus(msg);
+}
+
 async function loadForm() {
   applyStoreTargetUi();
   const s = await loadSettings();
@@ -986,55 +1057,31 @@ grantBtn.addEventListener('click', async () => {
   await refreshPermissionStatus();
 });
 
-saveBtn.addEventListener('click', async () => {
-  setStatus('');
-  const profileId = /** @type {import('../lib/envProfiles.js').EnvProfileId} */ (envProfile.value);
-  if (!(profileId in ENV_PROFILES)) {
-    setStatus('Invalid profile.', true);
-    return;
-  }
-
-  const emailOk = await persistReportShareEmail(true);
-  if (!emailOk) return;
-
-  skipEnvSettingsSync = true;
-  skipReportSettingsSync = true;
-  skipDevSettingsSync = true;
-  try {
-    const patch = {
-      envProfileId: profileId,
-      customApiOrigin: customOrigin.value,
-      ragProvider: ragProvider.value.trim() || DEFAULT_RAG_PROVIDER,
-      moderateTimeoutSec: parseModerateTimeoutSec(moderateTimeoutSec.value),
-      reportShareRecipientEmail: normalizeReportEmail(reportShareEmail.value),
-      reportEmailEnabled: reportEmailEnabled.checked,
-    };
-    if (!isStoreBuild()) {
-      patch.moderatorId = moderatorId.value.trim();
-      patch.deviceId = deviceId.value.trim();
-    }
-    await saveSettingsPatch(patch);
-  } finally {
-    queueMicrotask(() => {
-      skipEnvSettingsSync = false;
-      skipReportSettingsSync = false;
-      skipDevSettingsSync = false;
-    });
-  }
-
-  const api = resolveApiConfig(profileId, customOrigin.value);
-  if (api.apiOrigin) {
-    await ensureHostPermission(api.apiOrigin).catch(() => {});
-  }
-
-  setStatus('Saved.');
-  await refreshPermissionStatus();
-});
-
 resetLocationBtn.addEventListener('click', async () => {
   await resetUserLocation();
   optLocationPicker.setValue(DEFAULT_USER_LOCATION);
   setStatus('');
+});
+
+settingsExportBtn?.addEventListener('click', () => {
+  handleSettingsExport().catch((err) => {
+    setStatus(err instanceof Error ? err.message : String(err), true);
+  });
+});
+
+settingsImportBtn?.addEventListener('click', () => {
+  settingsImportFile?.click();
+});
+
+settingsImportFile?.addEventListener('change', async () => {
+  const file = settingsImportFile.files?.[0];
+  settingsImportFile.value = '';
+  if (!file) return;
+  try {
+    await handleSettingsImportFile(file);
+  } catch (err) {
+    setStatus(err instanceof Error ? err.message : String(err), true);
+  }
 });
 
 factoryResetBtn.addEventListener('click', async () => {
@@ -1240,12 +1287,9 @@ async function handleContinueWithSharedPool() {
       skipDevSettingsSync = false;
     });
   }
-  optLocationPicker.closeList();
-  closeOptionsPageIfOpen()
-    .catch(() => {})
-    .finally(() => {
-      window.close();
-    });
+  refreshGeminiKeyStoredUi(false);
+  updateByokRagHint();
+  setGeminiByokStatus(sharedPoolActiveStatusMessage());
 }
 
 geminiByokContinueSharedPool?.addEventListener('click', () => {

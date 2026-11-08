@@ -12,12 +12,12 @@ import {
 
 assert.equal(
   GET_GEMINI_API_KEY_GUIDE_URL,
-  'https://www.airesearchdog.net/extension/get-gemini-api-key',
+  'https://www.airesearchdog.net/extension/get-gemini-api-key#google',
 );
 assert.match(GET_GEMINI_API_KEY_GUIDE_URL, /^https:\/\/www\.airesearchdog\.net\//);
 assert.equal(
   GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL,
-  'https://www.airesearchdog.net/extension/get-gemini-api-key',
+  'https://www.airesearchdog.net/extension/get-gemini-api-key#google',
 );
 assert.equal(
   INSTALL_CHROME_EXTENSION_GUIDE_URL,

@@ -5,7 +5,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { renderExtensionGuideHtml } from './lib/extension-guide-html.mjs';
+import { renderExtensionGuideHtml, wrapGuideBackgroundFold } from './lib/extension-guide-html.mjs';
 
 const extRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const universalDir = resolve(
@@ -24,12 +24,16 @@ function preprocessMarkdown(raw) {
 
 /** @param {string} html */
 function postprocessBodyHtml(html) {
-  return html
-    .replace(
-      /<h2>Part 1 — Obtain a key from Google<\/h2>/,
-      '<h2 id="google">Part 1 — Obtain a key from Google</h2>',
-    )
-    .replace(/<h2>Related guides<\/h2>/, '<h2 id="related">Related guides</h2>');
+  return wrapGuideBackgroundFold(
+    html
+      .replace(
+        /<h2>Part 1 — Obtain a key from Google<\/h2>/,
+        '<h2 id="google">Part 1 — Obtain a key from Google</h2>',
+      )
+      .replace(/<h2>Related guides<\/h2>/, '<h2 id="related">Related guides</h2>'),
+    'google',
+    'Background',
+  );
 }
 
 const markdown = readFileSync(mdPath, 'utf8');

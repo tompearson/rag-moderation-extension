@@ -137,15 +137,17 @@ Mark each row Pass / Fail / Skip.
 | Feature | Step | Expected |
 |---------|------|----------|
 | Production lock | Advanced → Profile | No Local/Custom; Production note |
-| Provider | Change provider → **Save all settings** | Persists after reload |
-| Moderation timeout | Change timeout → save | Persists |
+| Provider | Change provider (saves immediately) → reload Options | Persists after reload |
+| Moderation timeout | Change timeout (saves on change/blur) → reload Options | Persists |
 | Report email toggle | Turn **Email report** off | Email button hidden; Open/Review remain when id exists |
 | Feed location | Options state picker | Matches panel; **Reset location** shows modal again |
 | Factory reset | **Reset to clean state** | Onboarding flows return |
 
 ![Options: version, timeout, report email](/extension/images/how-to-test-options-report-timeout.png)
 
-![Options: feed location, save, reset](/extension/images/how-to-test-options-feed-save.png)
+![Options: feed location and reset](/extension/images/how-to-test-options-feed-save.png)
+
+_Screenshot may still show a removed “Save all settings” button until recaptured._
 
 Use a **placeholder report email** (or blur) in public screenshots if you prefer not to show a personal address.
 

@@ -126,7 +126,7 @@
         <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a>
         (<a
           id="gemini-key-guide-link"
-          href="https://www.airesearchdog.net/extension/get-gemini-api-key"
+          href="https://www.airesearchdog.net/extension/get-gemini-api-key#google"
           target="_blank"
           rel="noopener noreferrer"
           >Step-by-step guide</a
@@ -185,13 +185,36 @@
       <label for="opt-location-trigger">State</label>
       <p class="muted">
         Open the list, then scroll (wheel or trackpad) or use arrow keys and Enter to pick a state.
+        Saves when you select a state. Other Options fields save as you change them or when you close
+        this page.
       </p>
       <div id="opt-location" class="state-picker-host"></div>
       <div class="actions">
-        <button type="button" id="save" class="primary">Save all settings</button>
-        <button type="button" id="reset-location" class="danger">Reset location (show first-run dialog)</button>
+        <button type="button" id="reset-location" class="danger">Reset location</button>
       </div>
+      <p class="muted">To move or recover all preferences, use <strong>Backup settings</strong> below.</p>
       <p id="save-status" class="status muted" aria-live="polite"></p>
+    </section>
+
+    <section id="section-backup-settings">
+      <h2>Backup settings</h2>
+      <p class="muted">
+        <strong>Export settings</strong> downloads a JSON file; <strong>Import settings</strong>
+        restores from that file (portable save/restore). The file does <strong>not</strong> include
+        your Gemini API key. It may include your report email and feed location—treat it as private.
+      </p>
+      <div class="actions">
+        <button type="button" id="settings-export" class="secondary">Export settings…</button>
+        <button type="button" id="settings-import" class="secondary">Import settings…</button>
+        <input
+          id="settings-import-file"
+          type="file"
+          accept=".json,application/json"
+          class="hidden"
+          aria-hidden="true"
+          tabindex="-1"
+        />
+      </div>
     </section>
 
     <section>

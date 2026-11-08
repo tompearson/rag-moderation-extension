@@ -36,13 +36,15 @@ The extension does **not** use `chrome.storage.sync`. It does **not** include th
 
 ## What stays on your device
 
-Stored in **local extension storage** until you change or remove it:
+Stored in **local extension storage** until you change or remove it (Options save as you configure them; nothing is uploaded unless you moderate, use report email, or send feedback):
 
 - Feed location and onboarding flags  
 - Environment profile and custom API origin (if set)  
 - Gemini API key and “use my key for moderations” toggle (if you save one)  
 - Report email and related options  
 - Timeout and other preferences  
+
+**Backup settings** (Options) lets you download a JSON file of your saved preferences and import it later. That export is **user-initiated** (not automatic). The backup **does not include your Gemini API key** (you must enter the key again after restore if you use BYOK). The file may still contain sensitive data such as your report email and feed location—store it like a private document and do not share it.
 
 **Reset extension** (Options) wipes saved settings, sets profile to Production, and revokes optional host permissions you granted for API hosts. It does **not** clear text already in an open side panel—you must use **Clear content** or close the panel.
 

@@ -3,6 +3,7 @@ import {
   EXTENSION_GUIDE_PAGE_CSS,
   EXTENSION_GUIDE_NAV,
   renderExtensionGuideHtml,
+  wrapGuideBackgroundFold,
 } from './lib/extension-guide-html.mjs';
 
 assert.match(EXTENSION_GUIDE_PAGE_CSS, /system-ui/, 'uses system font stack');
@@ -30,5 +31,15 @@ assert.doesNotMatch(
   'no AI link in footer',
 );
 assert.match(html, /<main>/, 'main content');
+
+const folded = wrapGuideBackgroundFold(
+  '<h1>Title</h1>\n<p>Intro</p>\n<h2 id="google">Part 1</h2>\n<p>Body</p>',
+  'google',
+  'Background',
+);
+assert.match(folded, /<details class="guide-background-fold">/, 'background fold');
+assert.match(folded, /<summary>Background<\/summary>/, 'summary label');
+assert.doesNotMatch(folded, /<details[\s\S]*open/, 'collapsed by default');
+assert.match(folded, /<h2 id="google">Part 1<\/h2>/, 'anchor section outside fold');
 
 console.log('test-extension-guide-html: ok');

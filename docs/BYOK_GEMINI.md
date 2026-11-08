@@ -64,7 +64,7 @@ The side panel always shows a **Your key · On/Off** control (no key material). 
 
 ## Related
 
-- [GET_GEMINI_API_KEY_EXTENSION.md](./GET_GEMINI_API_KEY_EXTENSION.md) — source for the public guide (maintainers); **extension-only** (no Universal web BYOK steps — that UI lives in Moderation-Tool-Universal / Platform Intelligence)
+- [GET_GEMINI_API_KEY_EXTENSION.md](./GET_GEMINI_API_KEY_EXTENSION.md) — source for the public guide (maintainers); **extension-only** (no Universal web BYOK steps — that UI lives in Moderation-Tool-Universal / Platform Intelligence). Published HTML folds everything before Part 1 into a collapsed **Background** block (`wrapGuideBackgroundFold` in `sync-get-gemini-guide.mjs`); extension deep links use `#google`.
 - **Public guides (users):** BYOK [get-gemini-api-key](https://www.airesearchdog.net/extension/get-gemini-api-key); Chrome install [install-chrome-extension](https://www.airesearchdog.net/extension/install-chrome-extension) — update via `npm run sync:public-guides` + Universal `npm run deploy:prod`
 - [INSTALL_RAG_MODERATION_EXTENSION_CHROME.md](./INSTALL_RAG_MODERATION_EXTENSION_CHROME.md) — source for Chrome install guide
 - [SMOKE_TEST.md](./SMOKE_TEST.md) — BYOK rows

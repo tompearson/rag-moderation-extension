@@ -167,6 +167,54 @@ export const EXTENSION_GUIDE_PAGE_CSS = `
     margin-bottom: 0;
   }
 
+  .guide-background-fold {
+    margin: 0 0 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-page);
+    overflow: hidden;
+  }
+
+  .guide-background-fold > summary {
+    padding: 12px 16px;
+    font-weight: 700;
+    cursor: pointer;
+    list-style: none;
+    color: var(--green-dark);
+    user-select: none;
+  }
+
+  .guide-background-fold > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .guide-background-fold > summary::before {
+    content: '';
+    display: inline-block;
+    width: 0.45em;
+    height: 0.45em;
+    margin-right: 10px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(-45deg);
+    transition: transform 0.15s ease;
+    vertical-align: 0.12em;
+  }
+
+  .guide-background-fold[open] > summary::before {
+    transform: rotate(45deg);
+    vertical-align: 0.05em;
+  }
+
+  .guide-background-fold__inner {
+    padding: 0 16px 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .guide-background-fold__inner > :first-child {
+    margin-top: 0.85rem;
+  }
+
   main > p:has(strong:first-child):not(:has(strong:only-child)),
   blockquote {
     margin: 1rem 0;
@@ -559,6 +607,36 @@ function renderSiteFooter(footerText, pagePath) {
     <p class="site-footer__line site-footer__legal">${privacyLink} · ${termsLink}</p>
     <p class="site-footer__line">Not affiliated with Nextdoor, Inc.</p>
   </footer>`;
+}
+
+/**
+ * Collapse intro content before an anchored h2 into a closed <details> block (h1 stays visible).
+ * @param {string} html
+ * @param {string} anchorId — value of id on the target h2 (e.g. google)
+ * @param {string} [summaryLabel]
+ */
+export function wrapGuideBackgroundFold(html, anchorId, summaryLabel = 'Background') {
+  const marker = `<h2 id="${anchorId}">`;
+  const idx = html.indexOf(marker);
+  if (idx === -1) return html;
+
+  const before = html.slice(0, idx).trimEnd();
+  const after = html.slice(idx);
+  const h1Match = before.match(/^<h1>[\s\S]*?<\/h1>\s*/);
+  if (!h1Match) return html;
+
+  const h1 = h1Match[0].trimEnd();
+  const intro = before.slice(h1Match[0].length).trim();
+  if (!intro) return html;
+
+  return `${h1}
+<details class="guide-background-fold">
+  <summary>${summaryLabel}</summary>
+  <div class="guide-background-fold__inner">
+${intro}
+  </div>
+</details>
+${after}`;
 }
 
 /**

@@ -138,6 +138,10 @@ Move to the next post by capturing new text with paste, pick mode, or the contex
 
 **Report email** — Optionally save an email in **Options** or when prompted. Then, on results tied to a **saved report**, **Email report** can send you a copy of the full moderation report.
 
+**Options autosave** — Preferences save as you change them (or when you close Options); there is no separate **Save all** control.
+
+**Backup settings** — In **Options**, use **Export settings** to save a JSON file of your preferences (state, API profile, provider, report email, BYOK toggle, and similar). **Import settings** restores from that file. The file **does not contain your Gemini API key**; if “use my key” is on after import, add your key again in Options. Treat the file as private—it can include your email and location. After importing a Local or Custom API profile on a dev build, grant host permission again if prompted.
+
 **Review this report** — Opens a short feedback form when the API stored a report id. Your comment is recorded as needing improvement and may be included in an acknowledgement email if report email is set.
 
 ---
