@@ -15,6 +15,7 @@ import { closeOptionsPageIfOpen } from '../lib/optionsPage.js';
 import { normalizeReportEmail, isValidReportEmail } from '../lib/validateReportEmail.js';
 import { fillRagProviderSelect, DEFAULT_RAG_PROVIDER } from '../lib/ragProviders.js';
 import { postExtensionContact } from '../lib/extensionContactClient.js';
+import { buildExtensionContactOptionsSnapshot } from '../lib/extensionContactSettingsSnapshot.js';
 import { appendLastReportToContactMessage } from '../lib/lastModerationContactContext.js';
 import { isStoreBuild } from '../lib/buildConfig.js';
 import {
@@ -376,7 +377,27 @@ async function sendOptionsExtensionContact() {
   optionsExtensionContactSend.disabled = true;
   try {
     const messageWithReport = await appendLastReportToContactMessage(message);
-    await postExtensionContact(api.apiOrigin, { message: messageWithReport, replyEmail });
+    const mergedSettings = {
+      ...settings,
+      envProfileId: /** @type {import('../lib/envProfiles.js').EnvProfileId} */ (envProfile.value),
+      customApiOrigin: customOrigin.value.trim(),
+      ragProvider: ragProvider.value,
+      moderateTimeoutSec: parseModerateTimeoutSec(moderateTimeoutSec.value),
+      reportShareRecipientEmail: reportShareEmail.value.trim(),
+      reportEmailEnabled: reportEmailEnabled.checked,
+      geminiByokEnabled: Boolean(geminiByokEnabled?.checked),
+      moderatorId: moderatorId.value.trim() || settings.moderatorId,
+      deviceId: deviceId.value.trim() || settings.deviceId,
+      userLocation: optLocationPicker.getValue() || settings.userLocation,
+    };
+    const optionsSnapshot = buildExtensionContactOptionsSnapshot(mergedSettings, {
+      geminiRagStyleTest: Boolean(geminiRagStyleTest?.checked),
+    });
+    await postExtensionContact(api.apiOrigin, {
+      message: messageWithReport,
+      replyEmail,
+      optionsSnapshot,
+    });
     hideOptionsExtensionContactModal();
     setStatus(
       wantReply && replyEmail

@@ -48,6 +48,7 @@ import { formatExtensionVersionLabel, getExtensionVersion } from '../lib/extensi
 import { STORAGE_KEYS } from '../lib/userSettings.js';
 import { ensureHostPermission } from '../lib/permissions.js';
 import { postExtensionContact } from '../lib/extensionContactClient.js';
+import { buildExtensionContactOptionsSnapshot } from '../lib/extensionContactSettingsSnapshot.js';
 import {
   appendLastReportToContactMessage,
   persistLastModerationContactContext,
@@ -572,7 +573,15 @@ async function sendExtensionContactFromModal() {
   extensionContactSend.disabled = true;
   try {
     const messageWithReport = await appendLastReportToContactMessage(message);
-    await postExtensionContact(api.apiOrigin, { message: messageWithReport, replyEmail });
+    const optionsSnapshot = buildExtensionContactOptionsSnapshot(settings, {
+      analysisType: analysisSelect?.value || undefined,
+      badWordsEnabled: badWordsCheckbox?.checked,
+    });
+    await postExtensionContact(api.apiOrigin, {
+      message: messageWithReport,
+      replyEmail,
+      optionsSnapshot,
+    });
     hideExtensionContactModal();
     setStatus(
       wantReply && replyEmail
