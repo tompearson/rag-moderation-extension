@@ -16,9 +16,9 @@ The extension is intended for **moderators and administrators**, not for general
 
 **Free moderations in the extension (your key off).** When **Your key · Off**, airesearchdog currently provides **up to 5 moderations** per install using shared AI capacity at no charge from us. That allowance may change in a future update. After it is used, or if shared capacity is unavailable, you can add your own Gemini key or try again later when limits reset.
 
-**Personal Gemini key (optional).** If you save your own Gemini API key and turn it on, each moderation and key check uses **your** Google project. That can **incur charges** if billing is enabled or if you go beyond what Google includes for free. For **free API keys** from Google AI Studio, applicable **usage limits, rate limits, and quotas** are those **Google publishes** for the Gemini API (including separate meters for different models and features). Google may change those limits at any time; see [Google AI Studio](https://aistudio.google.com/) and Google’s published [Gemini API rate limits](https://ai.google.dev/gemini-api/docs/rate-limits) for the current rules—not airesearchdog’s.
+**Personal Gemini key (optional).** If you save your own Gemini API key in Options, **every** moderation uses **your** Google project until you **Remove key**. Each moderation and key check can **incur charges** if billing is enabled or if you go beyond what Google includes for free. For **free API keys** from Google AI Studio, applicable **usage limits, rate limits, and quotas** are those **Google publishes** for the Gemini API (including separate meters for different models and features). Google may change those limits at any time; see [Google AI Studio](https://aistudio.google.com/) and Google’s published [Gemini API rate limits](https://ai.google.dev/gemini-api/docs/rate-limits) for the current rules—not airesearchdog’s.
 
-**Switching modes.** You can turn your key on or off in the side panel or Options, or remove the key, to choose between the extension’s shared allowance and your own Google quota.
+**Switching modes.** Use **Remove key** in Options to return to the extension’s shared allowance. There is no “pause my key” while it remains saved.
 
 ## Information the extension processes
 
@@ -27,7 +27,7 @@ The extension is intended for **moderators and administrators**, not for general
 | **Content you submit** | Text in “Content to moderate,” optional “Post context,” text from paste, clipboard (Paste button), page selection, or “Click on Text to Moderate” | Sent when you click **Moderate**; shown in the side panel until you clear it |
 | **Moderation settings** | US state (“feed location”), analysis type (quick/detailed), bad-words pre-screen toggle, RAG provider choice, API environment (Production / Local dev / Custom) | Stored in **`chrome.storage.local`** on your device |
 | **Optional report email** | Email address for “Email report” | Stored locally; may be sent with moderation requests and when you email a report |
-| **Optional Gemini API key (BYOK)** | Key you paste in Options | Stored locally in **`chrome.storage.local`**; sent to Google (validation) and to airesearchdog’s API when “use my key” is on |
+| **Optional Gemini API key (BYOK)** | Key you paste in Options | Stored locally in **`chrome.storage.local`**; sent to Google (validation) and sent with each moderation to airesearchdog’s API while a key remains saved |
 | **Dev identifiers (Advanced)** | `moderatorId`, `deviceId` defaults or values you set | Stored locally; sent with each moderation request |
 | **Feedback you choose to send** | Comment on “Review this report” | Sent to airesearchdog’s API with a random **`feedbackSessionId`** in **`chrome.storage.session`** (browser session, not synced across devices) |
 | **Short-lived session data** | Pending draft from context menu, active tab id for pick mode | **`chrome.storage.session`**; cleared when the browser session ends |
@@ -40,7 +40,7 @@ Stored in **local extension storage** until you change or remove it (Options sav
 
 - Feed location and onboarding flags  
 - Environment profile and custom API origin (if set)  
-- Gemini API key and “use my key for moderations” toggle (if you save one)  
+- Gemini API key (if you save one; always used for moderations until removed)  
 - Report email and related options  
 - Timeout and other preferences  
 
@@ -60,7 +60,7 @@ When you click **Moderate**, the extension sends HTTPS requests to **airesearchd
 - **`moderatorId`** and **`deviceId`**  
 - **`emailReport: true`** (so the service can associate a saved report when the server is configured to store moderations)  
 - Optional **`reporterEmail`** if you saved one  
-- Optional **`userApiKey`** if BYOK is enabled  
+- Optional **`userApiKey`** when you have saved a Gemini key  
 
 airesearchdog may **store** submitted content, decisions, and report metadata in databases and logs according to our service configuration and policies. Saved reports may receive a **`moderationHistoryId`**, which enables **Open full report**, **Email report**, and **Review this report** in the extension.
 
@@ -75,9 +75,9 @@ The extension uses **HTTPS only** for the moderation API—it does **not** accep
 
 ### 3. Google Gemini (optional)
 
-If you save a Gemini key, the extension may call **`generativelanguage.googleapis.com`** directly from your browser to **validate** the key (minimal test requests; optional RAG-style embed/chat probes). If BYOK is on during moderation, your key is also sent to airesearchdog’s API so Google can process embed/chat for that request. Extension BYOK keys are **not** stored in the separate web app’s moderator database. Google’s use of data is governed by [Google’s policies](https://policies.google.com/privacy) and your Google Cloud / AI Studio terms.
+If you save a Gemini key, the extension may call **`generativelanguage.googleapis.com`** directly from your browser to **validate** the key (minimal test requests; optional RAG-style embed/chat probes). While a key is saved, it is also sent with each moderation to airesearchdog’s API so Google can process embed/chat for that request. Extension BYOK keys are **not** stored in the separate web app’s moderator database. Google’s use of data is governed by [Google’s policies](https://policies.google.com/privacy) and your Google Cloud / AI Studio terms.
 
-When BYOK is **off**, moderations use the **shared pool** described under [Costs, quotas, and your Gemini key](#costs-quotas-and-your-gemini-key). Content still goes to airesearchdog’s API and may be processed by Google on the server side.
+When **no** Gemini key is saved, moderations use the **shared pool** described under [Costs, quotas, and your Gemini key](#costs-quotas-and-your-gemini-key). Content still goes to airesearchdog’s API and may be processed by Google on the server side.
 
 ### 4. Help links
 

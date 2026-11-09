@@ -110,19 +110,16 @@
     </section>
 
     <section id="section-gemini-byok" class="gemini-byok-section">
-      <h2>Your Gemini API key (recommended)</h2>
+      <h2 id="gemini-byok-section-title">Your Gemini API key (recommended)</h2>
       <div id="gemini-byok-shared-pool-row" class="byok-shared-pool-row hidden">
-        <p class="muted">
-          A personal key is <strong>optional</strong>. Until you save one, moderations use the
-          <strong>shared pool</strong> (same as “Your key · Off” in the side panel).
-        </p>
-        <button type="button" id="gemini-byok-continue-shared-pool" class="primary">
-          Continue with shared pool
+        <p id="gemini-byok-shared-pool-text" class="muted"></p>
+        <button type="button" id="gemini-byok-continue-shared-pool" class="secondary">
+          Got it — keep shared pool
         </button>
       </div>
       <p class="muted">
-        Stored only in this browser. When enabled, your key is sent over HTTPS for each moderation (your Google quota,
-        not the shared pool). Get a key from
+        Stored only in this browser. After you save a key, it is sent over HTTPS on
+        <strong>every</strong> moderation (your Google quota, not the shared pool). Get a key from
         <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a>
         (<a
           id="gemini-key-guide-link"
@@ -162,10 +159,13 @@
           >
         </div>
       </details>
-      <div class="row checkbox-row">
+      <div id="gemini-byok-enabled-row" class="row checkbox-row">
         <input id="gemini-byok-enabled" type="checkbox" />
         <label id="gemini-byok-enabled-label" for="gemini-byok-enabled">Turn on my key for moderations (recommend)</label>
       </div>
+      <p id="gemini-byok-locked-hint" class="muted hidden">
+        Your saved key is used for every moderation. Use <strong>Remove key</strong> to use the shared pool again.
+      </p>
       <p id="gemini-byok-status" class="status muted" aria-live="polite"></p>
       <button type="button" id="gemini-byok-details-toggle" class="secondary hidden">Details</button>
       <ul id="gemini-byok-details-list" class="muted hidden"></ul>

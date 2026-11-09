@@ -63,8 +63,8 @@ For **RAG Moderation Assistant**: the key stays in **this browser only**; it is 
 | Goal | What to verify |
 |------|----------------|
 | Key saved | Options shows **A key is saved** under the field; **Remove key** is available |
-| Key in use | Side panel **Your key · On**; moderation does not fail with missing-key errors |
-| Key stored, shared pool | Checkbox **Turn on my key for moderations** off; side panel **Your key · Off** |
+| Key in use | Side panel **Your key · On**; every moderate sends your key |
+| Return to shared pool | **Remove key** in Options; side panel **Your key · Off** |
 | New key | Paste over the field and **Save key** again, or **Remove** then save |
 | New browser / PC | Keys do **not** sync — repeat this part on each install |
 

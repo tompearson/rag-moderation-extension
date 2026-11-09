@@ -6,10 +6,11 @@
  *   DEV_RAG_DIR=/path/to/first-rag-system
  *   DEV_UNIVERSAL_DIR=/path/to/Moderation-Tool-Universal
  */
-import { spawn, spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { freePorts } from './dev-ports.mjs';
 
 const extRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -45,55 +46,8 @@ if (!existsSync(uvicorn)) {
 }
 
 const DEV_PORTS = [8000, 3001];
-if (mode === 'full') DEV_PORTS.push(5173);
-
-/** @param {number} port */
-function pidsListeningOnPort(port) {
-  const r = spawnSync('lsof', ['-t', `-iTCP:${port}`, '-sTCP:LISTEN'], {
-    encoding: 'utf8',
-  });
-  if (r.error || r.status !== 0 || !r.stdout.trim()) return [];
-  return [...new Set(r.stdout.trim().split('\n').map((s) => s.trim()).filter(Boolean))];
-}
-
-/** @param {number} port */
-function freePort(port) {
-  let pids = pidsListeningOnPort(port);
-  if (!pids.length) return;
-
-  console.log(`Port ${port} in use (PID ${pids.join(', ')}) — stopping…`);
-  for (const pid of pids) {
-    const n = Number(pid);
-    if (n === process.pid) continue;
-    try {
-      process.kill(n, 'SIGTERM');
-    } catch {
-      /* already gone */
-    }
-  }
-
-  const deadline = Date.now() + 4000;
-  while (Date.now() < deadline) {
-    const waitUntil = Date.now() + 200;
-    while (Date.now() < waitUntil) {
-      /* brief pause for SIGTERM */
-    }
-    pids = pidsListeningOnPort(port);
-    if (!pids.length) return;
-  }
-
-  for (const pid of pids) {
-    try {
-      process.kill(Number(pid), 'SIGKILL');
-    } catch {
-      /* already gone */
-    }
-  }
-}
-
-function freeDevPorts() {
-  for (const port of DEV_PORTS) freePort(port);
-}
+/** Vite (Universal npm run dev) uses 3000 — only free it for dev:full alongside API. */
+if (mode === 'full') DEV_PORTS.push(3000);
 
 /** @type {import('node:child_process').ChildProcess[]} */
 const children = [];
@@ -132,13 +86,36 @@ process.on('SIGTERM', () => shutdown(143));
 console.log(`RAG API:     ${ragDir} → http://127.0.0.1:8000`);
 console.log(`Universal:   ${universalDir} → http://127.0.0.1:3001`);
 if (mode === 'full') {
-  console.log('Vite UI:     http://localhost:5173 (Universal npm run dev)');
+  console.log('Vite UI:     http://127.0.0.1:3000 (Universal npm run dev)');
+  console.log('Guides:      http://127.0.0.1:3000/extension/... (same server; / is web app login)');
 }
 console.log('Extension:   Options → Local dev, then Load unpacked from this repo.\n');
 
-freeDevPorts();
+freePorts(DEV_PORTS);
 
 run('rag', ragDir, uvicorn, ['rag_api:app', '--host', '127.0.0.1', '--port', '8000']);
 
 const universalScript = mode === 'full' ? 'dev:full' : 'dev:server';
 run('universal', universalDir, 'npm', ['run', universalScript]);
+
+async function logWhenReady() {
+  const deadline = Date.now() + 120_000;
+  while (Date.now() < deadline) {
+    try {
+      const [ragRes, apiRes] = await Promise.all([
+        fetch('http://127.0.0.1:8000/health'),
+        fetch('http://127.0.0.1:3001/api/health'),
+      ]);
+      if (ragRes.ok && apiRes.ok) {
+        console.log('\n✓ Local stack ready — RAG http://127.0.0.1:8000, API http://127.0.0.1:3001\n');
+        return;
+      }
+    } catch {
+      /* not listening yet */
+    }
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  console.warn('\n⚠ Timed out waiting for /health — see logs above.\n');
+}
+
+logWhenReady();

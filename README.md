@@ -18,7 +18,7 @@ Manifest V3 **side panel** extension for **Chrome** and **Microsoft Edge**. It c
 
    ```bash
    npm run dev          # frees :8000/:3001 if busy, then RAG + Universal API (extension)
-   npm run dev:full     # same + frees :5173; starts Universal Vite UI
+   npm run dev:full     # same + frees :3000; RAG + API + Universal Vite (guides at :3000/extension/…)
    ```
 
    Override paths if needed: `DEV_RAG_DIR=… DEV_UNIVERSAL_DIR=… npm run dev`. Manual steps: [docs/SMOKE_TEST.md](./docs/SMOKE_TEST.md).

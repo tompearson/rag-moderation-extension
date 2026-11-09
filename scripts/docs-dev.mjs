@@ -1,15 +1,24 @@
 #!/usr/bin/env node
 /**
- * Sync extension public guides into Moderation-Tool-Universal, then print local preview URLs.
+ * Sync extension public guides into Moderation-Tool-Universal, then print or serve preview URLs.
  */
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { dirname, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+import { freePort } from './dev-ports.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const extRoot = resolve(__dirname, '..');
 
+const universalDir = resolve(
+  process.env.SYNC_UNIVERSAL_DIR ||
+    process.env.DEV_UNIVERSAL_DIR ||
+    join(extRoot, '..', 'community-moderation-tool', 'Moderation-Tool-Universal'),
+);
+
 const BASE = 'http://127.0.0.1:3000';
+const GUIDES_PORT = 3000;
 
 /** Same slugs as Moderation-Tool-Universal vercel.json redirects for /extension/*. */
 const EXTENSION_PATHS = [
@@ -26,6 +35,7 @@ const EXTENSION_PATHS = [
 ];
 
 const openBrowser = process.argv.includes('--open');
+const serve = process.argv.includes('--serve');
 
 function runSync() {
   const r = spawnSync('npm', ['run', 'sync:public-guides'], {
@@ -58,18 +68,56 @@ function tryOpenUrl(url) {
   }
 }
 
+function requireUniversal() {
+  if (!existsSync(universalDir)) {
+    console.error(`Missing Moderation-Tool-Universal: ${universalDir}`);
+    console.error('Set SYNC_UNIVERSAL_DIR or DEV_UNIVERSAL_DIR.');
+    process.exit(1);
+  }
+}
+
+function startViteGuides() {
+  requireUniversal();
+  freePort(GUIDES_PORT);
+  const npmArgs = ['run', 'dev:extension-guides'];
+  if (!openBrowser) {
+    // dev:extension-guides always passes --open; use bare vite when not opening browser
+    npmArgs.length = 0;
+    npmArgs.push('exec', 'vite', '--', '--host', '127.0.0.1', '--port', String(GUIDES_PORT));
+  }
+  console.log(`\nVite guides: ${universalDir} → ${BASE}/extension/...\n`);
+  const child = spawn('npm', npmArgs, {
+    cwd: universalDir,
+    stdio: 'inherit',
+    shell: process.platform === 'win32',
+    env: process.env,
+  });
+  child.on('exit', (code) => process.exit(code ?? 0));
+  process.on('SIGINT', () => child.kill('SIGTERM'));
+  process.on('SIGTERM', () => child.kill('SIGTERM'));
+}
+
 runSync();
 
 console.log('\nSynced guides into Universal public/extension/ (see SYNC_UNIVERSAL_DIR if not default sibling).');
-console.log('\nStart the Vite dev server in Moderation-Tool-Universal:');
-console.log('  cd ../community-moderation-tool/Moderation-Tool-Universal  # or your path');
-console.log('  npm run dev\n');
-console.log('Then open (clean URLs, same as production):\n');
-for (const p of EXTENSION_PATHS) {
-  console.log(`  ${BASE}${p}`);
-}
-console.log('\nDetails: docs/DEV_WEB_DOCS.md\n');
 
-if (openBrowser) {
-  tryOpenUrl(`${BASE}/extension/how-to-test-extension`);
+if (serve) {
+  startViteGuides();
+} else {
+  console.log('\nStart the Vite guide server (port 3000 — not the API on 3001):');
+  console.log('  npm run docs:dev:serve   # from this repo (sync + Vite)');
+  console.log('  # or in Universal: npm run dev:extension-guides\n');
+  console.log('Then open (clean URLs, same as production):\n');
+  for (const p of EXTENSION_PATHS) {
+    console.log(`  ${BASE}${p}`);
+  }
+  console.log('\nExtension API stack (moderate locally): npm run dev  →  :8000 RAG, :3001 API');
+  console.log('Details: docs/DEV_WEB_DOCS.md\n');
+
+  if (openBrowser) {
+    console.warn(
+      'Note: --open without --serve only opens if Vite is already running on :3000.\n',
+    );
+    tryOpenUrl(`${BASE}/extension/how-to-test-extension`);
+  }
 }

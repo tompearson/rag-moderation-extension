@@ -39,8 +39,8 @@ const quotaRow = rows.find((r) => r.label === 'Gemini quota for moderation');
 assert.ok(quotaRow);
 assert.match(quotaRow.value, /Your Gemini key|BYOK/i);
 
-const shared = describeGeminiKeyForContact({ ...settings, geminiByokEnabled: false });
-assert.match(shared.moderationQuota, /Shared pool/i);
+const keySavedToggleOff = describeGeminiKeyForContact({ ...settings, geminiByokEnabled: false });
+assert.match(keySavedToggleOff.moderationQuota, /Your Gemini key|BYOK/i);
 
 const sharedOff = buildExtensionContactOptionsSnapshot({
   ...settings,

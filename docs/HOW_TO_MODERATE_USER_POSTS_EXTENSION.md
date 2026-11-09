@@ -37,7 +37,7 @@ Click the **RAG Moderation Assistant** icon in the Chrome toolbar (the pinned ex
 
 If you do not see that icon, complete **[step 6 — Pin the extension to the toolbar](https://www.airesearchdog.net/extension/install-chrome-extension#pin-toolbar)** on the install guide: open the extensions menu, pin **RAG Moderation Assistant**, and confirm its icon stays visible in the extension toolbar area. Then return here and click the icon to open the panel.
 
-The header shows **RAG Moderation**, a **connection** indicator for the moderation API, and **Options**. If you use a personal Gemini key, the **Your key · On/Off** badge lets you toggle whether each run uses your key (see [Optional: your Gemini key, reports, and feedback](#optional-byok-reports)).
+The header shows **RAG Moderation**, a **connection** indicator for the moderation API, and **Options**. With a saved Gemini key, **Your key · On** indicates every run uses your key; with no key, **Your key · Off** means the shared allowance (see [Optional: your Gemini key, reports, and feedback](#optional-byok-reports)).
 
 ---
 
@@ -134,13 +134,13 @@ Move to the next post by capturing new text with paste, pick mode, or the contex
 
 ## Optional: your Gemini key, reports, and feedback {#optional-byok-reports}
 
-**Your Gemini key** — With a key saved in **Options**, toggle **Your key · On** in the header to use your Google quota. With it **Off**, a small shared allowance may apply; see the privacy policy and Gemini guide for details.
+**Your Gemini key** — With a key saved in **Options**, the header shows **Your key · On** and moderations use your Google quota. Use **Remove key** in Options to use the small shared allowance again; see the privacy policy and Gemini guide for details.
 
 **Report email** — Optionally save an email in **Options** or when prompted. Then, on results tied to a **saved report**, **Email report** can send you a copy of the full moderation report.
 
 **Options autosave** — Preferences save as you change them (or when you close Options); there is no separate **Save all** control.
 
-**Backup settings** — In **Options**, use **Export settings** to save a JSON file of your preferences (state, API profile, provider, report email, BYOK toggle, and similar). **Import settings** restores from that file. The file **does not contain your Gemini API key**; if “use my key” is on after import, add your key again in Options. Treat the file as private—it can include your email and location. After importing a Local or Custom API profile on a dev build, grant host permission again if prompted.
+**Backup settings** — In **Options**, use **Export settings** to save a JSON file of your preferences (state, API profile, provider, report email, and similar). **Import settings** restores from that file. The file **does not contain your Gemini API key**; add your key again in Options after import if you use BYOK. Treat the file as private—it can include your email and location. After importing a Local or Custom API profile on a dev build, grant host permission again if prompted.
 
 **Review this report** — Opens a short feedback form when the API stored a report id. Your comment is recorded as needing improvement and may be included in an acknowledgement email if report email is set.
 

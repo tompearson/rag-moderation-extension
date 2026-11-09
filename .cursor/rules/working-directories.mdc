@@ -15,7 +15,7 @@ When running shell commands, **state the working directory** (or `cd` there firs
 | RAG service only | `~/Projects/first-rag-system` | `.venv/bin/uvicorn rag_api:app --host 127.0.0.1 --port 8000` |
 | **Ship Universal to production** | `~/Projects/community-moderation-tool/Moderation-Tool-Universal` | **`npm run deploy:prod`** (`vercel --prod --yes`) — **not** `git push` alone |
 
-**`npm run dev` in the extension repo** runs `scripts/dev-services.mjs`, which **stops any prior listeners on `:8000`, `:3001` (and `:5173` for `dev:full`)** then starts RAG + Universal. Sibling paths default to `../first-rag-system` and `../community-moderation-tool/Moderation-Tool-Universal`; override with `DEV_RAG_DIR` / `DEV_UNIVERSAL_DIR`.
+**`npm run dev` in the extension repo** runs `scripts/dev-services.mjs`, which **stops any prior listeners on `:8000`, `:3001` (and `:3000` for `dev:full`)** then starts RAG + Universal. **Guide preview** uses **`npm run docs:dev:serve`** (Vite on `:3000` only; never falls back to `:3001`). Sibling paths default to `../first-rag-system` and `../community-moderation-tool/Moderation-Tool-Universal`; override with `DEV_RAG_DIR` / `DEV_UNIVERSAL_DIR`.
 
 Extension **Options → Local dev** → API `http://127.0.0.1:3001`. Production profile hits `https://www.airesearchdog.net` (no local stack).
 

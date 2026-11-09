@@ -1,6 +1,6 @@
 # Extension BYOK Gemini key
 
-Bring your own Google Gemini API key in **Options** for **RAG and non-RAG** moderations when **Use my key for moderations** is on.
+Bring your own Google Gemini API key in **Options** for **RAG and non-RAG** moderations. Once saved, **every** moderate uses your key until **Remove key**.
 
 ## Table of contents
 
@@ -18,10 +18,10 @@ Bring your own Google Gemini API key in **Options** for **RAG and non-RAG** mode
 2. **Save key** checks your key with Google directly (`generativelanguage.googleapis.com`). Universal is not used for validation.
 3. When a **RAG provider** is selected, validation also checks **RAG search + AI** (embed + flash-lite chat). **Advanced → Also check RAG search + AI** adds the same when using a non-RAG provider. **429 / free-tier** on those probes means the key is accepted but quota may be exhausted; Render is not called.
 4. You see a short **summary** (and optional **Details**); same readiness labels as the web app (`ready`, `ready_with_limits`, etc.).
-5. On success, the key is saved in **`chrome.storage.local`** only. You can **Turn on** moderations with your key or leave it off until later.
-6. When **Use my key for moderations** is on, each moderate sends **`userApiKey`** in **`POST /api/moderate`** over HTTPS.
+5. On success, the key is saved in **`chrome.storage.local`** only and is used for every moderation until **Remove key**.
+6. Each moderate sends **`userApiKey`** in **`POST /api/moderate`** over HTTPS while a key is saved.
 7. **Non-RAG** (`NextDoor-prompt-production-28`): Universal uses the key for Gemini chat.
-8. **RAG** (`NextDoor-prompt-production-28-rag`): Universal forwards the key for embed + chat (shared Render key when BYOK is off).
+8. **RAG** (`NextDoor-prompt-production-28-rag`): Universal forwards the key for embed + chat (shared Render key only when **no** key is saved).
 9. Extension BYOK is **not** written to Supabase.
 
 ## What it does not do
@@ -55,7 +55,13 @@ Threat: anyone with access to your OS user profile can read extension storage. U
 
 ## Side panel indicator
 
-The side panel always shows a **Your key · On/Off** control (no key material). Click to turn your saved key on or off; if no key is saved, click opens **Options** with a short status message.
+The side panel shows **Your key · On** when a key is saved (no toggle off); **Your key · Off** only when no key is saved (shared pool). Badge click opens **Options** (Gemini section when a key exists).
+
+## Quota and returning to shared pool
+
+While a key is saved, moderations always use it. If Google returns quota or billing errors, fix limits in **Google AI Studio** or **Remove key** in Options to use the shared pool again. The extension does **not** auto-fallback to the shared pool. After **Remove key**, Options focuses the key field and hides the first-time “shared pool” callout.
+
+**Local RAG:** With **Local dev** and a **RAG** provider, run `npm run dev` from the extension repo (RAG on `:8000`, API on `:3001`).
 
 ## Store / privacy checklist
 

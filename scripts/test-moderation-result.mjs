@@ -21,4 +21,12 @@ assert.equal(
   'Failed to moderate content: RAG moderation unavailable (503): Gemini API quota exceeded.',
 );
 
+const ragDown = moderationFailureStatusMessage({
+  decision: 'Error',
+  reason:
+    'Failed to moderate content: RAG moderation service error: fetch failed (POST http://127.0.0.1:8000/moderate; ECONNREFUSED)',
+});
+assert.match(ragDown, /port 8000/);
+assert.match(ragDown, /npm run dev/);
+
 console.log('test-moderation-result: ok');

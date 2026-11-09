@@ -186,7 +186,8 @@ select {
 }
 
 .byok-shared-pool-row button {
-  width: 100%;
+  width: auto;
+  margin-top: 4px;
 }
 
 #section-gemini-byok {

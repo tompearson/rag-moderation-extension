@@ -65,11 +65,11 @@ See [BYOK_GEMINI.md](./BYOK_GEMINI.md). Requires Universal with `POST /api/provi
 |---|------|----------|
 | B1 | Options → invalid key → **Test & save** | Error from server; nothing saved in storage |
 | B2 | Options → valid key → **Test & save** | Success; “Key saved”; input cleared; checkbox on |
-| B3 | Provider **no RAG**, BYOK on → side panel | **Your key · On**; click toggles off |
-| B4 | Provider **RAG**, BYOK on → side panel | **Your key · On**; Options shows RAG hint when BYOK on |
+| B3 | Provider **no RAG**, key saved → side panel | **Your key · On**; click opens Options (no toggle off) |
+| B4 | Provider **RAG**, key saved → side panel | **Your key · On**; Options shows RAG hint |
 | B4b | No key saved → click side panel key control | Status prompts Save key; **Options** opens |
-| B5 | Moderate (RAG + BYOK) | Uses your embed + chat quota via first-rag-system; falls back to Render key when BYOK off |
-| B6 | **Remove key** or factory reset | Badge hidden; moderate without BYOK |
+| B5 | Moderate (RAG + key saved) | Uses your embed + chat quota; **Remove key** to use shared pool |
+| B6 | **Remove key** or factory reset | **Your key · Off**; moderate on shared pool |
 
 ## Sample content
 

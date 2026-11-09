@@ -1,9 +1,10 @@
-import { resolveApiConfig, formatApiProfileUiLabel } from '../lib/envProfiles.js';
+import { resolveSettingsApiConfig, formatApiProfileUiLabel } from '../lib/envProfiles.js';
+import { isStoreBuild } from '../lib/buildConfig.js';
 import { isApiOriginHostGranted } from '../lib/permissions.js';
 import { postModerate, moderateTimeoutMs } from '../lib/moderateClient.js';
 import { loadSettings, isFeedLocationConfirmed } from '../lib/userSettings.js';
 import { normalizeReportEmail, isValidReportEmail } from '../lib/validateReportEmail.js';
-import { resolveUserApiKeyForModeration } from '../lib/geminiByok.js';
+import { hasSavedGeminiKey, resolveUserApiKeyForModeration } from '../lib/geminiByok.js';
 import { MODERATION_TARGET_TAB_SESSION_KEY, isReadablePageUrl } from '../lib/pageAccess.js';
 import { startPickModeOnActiveTab, settlePickModeMessage, cancelPickModeOnTab } from '../lib/pickMode.js';
 import {
@@ -50,9 +51,11 @@ async function runModeration(settings, payload, requestId, signal) {
     throw new Error('Confirm your feed location in the side panel before moderating.');
   }
 
-  const api = resolveApiConfig(settings.envProfileId, settings.customApiOrigin);
+  const api = resolveSettingsApiConfig(settings, isStoreBuild());
   if (!api.moderateUrl) {
-    throw new Error('Invalid API origin. Check Options → environment profile.');
+    throw new Error(
+      'Moderation API URL is not configured. Open Options → Advanced → Profile (Custom needs a URL, or use Local dev / Production).',
+    );
   }
 
   const granted = await isApiOriginHostGranted(api.apiOrigin);
@@ -79,6 +82,10 @@ async function runModeration(settings, payload, requestId, signal) {
   const userApiKey = resolveUserApiKeyForModeration(settings);
   if (userApiKey) {
     body.userApiKey = userApiKey;
+  } else if (hasSavedGeminiKey(settings)) {
+    throw new Error(
+      'Saved Gemini key is missing or invalid. Open Options → Save key again or Remove key.',
+    );
   }
 
   const reporterEmail = normalizeReportEmail(settings.reportShareRecipientEmail);

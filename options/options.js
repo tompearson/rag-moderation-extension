@@ -95,6 +95,8 @@ const geminiRagStyleTest = /** @type {HTMLInputElement} */ (
 const geminiByokEnabled = /** @type {HTMLInputElement} */ (
   document.getElementById('gemini-byok-enabled')
 );
+const geminiByokEnabledRow = document.getElementById('gemini-byok-enabled-row');
+const geminiByokLockedHint = document.getElementById('gemini-byok-locked-hint');
 const geminiByokEnabledLabel = document.getElementById('gemini-byok-enabled-label');
 
 const GEMINI_BYOK_CHECKBOX_LABEL = 'Turn on my key for moderations (recommend)';
@@ -151,7 +153,51 @@ const geminiByokTurnOnRow = document.getElementById('gemini-byok-turn-on-row');
 const geminiByokTurnOnBtn = document.getElementById('gemini-byok-turn-on');
 const geminiByokTurnOnDismiss = document.getElementById('gemini-byok-turn-on-dismiss');
 const geminiByokSharedPoolRow = document.getElementById('gemini-byok-shared-pool-row');
+const geminiByokSharedPoolText = document.getElementById('gemini-byok-shared-pool-text');
 const geminiByokContinueSharedPool = document.getElementById('gemini-byok-continue-shared-pool');
+
+const SHARED_POOL_CALLOUT_DISMISS_KEY = 'geminiSharedPoolCalloutDismissed';
+const SHARED_POOL_AFTER_REMOVE_KEY = 'geminiSharedPoolAfterRemove';
+
+function isAfterRemoveSharedPoolSession() {
+  try {
+    return sessionStorage.getItem(SHARED_POOL_AFTER_REMOVE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function setAfterRemoveSharedPoolSession(active) {
+  try {
+    if (active) sessionStorage.setItem(SHARED_POOL_AFTER_REMOVE_KEY, '1');
+    else sessionStorage.removeItem(SHARED_POOL_AFTER_REMOVE_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+function isSharedPoolCalloutDismissed() {
+  try {
+    return sessionStorage.getItem(SHARED_POOL_CALLOUT_DISMISS_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function setSharedPoolCalloutDismissed(dismissed) {
+  try {
+    if (dismissed) sessionStorage.setItem(SHARED_POOL_CALLOUT_DISMISS_KEY, '1');
+    else sessionStorage.removeItem(SHARED_POOL_CALLOUT_DISMISS_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+function updateSharedPoolCalloutCopy() {
+  if (!geminiByokSharedPoolText) return;
+  geminiByokSharedPoolText.innerHTML =
+    'You\u2019re using the <strong>shared pool</strong> (side panel: \u201cYour key \u00b7 Off\u201d). To use your own Google quota, paste a Gemini key below and choose <strong>Save key</strong>. After you save, that key is used for <strong>every</strong> moderation until you <strong>Remove key</strong>.';
+}
 
 /** @type {string[]} */
 let geminiByokStatusDetails = [];
@@ -538,29 +584,39 @@ function resolveRagStyleForValidate() {
 }
 
 const geminiByokSection = document.getElementById('section-gemini-byok');
+const geminiByokSectionTitle = document.getElementById('gemini-byok-section-title');
 
 function shouldFocusGeminiKeyFromUrl() {
   const hash = (location.hash || '').replace(/^#/, '');
   return hash === GEMINI_BYOK_OPTIONS_HASH;
 }
 
-function focusGeminiKeySetupUI() {
+function focusGeminiKeyInputField() {
   const section = geminiByokSection || document.getElementById('section-gemini-byok');
   section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  section?.classList.add('gemini-byok-section--attention');
-  window.setTimeout(() => section?.classList.remove('gemini-byok-section--attention'), 4500);
-
-  if (geminiApiKeyInput) {
-    geminiApiKeyInput.classList.add('gemini-key-input--attention');
-    try {
-      geminiApiKeyInput.focus({ preventScroll: true });
-    } catch {
-      geminiApiKeyInput.focus();
-    }
-    window.setTimeout(() => geminiApiKeyInput.classList.remove('gemini-key-input--attention'), 4500);
+  if (!geminiApiKeyInput) return;
+  geminiApiKeyInput.classList.add('gemini-key-input--attention');
+  try {
+    geminiApiKeyInput.focus({ preventScroll: true });
+  } catch {
+    geminiApiKeyInput.focus();
   }
+  window.setTimeout(() => geminiApiKeyInput.classList.remove('gemini-key-input--attention'), 4500);
+}
+
+function focusGeminiKeySetupUI() {
+  geminiByokSection?.classList.add('gemini-byok-section--attention');
+  window.setTimeout(() => geminiByokSection?.classList.remove('gemini-byok-section--attention'), 4500);
+  focusGeminiKeyInputField();
+  if (!isAfterRemoveSharedPoolSession()) {
+    setSharedPoolCalloutDismissed(false);
+    updateSharedPoolCalloutCopy();
+  }
+  updateByokSharedPoolRowVisibility(false);
   setGeminiByokStatus(
-    'Paste your Gemini API key below (or use Paste), then choose Save key — or choose Continue with shared pool.',
+    isAfterRemoveSharedPoolSession()
+      ? 'Paste a new Gemini API key below, then Save key.'
+      : 'Paste your Gemini API key below, then Save key.',
   );
 }
 
@@ -609,13 +665,29 @@ function setGeminiKeyFieldError(message) {
 
 function updateByokSharedPoolRowVisibility(hasKey) {
   if (!geminiByokSharedPoolRow) return;
-  const show = !hasKey;
+  const afterRemove = !hasKey && isAfterRemoveSharedPoolSession();
+  const show =
+    !hasKey && !isSharedPoolCalloutDismissed() && !afterRemove;
+  if (show) updateSharedPoolCalloutCopy();
   geminiByokSharedPoolRow.classList.toggle('hidden', !show);
   geminiByokSharedPoolRow.hidden = !show;
+  if (geminiByokContinueSharedPool) {
+    geminiByokContinueSharedPool.hidden = !show;
+  }
 }
 
 function refreshGeminiKeyStoredUi(hasKey, savedKeyRaw = '') {
   updateByokSharedPoolRowVisibility(hasKey);
+  if (geminiByokSectionTitle) {
+    if (hasKey) {
+      const suffix = formatGeminiKeySuffixLabel(savedKeyRaw);
+      geminiByokSectionTitle.textContent = suffix
+        ? `Your Gemini API key (saved ${suffix} · in use)`
+        : 'Your Gemini API key (saved · in use)';
+    } else {
+      geminiByokSectionTitle.textContent = 'Your Gemini API key (recommended)';
+    }
+  }
   if (geminiApiKeyLabel) {
     geminiApiKeyLabel.textContent = hasKey
       ? 'Gemini API key (already added)'
@@ -628,6 +700,17 @@ function refreshGeminiKeyStoredUi(hasKey, savedKeyRaw = '') {
     }
   }
   updateGeminiByokCheckboxLabel(hasKey);
+  if (geminiByokEnabledRow) {
+    geminiByokEnabledRow.classList.toggle('hidden', hasKey);
+    geminiByokEnabledRow.hidden = hasKey;
+  }
+  if (geminiByokLockedHint) {
+    geminiByokLockedHint.classList.toggle('hidden', !hasKey);
+    geminiByokLockedHint.hidden = !hasKey;
+  }
+  if (geminiByokEnabled && hasKey) {
+    geminiByokEnabled.checked = true;
+  }
   if (geminiKeySavedHint) {
     geminiKeySavedHint.classList.toggle('hidden', !hasKey);
     if (hasKey) {
@@ -704,17 +787,23 @@ function pasteGeminiKeyFromClipboard() {
 async function syncGeminiByokFromStorage() {
   const s = await loadSettings();
   const hasKey = hasSavedGeminiKey(s);
-  if (geminiByokEnabled) {
-    geminiByokEnabled.checked = hasKey && s.geminiByokEnabled;
-  }
   if (!hasKey && s.geminiByokEnabled) {
     await saveSettingsPatch({ geminiByokEnabled: false });
+  } else if (hasKey && !s.geminiByokEnabled) {
+    await saveSettingsPatch({ geminiByokEnabled: true });
+  }
+  if (geminiByokEnabled) {
+    geminiByokEnabled.checked = hasKey;
   }
   refreshGeminiKeyStoredUi(hasKey, s.geminiApiKey);
   if (geminiApiKeyInput) geminiApiKeyInput.value = '';
   if (hasKey) {
     const suffix = formatGeminiKeySuffixLabel(s.geminiApiKey);
     setGeminiByokStatus(suffix ? `Key saved (${suffix}).` : 'Key saved.');
+  } else if (isAfterRemoveSharedPoolSession()) {
+    setGeminiByokStatus(
+      'Key removed — moderations use the shared pool again. Paste a new key below when you want your own quota.',
+    );
   }
   if (geminiRagStyleTest) {
     geminiRagStyleTest.checked = localStorage.getItem(GEMINI_RAG_STYLE_TEST_STORAGE) === 'true';
@@ -723,16 +812,14 @@ async function syncGeminiByokFromStorage() {
 }
 
 async function persistGeminiByokEnabled(showFeedback = false) {
+  const s = await loadSettings();
+  if (hasSavedGeminiKey(s)) {
+    return;
+  }
   await saveSettingsPatch({ geminiByokEnabled: geminiByokEnabled.checked });
   updateByokRagHint();
-  const s = await loadSettings();
-  refreshGeminiKeyStoredUi(hasSavedGeminiKey(s), s.geminiApiKey);
   if (showFeedback) {
-    setGeminiByokStatus(
-      geminiByokEnabled.checked
-        ? 'BYOK preference saved.'
-        : `Your key is off for moderations — using the shared pool. ${sharedPoolStillWorksSuffix()}`,
-    );
+    setGeminiByokStatus('BYOK preference saved.');
   }
 }
 
@@ -749,8 +836,6 @@ async function handleGeminiKeySave() {
   clearGeminiKeyFieldError();
   setGeminiByokStatus('');
   const settingsBeforeSave = await loadSettings();
-  const hadKeyBeforeSave = hasSavedGeminiKey(settingsBeforeSave);
-  let savedFromInput = false;
   let raw = normalizeGeminiApiKey(geminiApiKeyInput?.value || '');
   if (!raw) {
     const stored = normalizeGeminiApiKey(settingsBeforeSave.geminiApiKey || '');
@@ -761,8 +846,6 @@ async function handleGeminiKeySave() {
       setGeminiKeyFieldError(`You must enter a Gemini API key.${sharedPoolStillWorksSuffix()}`);
       return;
     }
-  } else {
-    savedFromInput = true;
   }
   const granted = await ensureGeminiApiPermission();
   if (!granted) {
@@ -784,30 +867,23 @@ async function handleGeminiKeySave() {
       applyGeminiValidateDisplay(result, true);
       return;
     }
-    const useForModeration =
-      !hadKeyBeforeSave && savedFromInput
-        ? true
-        : !!geminiByokEnabled?.checked;
     await saveSettingsPatch({
       geminiApiKey: raw,
-      geminiByokEnabled: useForModeration,
+      geminiByokEnabled: true,
     });
     if (geminiApiKeyInput) geminiApiKeyInput.value = '';
     refreshGeminiKeyStoredUi(true, raw);
     if (geminiByokEnabled) {
-      geminiByokEnabled.checked = useForModeration;
+      geminiByokEnabled.checked = true;
     }
     updateByokRagHint();
     geminiByokStatusDetails = [];
     geminiByokDetailsExpanded = false;
     renderGeminiByokDetails();
+    setAfterRemoveSharedPoolSession(false);
     const savedSuffix = formatGeminiKeySuffixLabel(raw);
     setGeminiByokStatus(savedSuffix ? `Key saved (${savedSuffix}).` : 'Key saved.');
-    if (useForModeration) {
-      hideGeminiByokTurnOnPrompt();
-    } else {
-      showGeminiByokTurnOnPrompt();
-    }
+    hideGeminiByokTurnOnPrompt();
     notifyExtensionUiSync();
   } catch (err) {
     setGeminiByokStatus(err instanceof Error ? err.message : String(err), true);
@@ -820,12 +896,17 @@ async function handleGeminiKeyRemove() {
   await saveSettingsPatch({ geminiApiKey: '', geminiByokEnabled: false });
   if (geminiApiKeyInput) geminiApiKeyInput.value = '';
   if (geminiByokEnabled) geminiByokEnabled.checked = false;
+  setAfterRemoveSharedPoolSession(true);
+  setSharedPoolCalloutDismissed(true);
   refreshGeminiKeyStoredUi(false);
   updateByokRagHint();
   hideGeminiByokTurnOnPrompt();
   geminiByokStatusDetails = [];
   renderGeminiByokDetails();
-  setGeminiByokStatus(`Key removed from this device. Moderations use the shared pool.`);
+  setGeminiByokStatus(
+    'Key removed — moderations use the shared pool again. Paste a new key below when you want your own quota.',
+  );
+  focusGeminiKeyInputField();
   notifyExtensionUiSync();
 }
 
@@ -1312,24 +1393,16 @@ for (const btn of document.querySelectorAll('.close-options')) {
   btn.addEventListener('click', handleCloseOptions);
 }
 
-async function handleContinueWithSharedPool() {
-  skipDevSettingsSync = true;
-  try {
-    await saveSettingsPatch({ geminiByokEnabled: false });
-    notifyExtensionUiSync();
-    chrome.runtime.sendMessage({ type: BYOK_CONTINUE_SHARED_POOL }).catch(() => {});
-  } finally {
-    queueMicrotask(() => {
-      skipDevSettingsSync = false;
-    });
-  }
-  refreshGeminiKeyStoredUi(false);
+async function handleDismissSharedPoolCallout() {
+  setSharedPoolCalloutDismissed(true);
+  updateByokSharedPoolRowVisibility(false);
   updateByokRagHint();
-  setGeminiByokStatus(sharedPoolActiveStatusMessage());
+  setGeminiByokStatus('');
+  chrome.runtime.sendMessage({ type: BYOK_CONTINUE_SHARED_POOL }).catch(() => {});
 }
 
 geminiByokContinueSharedPool?.addEventListener('click', () => {
-  handleContinueWithSharedPool().catch((err) => {
+  handleDismissSharedPoolCallout().catch((err) => {
     setGeminiByokStatus(err instanceof Error ? err.message : String(err), true);
   });
 });

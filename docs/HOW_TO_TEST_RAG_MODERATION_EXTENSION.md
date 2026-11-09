@@ -168,8 +168,11 @@ _Screenshot (capture during QA): Contact modal with message ready to send._
 | Feature | Step | Expected |
 |---------|------|----------|
 | Invalid key | Bad key → **Save key** | Error; not stored |
-| Valid key | **Save key** → **Turn on my key** | **Your key · On** in header; toggle works |
-| Remove | **Remove key** | Badge gone; moderate without BYOK |
+| Valid key | **Save key** | **Your key · On** in header; every moderate uses your key |
+| Badge click (key saved) | Click **Your key · On** | Opens Options (Gemini); does **not** switch to shared pool |
+| Quota on your key | Moderate until quota error | Status mentions AI Studio and **Remove key** for shared pool |
+| Remove | **Remove key** | **Your key · Off**; shared pool; Options shows key field (no “keep shared pool” callout) |
+| Re-save | Paste + **Save key** | **Your key · On** again; locked-on until **Remove** |
 
 ![Options: Gemini BYOK (optional)](/extension/images/how-to-test-options-gemini-byok.png)
 

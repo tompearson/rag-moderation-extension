@@ -29,15 +29,23 @@ import {
   resolveStoredUserLocation,
 } from '../lib/usStates.js';
 import { createStatePicker } from '../lib/statePicker.js';
-import { resolveApiConfig, formatApiProfileUiLabel } from '../lib/envProfiles.js';
+import {
+  resolveApiConfig,
+  resolveSettingsApiConfig,
+  apiOriginConfigurationErrorMessage,
+  formatApiProfileUiLabel,
+} from '../lib/envProfiles.js';
 import {
   byokQuotaWithSharedPoolHint,
   hasSavedGeminiKey,
   isByokConfigured,
   isLikelyGeminiKeyAuthFailure,
   sharedPoolActiveStatusMessage,
+  noSavedGeminiKeyBadgeTitle,
+  shouldShowSharedPoolStatusForModerationError,
+  isSharedPoolModerationFailureResult,
   shouldClearByokWithoutKey,
-  switchedToSharedPoolStatusMessage,
+  geminiKeyAuthFailureStatusMessage,
 } from '../lib/geminiByok.js';
 import {
   GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL,
@@ -610,7 +618,7 @@ function setModalError(msg) {
 
 async function refreshConnectionBadge() {
   const settings = await loadSettings();
-  const api = resolveApiConfig(settings.envProfileId, settings.customApiOrigin);
+  const api = resolveSettingsApiConfig(settings, isStoreBuild());
   connectionBadge.textContent = formatApiProfileUiLabel(api);
   await refreshByokBadge(settings);
 }
@@ -627,25 +635,20 @@ async function refreshByokBadge(settingsIn) {
   if (!byokBadge) return;
   const settings = settingsIn || (await loadSettings());
   const hasKey = hasSavedGeminiKey(settings);
-  const on = isByokConfigured(settings);
 
   byokBadge.classList.remove('hidden', 'byok-badge--on', 'byok-badge--off', 'byok-badge--no-key');
   byokBadge.hidden = false;
 
-  if (on) {
+  if (hasKey) {
     byokBadge.classList.add('byok-badge--on');
     byokBadge.textContent = 'Your key · On';
-    byokBadge.title = 'Moderations use your Gemini key — click to turn off';
+    byokBadge.title =
+      'Your saved key is used for every moderation — click for Options (Remove key to use the shared pool)';
     byokBadge.setAttribute('aria-pressed', 'true');
-  } else if (hasKey) {
-    byokBadge.classList.add('byok-badge--off');
-    byokBadge.textContent = 'Your key · Off';
-    byokBadge.title = 'Saved key not used — click to turn on';
-    byokBadge.setAttribute('aria-pressed', 'false');
   } else {
     byokBadge.classList.add('byok-badge--off', 'byok-badge--no-key');
     byokBadge.textContent = 'Your key · Off';
-    byokBadge.title = `Moderations use the shared pool — click for details (optional: add your key in Options)`;
+    byokBadge.title = noSavedGeminiKeyBadgeTitle();
     byokBadge.setAttribute('aria-pressed', 'false');
   }
 }
@@ -653,31 +656,20 @@ async function refreshByokBadge(settingsIn) {
 async function handleByokBadgeClick() {
   const settings = await loadSettings();
   const hasKey = hasSavedGeminiKey(settings);
-  const on = isByokConfigured(settings);
 
-  if (!hasKey) {
-    try {
+  try {
+    if (!hasKey) {
       if (shouldClearByokWithoutKey(settings)) {
         await saveSettingsPatch({ geminiByokEnabled: false });
       }
       setInfoStatus(sharedPoolActiveStatusMessage());
       await refreshByokBadge(await loadSettings());
-      await openOptionsPage({ focusGeminiKey: true });
-    } catch (err) {
-      setStatus(err instanceof Error ? err.message : String(err), true);
-    }
-    return;
-  }
-
-  try {
-    if (on) {
-      await saveSettingsPatch({ geminiByokEnabled: false });
-      setStatus('Your key is off — moderations use the shared pool.');
     } else {
-      await saveSettingsPatch({ geminiByokEnabled: true });
-      setStatus('Your key is on for moderations.');
+      setInfoStatus(
+        'Your saved key is always used for moderations. Remove key in Options to use the shared pool again.',
+      );
     }
-    await refreshByokBadge(await loadSettings());
+    await openOptionsPage({ focusGeminiKey: !hasKey });
   } catch (err) {
     setStatus(err instanceof Error ? err.message : String(err), true);
   }
@@ -688,6 +680,8 @@ async function syncSidePanelFromStorage() {
   const settings = await loadSettings();
   if (shouldClearByokWithoutKey(settings)) {
     await saveSettingsPatch({ geminiByokEnabled: false });
+  } else if (hasSavedGeminiKey(settings) && !settings.geminiByokEnabled) {
+    await saveSettingsPatch({ geminiByokEnabled: true });
   }
   await refreshConnectionBadge();
   await refreshSharedPoolStatusHint();
@@ -897,14 +891,27 @@ function setGeminiQuotaHelpStatus(byokWasOn = false) {
   statusEl.append(document.createTextNode(byokWasOn ? '' : '.'));
 }
 
-/** @param {string} message */
-function setErrorStatus(message) {
+/**
+ * @param {string} message
+ * @param {boolean} [noSavedKey]
+ */
+function setErrorStatus(message, noSavedKey = false) {
   const msg = sanitizeModerationReason(message);
+  if (noSavedKey && shouldShowSharedPoolStatusForModerationError(msg)) {
+    setInfoStatus(sharedPoolActiveStatusMessage());
+    return;
+  }
   if (isGeminiQuotaOrBillingIssue(msg)) {
     setGeminiQuotaHelpStatus();
     return;
   }
   setStatus(msg, true);
+}
+
+/** @param {import('../lib/userSettings.js').ExtensionSettings} settings */
+function setNoKeyPostModerationHint(settings) {
+  if (hasSavedGeminiKey(settings)) return;
+  setInfoStatus(sharedPoolActiveStatusMessage());
 }
 
 function currentModerationRequestKey() {
@@ -1574,9 +1581,9 @@ moderateBtn.addEventListener('click', async () => {
     return;
   }
 
-  const api = resolveApiConfig(settings.envProfileId, settings.customApiOrigin);
+  const api = resolveSettingsApiConfig(settings, isStoreBuild());
   if (!api.apiOrigin) {
-    setStatus('Invalid API origin. Set Options → environment profile.', true);
+    setStatus(apiOriginConfigurationErrorMessage(settings), true);
     return;
   }
   const permitted = await ensureHostPermission(api.apiOrigin);
@@ -1621,11 +1628,14 @@ moderateBtn.addEventListener('click', async () => {
     if (isModerationFailureResult(response.result)) {
       const reason = sanitizeModerationReason(String(response.result?.reason || ''));
       if (byokActiveForRequest && isLikelyGeminiKeyAuthFailure(reason)) {
-        await saveSettingsPatch({ geminiByokEnabled: false });
-        await refreshByokBadge(await loadSettings());
-        setStatus(switchedToSharedPoolStatusMessage(), true);
+        setStatus(geminiKeyAuthFailureStatusMessage(), true);
       } else if (isGeminiQuotaOrBillingIssue(reason)) {
         setGeminiQuotaHelpStatus(byokActiveForRequest);
+      } else if (
+        !byokActiveForRequest &&
+        isSharedPoolModerationFailureResult(response.result)
+      ) {
+        setInfoStatus(sharedPoolActiveStatusMessage());
       } else {
         setStatus(moderationFailureStatusMessage(response.result), true);
       }
@@ -1636,7 +1646,9 @@ moderateBtn.addEventListener('click', async () => {
         response.meta?.apiOrigin ?? null,
         reportFlags,
       );
-      if (settings.reportEmailEnabled && !actionsHtml) {
+      if (!hasSavedGeminiKey(settings)) {
+        setNoKeyPostModerationHint(settings);
+      } else if (settings.reportEmailEnabled && !actionsHtml) {
         setStatus(
           savedReport
             ? 'Done. Report actions unavailable for this result.'
@@ -1657,7 +1669,8 @@ moderateBtn.addEventListener('click', async () => {
       connectionBadge.textContent = response.meta.profileLabel;
     }
   } catch (err) {
-    setErrorStatus(err instanceof Error ? err.message : String(err));
+    const noSavedKey = !hasSavedGeminiKey(settings);
+    setErrorStatus(err instanceof Error ? err.message : String(err), noSavedKey);
   } finally {
     stopModerationProgress();
   }

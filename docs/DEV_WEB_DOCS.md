@@ -23,15 +23,21 @@ Optional: open the how-to guide in your default browser (Linux `xdg-open`, macOS
 npm run docs:dev:open
 ```
 
-## Start the local site (Universal)
+## Start the local site (guides on port 3000)
 
-In **Moderation-Tool-Universal** (API not required for static pages):
+From **rag-moderation-extension** (sync + Vite, frees **3000** if needed):
+
+```bash
+npm run docs:dev:serve
+```
+
+Or in **Moderation-Tool-Universal** (API not required for static pages):
 
 ```bash
 npm run dev:extension-guides
 ```
 
-That starts Vite on **`http://127.0.0.1:3000`** and opens the **developer install** guide (not the login page).
+Vite uses **`http://127.0.0.1:3000` only** (`strictPort` — it will **not** move to **3001**, which is the moderation API). If port 3000 is busy, stop the other process or run `docs:dev:serve` from the extension repo (it frees 3000 first).
 
 **Avoid the root URL in dev:** `http://127.0.0.1:3000/` is the **Community Moderation** web app (passcode login). Use **`/extension/...`** only (table below). Same on production: guides live under `https://www.airesearchdog.net/extension/...`, not the home page.
 
@@ -62,15 +68,15 @@ Clean paths are implemented in Universal **`vite.config.js`** (dev/preview) usin
 
 1. Edit `docs/*.md` (e.g. `docs/HOW_TO_MODERATE_USER_POSTS_EXTENSION.md`).
 2. Run **`npm run docs:dev`** (or a single sync: `npm run sync:how-to-moderate-guide`).
-3. With **`npm run dev`** running in Universal, reload the page (hard refresh if the browser cached an old HTML).
+3. With **`npm run docs:dev:serve`** (or Universal **`dev:extension-guides`**) running, reload the page (hard refresh if the browser cached old HTML).
 
 ## Sync only one guide
 
 See **`package.json`** scripts: `sync:gemini-guide`, `sync:install-chrome-guide`, `sync:install-chrome-developer-guide`, `sync:privacy-policy`, `sync:how-to-moderate-guide`, etc., or run all with **`sync:public-guides`**.
 
-**Fast loop (developer install page):** edit `docs/INSTALL_RAG_MODERATION_EXTENSION_CHROME_DEVELOPER.md` → from extension repo `npm run sync:install-chrome-developer-guide` → reload [install-chrome-extension-developer](http://127.0.0.1:3000/extension/install-chrome-extension-developer) on Universal `npm run dev` (no `deploy:prod` until copy is final).
+**Fast loop (developer install page):** edit `docs/INSTALL_RAG_MODERATION_EXTENSION_CHROME_DEVELOPER.md` → from extension repo `npm run sync:install-chrome-developer-guide` → reload [install-chrome-extension-developer](http://127.0.0.1:3000/extension/install-chrome-extension-developer) with `npm run docs:dev:serve` (no `deploy:prod` until copy is final).
 
 ## What this does not start
 
-- **`npm run dev`** in the extension repo starts RAG + Universal **API** (`scripts/dev-services.mjs`), not the Vite UI.
-- For **static guide preview**, use Universal **`npm run dev`** (port **3000**). The API (`dev-server.js`, often **3001**) is unnecessary for reading these HTML pages.
+- **`npm run dev`** in the extension repo starts RAG + Universal **API** (`scripts/dev-services.mjs`) on **3001**. That API dev server also serves **`/extension/...`** guide pages from `public/extension/` (clean URLs, same as production).
+- For guide-only work without the API, use **`npm run docs:dev:serve`** (Vite on **3000**).
