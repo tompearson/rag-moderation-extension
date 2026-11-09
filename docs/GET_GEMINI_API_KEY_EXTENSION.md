@@ -38,42 +38,33 @@ You now have a Gemini API key on the clipboard (or saved in your password manage
 
 ---
 
-## Part 2 — Save your key in the extension
+## Part 2 — Add your key in the extension {#options}
 
 For **RAG Moderation Assistant**: the key stays in **this browser only**; it is not saved on the moderation website server.
 
 1. **Open the extension Options page**  
-   From the side panel, click **Options**, or use the extension’s Options entry in the browser toolbar menu.
+   From the side panel, click **Options**.
 
 2. **Go to “Your Gemini API key (recommended)”**  
-   Scroll to that section (or click **Your key · Off** in the side panel when no key is saved — Options opens to this section).
+   Scroll to that section.
 
 3. **Paste the key**  
-   Click in the **Gemini API key** field and paste (`Ctrl+V` / `Cmd+V`), or use the **Paste** button to read from the clipboard.  
-   After paste, the status line may show the **last four characters** once so you can confirm the right key; it is not shown again anywhere.
+   If you prefer the shared pool and do not want a personal key yet, then you may begin moderating now.  
+   Click in the **Gemini API key** field and paste (`Ctrl+V` / `Cmd+V`), or use **Paste** to read from the clipboard.  
+   The status line may show the **last four characters** once so you can confirm the right key; the full key is not shown again after save.
 
-4. **Save key**  
-   Click **Save key**. The extension checks the key **directly with Google** (not through your moderation server).  
-   - If the check fails, fix the key in AI Studio or try again later (quota/rate limits).  
-   - If it succeeds, the key is stored in **`chrome.storage.local`** on this browser profile only.
+![Options: Gemini API key field after paste, before Save key](/extension/images/get-gemini-options-paste-key.png)
 
-5. **Turn on “Use my key for moderations”**  
-   After a successful save, use **Turn on** in the status area, or enable **Use my key for moderations** in Options.  
-   The side panel shows **Your key · On** when the key is saved and this toggle is on.
-
-6. **Moderate as usual**  
-   With **Your key · On**, each moderation uses your key over HTTPS. Usage counts against **your** Google project quota/billing, not the shared pool.
-
-7. **Turn off or remove**  
-   - **Your key · Off** in the side panel (or uncheck **Use my key**) — key stays saved but moderations use the shared pool again.  
-   - **Remove key** in Options — deletes the key from this browser.
+4. **Start moderating**  
+   When your key is saved (or if you are using the shared pool), follow **[Visual moderation step by step](https://www.airesearchdog.net/extension/visual-moderation-step-by-step)** to capture post text, click **Moderate**, and read the results.
 
 ### Extension quick checks
 
 | Goal | What to verify |
 |------|----------------|
-| Key saved | Options shows “A key is saved”; side panel can show **Your key · Off** or **On** |
+| Key saved | Options shows **A key is saved** under the field; **Remove key** is available |
 | Key in use | Side panel **Your key · On**; moderation does not fail with missing-key errors |
+| Key stored, shared pool | Checkbox **Turn on my key for moderations** off; side panel **Your key · Off** |
 | New key | Paste over the field and **Save key** again, or **Remove** then save |
 | New browser / PC | Keys do **not** sync — repeat this part on each install |
 
@@ -83,8 +74,7 @@ For **RAG Moderation Assistant**: the key stays in **this browser only**; it is 
 
 | Guide | When to use it |
 |------|----------------|
+| [Visual moderation step by step](https://www.airesearchdog.net/extension/visual-moderation-step-by-step) | Screenshots: capture text, Moderate, results |
 | [Install RAG Moderation Assistant in Chrome](https://www.airesearchdog.net/extension/install-chrome-extension) | Web Store install and pin |
 | [How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts) | Side panel workflow |
 | [Important — AI-generated analysis](https://www.airesearchdog.net/extension/important-ai-generated-analysis) | Read before acting on moderation suggestions |
-
-**Note:** BYOK on the moderation **website** (Universal web app, Platform Intelligence) is a separate product UI and is **not** described in this guide.

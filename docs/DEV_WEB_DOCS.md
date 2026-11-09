@@ -43,7 +43,7 @@ With current tooling, use the same **clean paths** as production (no `.html` in 
 
 | Guide | Local URL |
 |-------|-----------|
-| Get a Gemini API key | http://127.0.0.1:3000/extension/get-gemini-api-key (intro in collapsed **Background**; extension links use `#google` for Part 1) |
+| Get a Gemini API key | http://127.0.0.1:3000/extension/get-gemini-api-key (`#google` Part 1, `#options` Part 2; intro in collapsed **Background**) |
 | Install in Chrome (Web Store) | http://127.0.0.1:3000/extension/install-chrome-extension |
 | Install (developer / sideload) | http://127.0.0.1:3000/extension/install-chrome-extension-developer |
 | Privacy | http://127.0.0.1:3000/extension/privacy |

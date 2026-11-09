@@ -614,7 +614,7 @@ function updateByokSharedPoolRowVisibility(hasKey) {
   geminiByokSharedPoolRow.hidden = !show;
 }
 
-function refreshGeminiKeyStoredUi(hasKey) {
+function refreshGeminiKeyStoredUi(hasKey, savedKeyRaw = '') {
   updateByokSharedPoolRowVisibility(hasKey);
   if (geminiApiKeyLabel) {
     geminiApiKeyLabel.textContent = hasKey
@@ -631,10 +631,38 @@ function refreshGeminiKeyStoredUi(hasKey) {
   if (geminiKeySavedHint) {
     geminiKeySavedHint.classList.toggle('hidden', !hasKey);
     if (hasKey) {
-      geminiKeySavedHint.textContent =
-        'A key is saved. Paste a new key to replace it, or use Remove.';
+      const suffix = formatGeminiKeySuffixLabel(savedKeyRaw);
+      geminiKeySavedHint.textContent = suffix
+        ? `A key is saved (${suffix}). Paste a new key to replace it, or use Remove.`
+        : 'A key is saved. Paste a new key to replace it, or use Remove.';
     }
   }
+}
+
+/** @param {string} normalizedKey */
+function setGeminiKeyPendingPasteStatus(normalizedKey) {
+  const suffix = formatGeminiKeySuffixLabel(normalizedKey);
+  setGeminiByokStatus(
+    suffix
+      ? `Key pasted (${suffix}). Choose Save key when ready.`
+      : 'Key pasted — choose Save key when ready.',
+  );
+}
+
+function refreshGeminiKeyPendingStatusFromField() {
+  clearGeminiKeyFieldError();
+  const normalized = normalizeGeminiApiKey(geminiApiKeyInput?.value || '');
+  if (!normalized) {
+    const msg = geminiByokStatus?.textContent || '';
+    if (msg.startsWith('Key pasted')) {
+      setGeminiByokStatus('');
+    }
+    return;
+  }
+  if (!hasSavedGeminiKey({ geminiApiKey: normalized })) {
+    return;
+  }
+  setGeminiKeyPendingPasteStatus(normalized);
 }
 
 function applyGeminiKeyFromClipboardText(text) {
@@ -649,12 +677,9 @@ function applyGeminiKeyFromClipboardText(text) {
     geminiApiKeyInput.classList.add('gemini-key-input--attention');
     window.setTimeout(() => geminiApiKeyInput.classList.remove('gemini-key-input--attention'), 2000);
   }
-  const suffix = formatGeminiKeySuffixLabel(normalized);
-  setGeminiByokStatus(
-    suffix
-      ? `Key pasted (${suffix}). Choose Save key when ready.`
-      : 'Key pasted — choose Save key when ready.',
-  );
+  if (hasSavedGeminiKey({ geminiApiKey: normalized })) {
+    setGeminiKeyPendingPasteStatus(normalized);
+  }
 }
 
 function pasteGeminiKeyFromClipboard() {
@@ -670,6 +695,8 @@ function pasteGeminiKeyFromClipboard() {
           'Paste blocked. Allow clipboard access, reload the extension, or use Ctrl+V in the field.',
           true,
         );
+      } else {
+        queueMicrotask(() => refreshGeminiKeyPendingStatusFromField());
       }
     });
 }
@@ -683,8 +710,12 @@ async function syncGeminiByokFromStorage() {
   if (!hasKey && s.geminiByokEnabled) {
     await saveSettingsPatch({ geminiByokEnabled: false });
   }
-  refreshGeminiKeyStoredUi(hasKey);
+  refreshGeminiKeyStoredUi(hasKey, s.geminiApiKey);
   if (geminiApiKeyInput) geminiApiKeyInput.value = '';
+  if (hasKey) {
+    const suffix = formatGeminiKeySuffixLabel(s.geminiApiKey);
+    setGeminiByokStatus(suffix ? `Key saved (${suffix}).` : 'Key saved.');
+  }
   if (geminiRagStyleTest) {
     geminiRagStyleTest.checked = localStorage.getItem(GEMINI_RAG_STYLE_TEST_STORAGE) === 'true';
   }
@@ -695,7 +726,7 @@ async function persistGeminiByokEnabled(showFeedback = false) {
   await saveSettingsPatch({ geminiByokEnabled: geminiByokEnabled.checked });
   updateByokRagHint();
   const s = await loadSettings();
-  refreshGeminiKeyStoredUi(hasSavedGeminiKey(s));
+  refreshGeminiKeyStoredUi(hasSavedGeminiKey(s), s.geminiApiKey);
   if (showFeedback) {
     setGeminiByokStatus(
       geminiByokEnabled.checked
@@ -762,7 +793,7 @@ async function handleGeminiKeySave() {
       geminiByokEnabled: useForModeration,
     });
     if (geminiApiKeyInput) geminiApiKeyInput.value = '';
-    refreshGeminiKeyStoredUi(true);
+    refreshGeminiKeyStoredUi(true, raw);
     if (geminiByokEnabled) {
       geminiByokEnabled.checked = useForModeration;
     }
@@ -770,7 +801,8 @@ async function handleGeminiKeySave() {
     geminiByokStatusDetails = [];
     geminiByokDetailsExpanded = false;
     renderGeminiByokDetails();
-    setGeminiByokStatus('');
+    const savedSuffix = formatGeminiKeySuffixLabel(raw);
+    setGeminiByokStatus(savedSuffix ? `Key saved (${savedSuffix}).` : 'Key saved.');
     if (useForModeration) {
       hideGeminiByokTurnOnPrompt();
     } else {
@@ -1197,7 +1229,11 @@ geminiByokEnabled?.addEventListener('change', () => {
 });
 
 geminiApiKeyInput?.addEventListener('input', () => {
-  clearGeminiKeyFieldError();
+  refreshGeminiKeyPendingStatusFromField();
+});
+
+geminiApiKeyInput?.addEventListener('paste', () => {
+  queueMicrotask(() => refreshGeminiKeyPendingStatusFromField());
 });
 
 geminiRagStyleTest?.addEventListener('change', () => {
