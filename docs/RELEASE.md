@@ -1,10 +1,24 @@
 # Releases (GitHub — sideload builds)
 
+**Overview (all ZIP / release paths):** [EXTENSION_BUILD_AND_RELEASE_OVERVIEW.md](./EXTENSION_BUILD_AND_RELEASE_OVERVIEW.md)
+
 Until the extension is on the Chrome Web Store, **GitHub Releases** is the primary way to hand testers a production-shaped build.
 
 **Download latest (site):** [www.airesearchdog.net/extension/get-latest-extension](https://www.airesearchdog.net/extension/get-latest-extension) — direct ZIP on this domain after maintainer `package:store` + Universal `deploy:prod`.
 
 **Download latest (GitHub):** [github.com/tompearson/rag-moderation-extension/releases/latest](https://github.com/tompearson/rag-moderation-extension/releases/latest)
+
+## Table of contents
+
+- [For maintainers — cut a release](#for-maintainers--cut-a-release)
+  - [Automatic email on release](#automatic-email-on-release)
+  - [Share with testers (email / chat)](#share-with-testers-email--chat)
+  - [Local verification (optional)](#local-verification-optional)
+- [For testers — install from a release ZIP](#for-testers--install-from-a-release-zip)
+  - [Pin the icon (toolbar)](#pin-the-icon-toolbar)
+- [What the automation runs](#what-the-automation-runs)
+- [Later — Chrome Web Store](#later--chrome-web-store)
+  - [Ship on-site sideload download (production)](#ship-on-site-sideload-download-production)
 
 ## For maintainers — cut a release
 

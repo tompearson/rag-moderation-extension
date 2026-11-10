@@ -2,6 +2,16 @@
 
 The public HTML under `https://www.airesearchdog.net/extension/...` is generated from Markdown in this repo and synced into **Moderation-Tool-Universal** `public/extension/*.html`. You can edit docs here and view the same pages on the **Vite dev server** without committing or pushing.
 
+## Table of contents
+
+- [Prerequisites](#prerequisites)
+- [One command (extension repo)](#one-command-extension-repo)
+- [Start the local site (guides on port 3000)](#start-the-local-site-guides-on-port-3000)
+- [URLs (production parity)](#urls-production-parity)
+- [Workflow](#workflow)
+- [Sync only one guide](#sync-only-one-guide)
+- [What this does not start](#what-this-does-not-start)
+
 ## Prerequisites
 
 - Sibling checkout (default): `../community-moderation-tool/Moderation-Tool-Universal`

@@ -18,6 +18,7 @@ const outPath = join(outDir, 'get-gemini-api-key.html');
 
 function preprocessMarkdown(raw) {
   return raw
+    .replace(/^## On this page \{#toc\}/m, '## On this page')
     .replace(/^## Part 1 — Obtain a key from Google \{#google\}/m, '## Part 1 — Obtain a key from Google')
     .replace(/^## Part 2 — Add your key in the extension \{#options\}/m, '## Part 2 — Add your key in the extension')
     .replace(/^## Related guides \{#related\}/m, '## Related guides');
@@ -27,6 +28,7 @@ function preprocessMarkdown(raw) {
 function postprocessBodyHtml(html) {
   return wrapGuideBackgroundFold(
     html
+      .replace(/<h2>On this page<\/h2>/, '<h2 id="toc">On this page</h2>')
       .replace(
         /<h2>Part 1 — Obtain a key from Google<\/h2>/,
         '<h2 id="google">Part 1 — Obtain a key from Google</h2>',

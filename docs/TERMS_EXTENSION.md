@@ -6,6 +6,22 @@
 
 By installing or using **RAG Moderation Assistant**, you agree to these Terms of Use and our [Privacy policy](https://www.airesearchdog.net/extension/privacy). If you do not agree, do not use the extension.
 
+## On this page {#toc}
+
+- [Who may use the extension](#who-may-use-the-extension)
+- [What the service provides](#what-the-service-provides)
+- [Acceptable use](#acceptable-use)
+- [Your Gemini API key (optional)](#your-gemini-api-key-optional)
+- [Content you submit](#content-you-submit)
+- [Disclaimers](#disclaimers)
+- [Limitation of liability](#limitation-of-liability)
+- [Third parties](#third-parties)
+- [Changes and termination](#changes-and-termination)
+- [Related guides](#related)
+- [Contact](#contact)
+
+---
+
 ## Who may use the extension
 
 The extension is for **community moderators and administrators** who are authorized to review content under their platform’s rules and applicable law. You must be able to form a binding agreement in your jurisdiction. The extension is **not** directed at children under 13 (or the minimum age required where you live).

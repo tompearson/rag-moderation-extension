@@ -18,6 +18,7 @@ const outPath = join(outDir, 'install-chrome-extension.html');
 
 function preprocessMarkdown(raw) {
   return raw
+    .replace(/^## On this page \{#toc\}/m, '## On this page')
     .replace(/^## Part 1 — Install from the Chrome Web Store \{#install\}/m, '## Part 1 — Install from the Chrome Web Store')
     .replace(
       /^## Part 2 — Get a Gemini API key \(recommended\) \{#gemini\}/m,
@@ -28,6 +29,7 @@ function preprocessMarkdown(raw) {
 
 function postprocessBodyHtml(html) {
   return html
+    .replace(/<h2>On this page<\/h2>/, '<h2 id="toc">On this page</h2>')
     .replace(
       /<h2>Part 1 — Install from the Chrome Web Store<\/h2>/,
       '<h2 id="install">Part 1 — Install from the Chrome Web Store</h2>',

@@ -1,5 +1,16 @@
 # Store readiness checklist
 
+**Maintainer map (ZIPs, releases, on-site download):** [EXTENSION_BUILD_AND_RELEASE_OVERVIEW.md](./EXTENSION_BUILD_AND_RELEASE_OVERVIEW.md)
+
+## Table of contents
+
+- [Single purpose](#single-purpose)
+- [Build and local QA](#build-and-local-qa)
+- [Package](#package)
+- [Permissions justification](#permissions-justification)
+- [Dual publish](#dual-publish)
+- [Pre-submit smoke](#pre-submit-smoke)
+
 ## Single purpose
 
 RAG-backed community post moderation for moderators (side panel: paste content, get decision + retrieved guidelines).

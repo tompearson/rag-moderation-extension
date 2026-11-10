@@ -2,6 +2,12 @@
 
 Same MV3 codebase as Chrome ([Port a Chrome extension to Microsoft Edge](https://learn.microsoft.com/en-us/microsoft-edge/extensions/developer-guide/port-chrome-extension)).
 
+## Table of contents
+
+- [Code](#code)
+- [Test (cross-browser QA)](#test-cross-browser-qa)
+- [Publish](#publish)
+
 ## Code
 
 - Use `chrome.*` APIs (including `chrome.sidePanel`) — supported on Chromium Edge.

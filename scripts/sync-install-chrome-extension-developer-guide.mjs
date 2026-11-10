@@ -18,6 +18,7 @@ const outPath = join(outDir, 'install-chrome-extension-developer.html');
 
 function preprocessMarkdown(raw) {
   return raw
+    .replace(/^## On this page \{#toc\}/m, '## On this page')
     .replace(/^## If you received a release email \{#release-email\}/m, '## If you received a release email')
     .replace(/^## Part 1 — Enable an unpacked extension \{#developer\}/m, '## Part 1 — Enable an unpacked extension')
     .replace(/^## Related guides \{#related\}/m, '## Related guides');
@@ -25,6 +26,7 @@ function preprocessMarkdown(raw) {
 
 function postprocessBodyHtml(html) {
   return html
+    .replace(/<h2>On this page<\/h2>/, '<h2 id="toc">On this page</h2>')
     .replace(
       /<h2>If you received a release email<\/h2>/,
       '<h2 id="release-email">If you received a release email</h2>',

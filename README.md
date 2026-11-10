@@ -75,13 +75,11 @@ Full stack: Universal `npm run test:rag-smoke` then manual matrix in [docs/SMOKE
 
 **GitHub Releases:** [latest tagged ZIP](https://github.com/tompearson/rag-moderation-extension/releases/latest)
 
-Steps: [docs/RELEASE.md](./docs/RELEASE.md) and [developer install guide](https://www.airesearchdog.net/extension/install-chrome-extension-developer).
+Install: [developer install guide](https://www.airesearchdog.net/extension/install-chrome-extension-developer). **Maintainers:** start with [docs/EXTENSION_BUILD_AND_RELEASE_OVERVIEW.md](./docs/EXTENSION_BUILD_AND_RELEASE_OVERVIEW.md) (maps to [RELEASE.md](./docs/RELEASE.md), [STORE_PACKAGING.md](./docs/STORE_PACKAGING.md), and related docs).
 
 ## Store / production
 
 See [docs/STORE_CHECKLIST.md](./docs/STORE_CHECKLIST.md), [docs/STORE_PACKAGING.md](./docs/STORE_PACKAGING.md), and [docs/PROD_AUTH_SPIKE.md](./docs/PROD_AUTH_SPIKE.md) before publishing to Chrome Web Store or Edge Add-ons.
-
-Cut a tagged release: [docs/RELEASE.md](./docs/RELEASE.md).
 
 ```bash
 npm run package:store   # dist/store/ + ZIP + latest-release.json + Universal downloads copy

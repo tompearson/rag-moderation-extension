@@ -12,6 +12,14 @@ Official key page: [Google AI Studio — API keys](https://aistudio.google.com/a
 
 This guide covers **getting a Google key** and **saving it in Options**.
 
+## On this page {#toc}
+
+- [Part 1 — Obtain a key from Google](#google)
+- [Part 2 — Add your key in the extension](#options)
+- [Related guides](#related)
+
+---
+
 ## Part 1 — Obtain a key from Google {#google}
 
 1. **Sign in**  

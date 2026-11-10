@@ -2,6 +2,14 @@
 
 Look for **RAG Moderation Assistant** in the [Chrome Web Store listing](https://chromewebstore.google.com/). The installation information here is for testers.
 
+## On this page {#toc}
+
+- [If you received a release email](#release-email)
+- [Part 1 — Enable an unpacked extension](#developer)
+- [Related guides](#related)
+
+---
+
 ## If you received a release email {#release-email}
 
 You may get email from **info@airesearchdog.net** when a new **sideload** build is published. That message is for **this install path** — not the Chrome Web Store.

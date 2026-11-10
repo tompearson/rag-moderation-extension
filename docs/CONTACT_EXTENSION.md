@@ -7,6 +7,16 @@ Use the addresses below for **questions about the extension, this website, or ou
 
 **Do not** email neighbor post or comment text to these addresses expecting an automated moderation report. Use the **extension side panel** instead (see [How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts)).
 
+## On this page {#toc}
+
+- [Outside the extension](#scope)
+- [info@airesearchdog.net](#info)
+- [help@airesearchdog.net](#help)
+- [admin@airesearchdog.net](#admin)
+- [Related guides](#related)
+
+---
+
 ## Outside the extension {#scope}
 
 We can only help with **RAG Moderation Assistant**, this site’s extension guides, and our policies. We **cannot** troubleshoot problems that are not under our control, including:

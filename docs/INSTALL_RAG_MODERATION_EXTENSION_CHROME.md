@@ -4,6 +4,14 @@
 
 Installing an **unpacked** build for development or QA? See **[Install (developer / unpacked build)](https://www.airesearchdog.net/extension/install-chrome-extension-developer)** — do not use Developer mode steps below for a normal Web Store install.
 
+## On this page {#toc}
+
+- [Part 1 — Install from the Chrome Web Store](#install)
+- [Part 2 — Get a Gemini API key (recommended)](#gemini)
+- [Related guides](#related)
+
+---
+
 ## Part 1 — Install from the Chrome Web Store {#install}
 
 1. **Open the store**  

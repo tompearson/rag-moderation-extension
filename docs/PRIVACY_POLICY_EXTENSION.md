@@ -4,6 +4,25 @@
 **Operator:** airesearchdog (“we,” “us”)  
 **Contact:** [admin@airesearchdog.net](mailto:admin@airesearchdog.net) (privacy). Other addresses: [Contact page](https://www.airesearchdog.net/extension/contact).  
 
+## On this page {#toc}
+
+- [Summary](#summary)
+- [Who this is for](#who-this-is-for)
+- [Costs, quotas, and your Gemini key](#costs-quotas-and-your-gemini-key)
+- [Information the extension processes](#information-the-extension-processes)
+- [What stays on your device](#what-stays-on-your-device)
+- [What is sent to servers](#what-is-sent-to-servers)
+- [Access to web pages](#access-to-web-pages)
+- [Clipboard](#clipboard)
+- [Children](#children)
+- [Security](#security)
+- [Your choices](#your-choices)
+- [Changes](#changes)
+- [Related guides](#related)
+- [Contact](#contact)
+
+---
+
 ## Summary
 
 This extension helps **community moderators** analyze text they choose to submit. It does **not** sell your data or run advertising analytics inside the extension. When you run **Moderate**, that text is sent over HTTPS to **airesearchdog’s moderation service**. Optional features may store a **report email** or **Google Gemini API key** on your device.

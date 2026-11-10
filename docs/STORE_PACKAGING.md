@@ -1,8 +1,18 @@
 # Store packaging (Chrome Web Store / Edge Add-ons)
 
+**Overview (builds, sideload site, GitHub, store):** [EXTENSION_BUILD_AND_RELEASE_OVERVIEW.md](./EXTENSION_BUILD_AND_RELEASE_OVERVIEW.md)
+
 Develop on the repo root (`Load unpacked` as today). When you are ready to QA or upload, build a **store-shaped tree** and a **ZIP** from the same output.
 
 **Automated sideload releases:** push a semver tag (`v0.2.3`) to publish a ZIP on [GitHub Releases](https://github.com/tompearson/rag-moderation-extension/releases/latest). See [RELEASE.md](./RELEASE.md).
+
+## Table of contents
+
+- [Build](#build)
+- [Local QA workflow](#local-qa-workflow)
+  - [Extension ID note](#extension-id-note)
+- [What the packager changes](#what-the-packager-changes)
+- [Before public listing](#before-public-listing)
 
 ## Build
 

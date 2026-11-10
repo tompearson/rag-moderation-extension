@@ -36,11 +36,24 @@ function loadMarkdownWithMetadata() {
 }
 
 function preprocessMarkdown(raw) {
-  return raw.replace(/^## Related guides \{#related\}/m, '## Related guides');
+  return raw
+    .replace(/^## On this page \{#toc\}/m, '## On this page')
+    .replace(/^## After you download \{#after-you-download\}/m, '## After you download')
+    .replace(/^## Related guides \{#related\}/m, '## Related guides');
 }
 
 function postprocessBodyHtml(html) {
-  return html.replace(/<h2>Related guides<\/h2>/, '<h2 id="related">Related guides</h2>');
+  return html
+    .replace(
+      /<h2>Current sideload build<\/h2>/,
+      '<h2 id="current-sideload-build">Current sideload build</h2>',
+    )
+    .replace(/<h2>Related guides<\/h2>/, '<h2 id="related">Related guides</h2>')
+    .replace(
+      /<h2>After you download<\/h2>/,
+      '<h2 id="after-you-download">After you download</h2>',
+    )
+    .replace(/<h2>On this page<\/h2>/, '<h2 id="toc">On this page</h2>');
 }
 
 const markdown = loadMarkdownWithMetadata();

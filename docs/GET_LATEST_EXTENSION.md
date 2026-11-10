@@ -4,9 +4,15 @@ This page lists the **current store-shaped sideload build** for **RAG Moderation
 
 Use it when you are testing an unpacked install in Chrome or Edge — not for the Chrome Web Store listing.
 
+## On this page {#toc}
+
+- [Current sideload build](#current-sideload-build) (version, SHA256, download — updated each `package:store`)
+- [After you download](#after-you-download)
+- [Related guides](#related)
+
 <!-- LATEST_RELEASE_METADATA -->
 
-## After you download
+## After you download {#after-you-download}
 
 1. Unzip so the folder contains `manifest.json` at the top level.
 2. Follow **[Install (developer / unpacked)](/extension/install-chrome-extension-developer)** (Developer mode, **Load unpacked**, pin the toolbar icon).
