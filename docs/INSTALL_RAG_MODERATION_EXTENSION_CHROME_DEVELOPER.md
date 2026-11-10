@@ -36,7 +36,7 @@ You may get email from **info@airesearchdog.net** when a new **sideload** build 
    ![Developer mode toggle turned on](/extension/images/install-chrome-developer-mode.png)
 
 5. **Load unpacked**  
-   Click **Load unpacked** and select the extension folder: the **unzipped release ZIP** (see [If you received a release email](#release-email)), repo root for dev, or `dist/store/` after `npm run package:store`.
+   Click **Load unpacked** and select the extension folder: the **unzipped release ZIP** (see [If you received a release email](#release-email)), repo root for dev, or `dist/store/` after `npm run package:store`. Choose the folder where **`manifest.json`** is at the top level — not a parent directory (Chrome shows an error if the path is wrong).
 
 6. **Enable the extension on its card**
 

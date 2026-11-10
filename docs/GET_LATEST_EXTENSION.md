@@ -14,7 +14,7 @@ Use it when you are testing an unpacked install in Chrome or Edge — not for th
 
 ## After you download {#after-you-download}
 
-1. Unzip so the folder contains `manifest.json` at the top level.
+1. Unzip the download to a folder.
 2. Follow **[Install (developer / unpacked)](/extension/install-chrome-extension-developer)** (Developer mode, **Load unpacked**, pin the toolbar icon).
 3. Run **[How to test the extension](/extension/how-to-test-extension)** before moderating real posts.
 
