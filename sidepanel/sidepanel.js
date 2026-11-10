@@ -697,6 +697,14 @@ async function refreshModerateToolbarButton(settingsIn) {
   if (!(moderateBtn instanceof HTMLButtonElement)) return;
   if (activeModerationRequestId != null) return;
 
+  if (pickModeInProgress) {
+    moderateBtn.disabled = true;
+    moderateBtn.classList.add('moderate-toolbar-muted');
+    moderateBtn.classList.remove('moderate-toolbar-ready');
+    moderateBtn.title = 'Finish or cancel text selection on the page first.';
+    return;
+  }
+
   const hasContent = Boolean(contentInput.value.trim());
   if (!hasContent) {
     moderateBtn.disabled = true;
@@ -1879,7 +1887,8 @@ function applyCapturedText(text, field) {
   el.value = text;
   el.focus();
   el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  el.setSelectionRange(0, el.value.length);
+  el.setSelectionRange(0, 0);
+  el.scrollTop = 0;
   setStatus('');
 }
 
@@ -1926,10 +1935,11 @@ function attachPickEscapeListener(tabId) {
   detachPickEscapeListener();
   activePickTabId = tabId;
   pickEscapeKeyHandler = (e) => {
-    if (e.key !== 'Escape' || !pickModeInProgress || activePickTabId == null) return;
+    if (e.key !== 'Escape' || !pickModeInProgress) return;
     e.preventDefault();
     e.stopPropagation();
-    chrome.runtime.sendMessage({ type: 'CANCEL_PICK_MODE', tabId: activePickTabId }).catch(() => {});
+    abortPickMode();
+    setStatus('Pick cancelled.');
   };
   document.addEventListener('keydown', pickEscapeKeyHandler, true);
 }
@@ -1993,13 +2003,14 @@ function syncPickContentButton() {
   if (!(pickContentBtn instanceof HTMLButtonElement)) return;
   const pickActive = pickModeInProgress;
   const moderating = activeModerationRequestId != null;
-  pickContentBtn.disabled = pickActive || moderating;
+  pickContentBtn.disabled = moderating;
   pickContentBtn.classList.toggle('pick-btn-active', pickActive);
   pickContentBtn.classList.toggle('pick-btn-muted', moderating && !pickActive);
   pickContentBtn.setAttribute('aria-busy', pickActive ? 'true' : 'false');
   pickContentBtn.textContent = pickActive
     ? 'Select text on the page…'
     : 'Click here to select text you want to moderate';
+  refreshModerateToolbarButton().catch(() => {});
 }
 
 /**
@@ -2054,6 +2065,7 @@ async function runPickModeForField(field) {
     restorePickFieldIfEmpty(field);
     if (msg.includes('cancelled')) {
       setStatus('Pick cancelled. Text in the box is unchanged—you can Moderate or pick again from the post tab.');
+      updateModerateBtnPrompt();
       return;
     }
     setStatus(msg, true);
@@ -2108,6 +2120,11 @@ pasteContentBtn.addEventListener('click', () => {
 });
 
 pickContentBtn.addEventListener('click', () => {
+  if (pickModeInProgress) {
+    abortPickMode();
+    setStatus('Pick cancelled.');
+    return;
+  }
   runPickModeForField('content').catch((err) => {
     setStatus(err instanceof Error ? err.message : String(err), true);
     endPickModeUi();

@@ -17,4 +17,12 @@
   document.getElementById('rag-moderation-pick-banner')?.remove();
   delete w.__ragModerationPickModeActive;
   delete w.__ragModerationPickModeCleanup;
+  const subCleanup = w.__ragModerationPickSubframeEscapeCleanup;
+  if (typeof subCleanup === 'function') {
+    try {
+      /** @type {() => void} */ (subCleanup)();
+    } catch {
+      /* ignore */
+    }
+  }
 })();

@@ -60,10 +60,12 @@
     color: '#f8fafc',
     font: '13px/1.4 system-ui, sans-serif',
     boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
-    pointerEvents: 'none',
+    pointerEvents: 'auto',
     maxWidth: 'min(420px, 92vw)',
     textAlign: 'center',
   });
+  banner.setAttribute('tabindex', '-1');
+  banner.setAttribute('role', 'status');
 
   /** Block synthesized clicks on links after pick (cleanup used to run before click fired). */
   let blockPageNavigation = true;
@@ -88,7 +90,8 @@
 
   function cleanup() {
     blockPageNavigation = false;
-    document.removeEventListener('keydown', onKeyDown, true);
+    window.removeEventListener('keydown', onKeyDown, true);
+    banner.removeEventListener('keydown', onKeyDown, true);
     document.removeEventListener('click', swallowPageActivation, true);
     document.removeEventListener('auxclick', swallowPageActivation, true);
     document.removeEventListener('pointerup', swallowPageActivation, true);
@@ -118,6 +121,10 @@
       });
     } catch {
       /* extension context gone */
+    }
+    if (payload?.type === 'PICK_MODE_CANCELLED') {
+      cleanup();
+      return;
     }
     // Keep swallowing clicks briefly so links under the pick target do not open.
     setTimeout(cleanup, 400);
@@ -469,7 +476,8 @@
     finish({ type: 'PICK_MODE_COMPLETE', text });
   }
 
-  document.addEventListener('keydown', onKeyDown, true);
+  window.addEventListener('keydown', onKeyDown, true);
+  banner.addEventListener('keydown', onKeyDown, true);
   document.addEventListener('click', swallowPageActivation, true);
   document.addEventListener('auxclick', swallowPageActivation, true);
   document.addEventListener('pointerup', swallowPageActivation, true);
@@ -477,4 +485,9 @@
   document.addEventListener('mousedown', onMouseDown, true);
   document.addEventListener('mouseup', onMouseUp, true);
   document.body.append(banner, overlay);
+  try {
+    banner.focus({ preventScroll: true });
+  } catch {
+    /* ignore */
+  }
 })();

@@ -362,8 +362,16 @@ select {
   padding: 8px;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: transparent;
+  background: #fff;
   color: inherit;
+}
+
+@media (prefers-color-scheme: dark) {
+  input[type='text'],
+  textarea,
+  select {
+    background: #1e293b;
+  }
 }
 
 textarea {
