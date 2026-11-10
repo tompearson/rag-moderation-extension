@@ -1069,10 +1069,20 @@ function updateModerateBtnPrompt() {
   refreshModerateToolbarButton().catch(() => {});
 }
 
+/** Scroll so the elapsed timer and Stop control are visible while moderating. */
+function scrollModerationProgressIntoView() {
+  if (!moderationProgress || moderationProgress.classList.contains('hidden')) return;
+  const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+  requestAnimationFrame(() => {
+    moderationProgress.scrollIntoView({ block: 'end', behavior });
+  });
+}
+
 function startModerationProgress(timeoutSec) {
   abortPickMode();
   stopModerateBtnPrompt();
   moderationProgress.classList.remove('hidden');
+  scrollModerationProgressIntoView();
   moderationLimit.textContent = `/ ${timeoutSec}s max`;
   moderationElapsed.textContent = '0.0s';
   const started = performance.now();
