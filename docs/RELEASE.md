@@ -2,7 +2,9 @@
 
 Until the extension is on the Chrome Web Store, **GitHub Releases** is the primary way to hand testers a production-shaped build.
 
-**Download latest:** [github.com/tompearson/rag-moderation-extension/releases/latest](https://github.com/tompearson/rag-moderation-extension/releases/latest)
+**Download latest (site):** [www.airesearchdog.net/extension/get-latest-extension](https://www.airesearchdog.net/extension/get-latest-extension) — direct ZIP on this domain after maintainer `package:store` + Universal `deploy:prod`.
+
+**Download latest (GitHub):** [github.com/tompearson/rag-moderation-extension/releases/latest](https://github.com/tompearson/rag-moderation-extension/releases/latest)
 
 ## For maintainers — cut a release
 
@@ -116,3 +118,33 @@ Every push/PR to `master` runs [.github/workflows/ci.yml](../.github/workflows/c
 The same ZIP from Releases can be uploaded to the Web Store when you are listed. See [STORE_CHECKLIST.md](./STORE_CHECKLIST.md) and [STORE_PACKAGING.md](./STORE_PACKAGING.md).
 
 **Public HTML guides** (install, privacy, contact, etc.) update via `npm run sync:public-guides` and Universal `deploy:prod` — no extension tag required for site-only doc changes.
+
+### Ship on-site sideload download (production)
+
+GitHub tag releases do **not** update the ZIP on airesearchdog.net automatically. To refresh the public download page and file:
+
+**From `rag-moderation-extension`:**
+
+```bash
+npm run package:store    # dist ZIP + docs/data/latest-release.json + copy to Universal downloads/
+```
+
+**From `Moderation-Tool-Universal`** (ZIP must exist under `public/extension/downloads/` — not committed to git; Vercel CLI uploads it from your working tree):
+
+```bash
+npm run sync:public-guides   # if you did not run package:store (it already syncs get-latest)
+npm run deploy:prod
+```
+
+One command (both repos, includes deploy): **`npm run publish:latest-sideload`** from the extension repo.
+
+Production smoke:
+
+```bash
+curl -fsI "https://www.airesearchdog.net/extension/get-latest-extension" | head -1
+curl -fsI "https://www.airesearchdog.net/extension/downloads/rag-moderation-assistant.zip" | head -1
+```
+
+Optional: `sha256sum` on the downloaded ZIP and compare with `docs/data/latest-release.json` in the extension repo.
+
+Always **package → sync (if needed) → deploy** together so the page SHA256 matches the hosted ZIP.

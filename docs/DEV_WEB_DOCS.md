@@ -59,6 +59,7 @@ With current tooling, use the same **clean paths** as production (no `.html` in 
 | How to test the extension | http://127.0.0.1:3000/extension/how-to-test-extension |
 | Visual moderation step by step | http://127.0.0.1:3000/extension/visual-moderation-step-by-step |
 | Contact | http://127.0.0.1:3000/extension/contact |
+| Get latest extension (ZIP) | http://127.0.0.1:3000/extension/get-latest-extension — run `npm run package:store` first so metadata + `public/extension/downloads/*.zip` exist |
 
 You can also load the raw files: `http://127.0.0.1:3000/extension/how-to-moderate-user-posts.html`.
 
@@ -72,7 +73,7 @@ Clean paths are implemented in Universal **`vite.config.js`** (dev/preview) usin
 
 ## Sync only one guide
 
-See **`package.json`** scripts: `sync:gemini-guide`, `sync:install-chrome-guide`, `sync:install-chrome-developer-guide`, `sync:privacy-policy`, `sync:how-to-moderate-guide`, etc., or run all with **`sync:public-guides`**.
+See **`package.json`** scripts: `sync:gemini-guide`, `sync:install-chrome-guide`, `sync:install-chrome-developer-guide`, `sync:get-latest-extension-guide`, `sync:privacy-policy`, `sync:how-to-moderate-guide`, etc., or run all with **`sync:public-guides`** (`sync:get-latest-extension-guide` requires `docs/data/latest-release.json` from a prior **`package:store`**).
 
 **Fast loop (developer install page):** edit `docs/INSTALL_RAG_MODERATION_EXTENSION_CHROME_DEVELOPER.md` → from extension repo `npm run sync:install-chrome-developer-guide` → reload [install-chrome-extension-developer](http://127.0.0.1:3000/extension/install-chrome-extension-developer) with `npm run docs:dev:serve` (no `deploy:prod` until copy is final).
 

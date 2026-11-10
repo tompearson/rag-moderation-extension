@@ -6,7 +6,7 @@ Look for **RAG Moderation Assistant** in the [Chrome Web Store listing](https://
 
 You may get email from **info@airesearchdog.net** when a new **sideload** build is published. That message is for **this install path** — not the Chrome Web Store.
 
-1. **Use the ZIP link in the email** (or open [GitHub Releases — latest](https://github.com/tompearson/rag-moderation-extension/releases/latest) and under **Assets**, download `rag-moderation-assistant-<version>.zip`).
+1. **Use the ZIP link in the email**, download from **[Get the latest extension](https://www.airesearchdog.net/extension/get-latest-extension)** on this site, or open [GitHub Releases — latest](https://github.com/tompearson/rag-moderation-extension/releases/latest) and under **Assets**, download `rag-moderation-assistant-<version>.zip`.
 2. **Optional:** compare **SHA256** in the email with the file on your machine (`sha256sum` on Linux, `shasum -a 256` on macOS).
 3. **Unzip** the download to a folder.
 4. Chrome cannot install the `.zip` directly — continue below with **Part 1**, then choose that **unzipped folder** when you click **Load unpacked**.

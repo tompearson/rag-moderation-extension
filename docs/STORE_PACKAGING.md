@@ -17,6 +17,10 @@ Outputs:
 |----------|---------|
 | `dist/store/` | **Load unpacked** here for pre-upload QA (same files as the ZIP) |
 | `dist/rag-moderation-assistant.zip` | Upload to [Chrome Web Store](https://chrome.google.com/webstore/devconsole) and [Edge Partner Center](https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/publish-extension) |
+| `docs/data/latest-release.json` | Version + SHA256 for the public [get-latest-extension](https://www.airesearchdog.net/extension/get-latest-extension) page (committed) |
+| `Moderation-Tool-Universal/public/extension/downloads/*.zip` | On-site sideload download (gitignored; copied each `package:store`) |
+
+After `npm run package:store`, sync refreshes `get-latest-extension.html`. Ship to production with `npm run publish:latest-sideload` or Universal `npm run deploy:prod` (ZIP must exist on disk first). See [RELEASE.md](./RELEASE.md).
 
 Optional check that the ZIP matches the folder:
 

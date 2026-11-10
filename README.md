@@ -71,9 +71,9 @@ Full stack: Universal `npm run test:rag-smoke` then manual matrix in [docs/SMOKE
 
 ## Download latest build (sideload)
 
-**Production-shaped ZIP** from GitHub Releases (unzip → Load unpacked):
+**On this site** (version + SHA256 + ZIP): [get-latest-extension](https://www.airesearchdog.net/extension/get-latest-extension)
 
-[Download latest release](https://github.com/tompearson/rag-moderation-extension/releases/latest)
+**GitHub Releases:** [latest tagged ZIP](https://github.com/tompearson/rag-moderation-extension/releases/latest)
 
 Steps: [docs/RELEASE.md](./docs/RELEASE.md) and [developer install guide](https://www.airesearchdog.net/extension/install-chrome-extension-developer).
 
@@ -84,7 +84,8 @@ See [docs/STORE_CHECKLIST.md](./docs/STORE_CHECKLIST.md), [docs/STORE_PACKAGING.
 Cut a tagged release: [docs/RELEASE.md](./docs/RELEASE.md).
 
 ```bash
-npm run package:store   # dist/store/ + dist/rag-moderation-assistant.zip
+npm run package:store   # dist/store/ + ZIP + latest-release.json + Universal downloads copy
+npm run publish:latest-sideload   # package + sync guides + deploy:prod (maintainers)
 ```
 
 ## Related repos

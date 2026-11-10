@@ -32,6 +32,7 @@ const EXTENSION_PATHS = [
   '/extension/how-to-test-extension',
   '/extension/visual-moderation-step-by-step',
   '/extension/contact',
+  '/extension/get-latest-extension',
 ];
 
 const openBrowser = process.argv.includes('--open');
