@@ -50,8 +50,7 @@ For **RAG Moderation Assistant**: the key stays in **this browser only**; it is 
    Scroll to that section.
 3. **Paste the key**
 
-   If you prefer the shared pool and do not want a personal key yet, then you may begin moderating now. Note that you will have limited usage with a shared key.   
-     Click in the **Gemini API key** field and paste (`Ctrl+V` / `Cmd+V`), or use **Paste** to read from the clipboard.  
+   Click in the **Gemini API key** field and paste (`Ctrl+V` / `Cmd+V`), or use **Paste** to read from the clipboard.  
      The status line may show the **last four characters** once so you can confirm the right key; the full key is not shown again after save.
 
 ![Options: Gemini API key field after paste, before Save key](/extension/images/get-gemini-options-paste-key.png)
