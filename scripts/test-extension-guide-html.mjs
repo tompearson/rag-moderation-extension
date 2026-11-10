@@ -23,13 +23,20 @@ assert.match(html, /site-header/, 'renders header');
 assert.match(html, /aria-current="page">Privacy/, 'active nav');
 assert.match(html, /Not affiliated with Nextdoor/, 'disclaimer');
 assert.match(html, /site-footer__legal/, 'legal footer links');
+assert.match(html, /site-footer__sitemap/, 'footer site map');
+assert.match(html, /aria-label="Extension guides site map"/, 'sitemap nav label');
 assert.match(html, /href="\/extension\/terms">Terms of use/, 'terms link');
 assert.match(html, /Privacy policy/, 'privacy footer (current page)');
-assert.doesNotMatch(
-  html,
-  /site-footer__legal[\s\S]*important-ai-generated-analysis/,
-  'no AI link in footer',
+const legalFooterRow = html.match(
+  /<p class="site-footer__line site-footer__legal">[\s\S]*?<\/p>/,
 );
+assert.ok(legalFooterRow, 'legal footer row');
+assert.doesNotMatch(
+  legalFooterRow[0],
+  /important-ai-generated-analysis/,
+  'no AI link in legal footer row (sitemap may link AI notice)',
+);
+assert.match(html, /site-footer__sitemap[\s\S]*important-ai-generated-analysis/, 'AI notice in site map');
 assert.match(html, /<main>/, 'main content');
 
 const folded = wrapGuideBackgroundFold(

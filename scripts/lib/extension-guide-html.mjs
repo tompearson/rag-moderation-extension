@@ -16,6 +16,21 @@ export const EXTENSION_GUIDE_NAV = [
   { href: '/extension/privacy', label: 'Privacy' },
 ];
 
+/** All published /extension/* guide pages (footer site map). */
+export const EXTENSION_GUIDE_SITEMAP = [
+  { href: '/extension/install-chrome-extension', label: 'Install (Web Store)' },
+  { href: '/extension/install-chrome-extension-developer', label: 'Install (developer)' },
+  { href: '/extension/get-latest-extension', label: 'Get latest ZIP' },
+  { href: '/extension/how-to-moderate-user-posts', label: 'How to moderate' },
+  { href: '/extension/how-to-test-extension', label: 'How to test' },
+  { href: '/extension/visual-moderation-step-by-step', label: 'Visual walkthrough' },
+  { href: '/extension/get-gemini-api-key', label: 'Gemini API key' },
+  { href: '/extension/important-ai-generated-analysis', label: 'AI-generated notice' },
+  { href: '/extension/contact', label: 'Contact' },
+  { href: '/extension/privacy', label: 'Privacy policy' },
+  { href: '/extension/terms', label: 'Terms of use' },
+];
+
 export const EXTENSION_GUIDE_PAGE_CSS = `
   :root {
     --bg-page: #f4f5f2;
@@ -453,6 +468,51 @@ export const EXTENSION_GUIDE_PAGE_CSS = `
     color: var(--green);
   }
 
+  .site-footer__sitemap {
+    margin: 1rem 0 0.65rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--border);
+    text-align: left;
+  }
+
+  .site-footer__sitemap-title {
+    margin: 0 0 0.55rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text);
+    text-align: center;
+  }
+
+  .site-footer__sitemap ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    justify-content: center;
+    font-size: 0.78rem;
+  }
+
+  .site-footer__sitemap a {
+    color: var(--green-dark);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .site-footer__sitemap a:hover {
+    text-decoration: underline;
+    color: var(--green);
+  }
+
+  .site-footer__sitemap [aria-current="page"] {
+    color: var(--text-muted);
+    font-weight: 600;
+    cursor: default;
+  }
+
   @media (max-width: 480px) {
     main { margin-left: 12px; margin-right: 12px; padding: 22px 18px 28px; }
   }
@@ -593,6 +653,22 @@ function renderSiteHeader(pagePath, showGuideNav = true) {
  * @param {string} footerText
  * @param {string | undefined} pagePath
  */
+function renderSiteFooterSitemap(pagePath) {
+  const items = EXTENSION_GUIDE_SITEMAP.map(({ href, label }) => {
+    const current = pagePath && href === pagePath;
+    if (current) {
+      return `<li><span aria-current="page">${label}</span></li>`;
+    }
+    return `<li><a href="${href}">${label}</a></li>`;
+  }).join('\n        ');
+  return `<nav class="site-footer__sitemap" aria-label="Extension guides site map">
+      <p class="site-footer__sitemap-title">Site map</p>
+      <ul>
+        ${items}
+      </ul>
+    </nav>`;
+}
+
 function renderSiteFooter(footerText, pagePath) {
   const { privacy, terms } = EXTENSION_GUIDE_FOOTER_PATHS;
   const onPrivacy = pagePath === privacy;
@@ -604,6 +680,7 @@ function renderSiteFooter(footerText, pagePath) {
 
   return `<footer class="site-footer">
     <p class="site-footer__line">${footerText}</p>
+    ${renderSiteFooterSitemap(pagePath)}
     <p class="site-footer__line site-footer__legal">${privacyLink} · ${termsLink}</p>
     <p class="site-footer__line">Not affiliated with Nextdoor, Inc.</p>
   </footer>`;
