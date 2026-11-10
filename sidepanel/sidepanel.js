@@ -289,14 +289,20 @@ let lastSuccessfulModerationKey = null;
  * @param {string} postContext
  * @param {string} analysisType
  * @param {boolean} badWordsEnabled
+ * @param {string} userLocation
  */
-function moderationRequestKey(content, postContext, analysisType, badWordsEnabled) {
+function moderationRequestKey(content, postContext, analysisType, badWordsEnabled, userLocation) {
   return JSON.stringify({
     c: content,
     p: postContext.trim(),
     a: analysisType,
     b: badWordsEnabled,
+    l: (userLocation || '').trim(),
   });
+}
+
+function currentFeedLocationForRequestKey() {
+  return locationPicker.getValue() || DEFAULT_USER_LOCATION;
 }
 
 /** @type {'onboarding' | 'sendReport'} */
@@ -730,7 +736,7 @@ async function refreshModerateToolbarButton(settingsIn) {
     moderateBtn.title = 'Shared pool limit reached — add your Gemini key in Options.';
   } else if (alreadyModerated) {
     moderateBtn.title =
-      'Already moderated this text with these settings. Edit content, change analysis, or Clear content to run again.';
+      'Already moderated this text with these settings. Edit content, change analysis or feed location, or Clear content to run again.';
   } else {
     moderateBtn.removeAttribute('title');
   }
@@ -952,6 +958,7 @@ locationPicker.onChange(async (selected) => {
   if (settings.userLocation === selected) return;
   try {
     await saveUserLocation(selected, { onboarding: settings.locationOnboardingComplete });
+    updateModerateBtnPrompt();
   } catch {
     locationPicker.setValue(settings.userLocation || DEFAULT_USER_LOCATION);
   }
@@ -962,6 +969,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (changes.userLocation && !statePickerBusy()) {
     const next = changes.userLocation.newValue;
     if (hasValidUserLocation(next)) setPickerValues(next);
+    updateModerateBtnPrompt();
   }
   if (
     changes.envProfileId ||
@@ -1059,6 +1067,7 @@ function currentModerationRequestKey() {
     postContextInput.value.trim(),
     analysisSelect.value,
     badWordsCheckbox.checked,
+    currentFeedLocationForRequestKey(),
   );
 }
 
@@ -1700,10 +1709,11 @@ moderateBtn.addEventListener('click', async () => {
     postContext,
     analysisType,
     badWordsEnabled,
+    currentFeedLocationForRequestKey(),
   );
   if (requestKey === lastSuccessfulModerationKey) {
     setStatus(
-      'Already moderated this same text with these settings. Your last decision is in the Results section below—edit content, change analysis, or Clear content to run again.',
+      'Already moderated this same text with these settings. Your last decision is in the Results section below—edit content, change analysis or feed location, or Clear content to run again.',
       true,
     );
     resultsEl.classList.remove('hidden');
