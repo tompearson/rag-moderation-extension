@@ -65,7 +65,7 @@ Stored in **local extension storage** until you change or remove it (Options sav
 
 **Backup settings** (Options) lets you download a JSON file of your saved preferences and import it later. That export is **user-initiated** (not automatic). The backup **does not include your Gemini API key** (you must enter the key again after restore if you use BYOK). The file may still contain sensitive data such as your report email and feed location—store it like a private document and do not share it.
 
-**Reset extension** (Options) wipes saved settings, sets profile to Production, and revokes optional host permissions you granted for API hosts. It does **not** clear text already in an open side panel—you must use **Clear content** or close the panel.
+**Reset extension** (Options) wipes saved settings, sets profile to Production, and revokes optional host permissions you granted for API hosts. It does **not** reset the **shared-pool moderation count** for this install (still capped at 5 without your own key). It does **not** clear text already in an open side panel—you must use **Clear content** or close the panel.
 
 ## What is sent to servers
 

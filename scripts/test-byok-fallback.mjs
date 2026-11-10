@@ -26,8 +26,8 @@ assert.equal(isLikelyGeminiKeyAuthFailure('API key not valid'), true);
 assert.equal(isLikelyGeminiKeyAuthFailure('Gemini API quota exceeded.'), false);
 assert.equal(isLikelyGeminiKeyAuthFailure(''), false);
 
-assert.match(sharedPoolActiveStatusMessage(), /shared pool/i);
-assert.match(sharedPoolActiveStatusMessage(), /Save key/i);
+assert.match(sharedPoolActiveStatusMessage(), /shared moderations/i);
+assert.match(sharedPoolActiveStatusMessage(), /Save your own Gemini key/i);
 
 assert.equal(
   shouldShowSharedPoolStatusForModerationError(

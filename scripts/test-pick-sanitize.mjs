@@ -1,4 +1,8 @@
-import { isExternalModerationUrl, sanitizePickedModerationText } from '../lib/pickSanitize.js';
+import {
+  isExternalModerationUrl,
+  isPosterMetadataLine,
+  sanitizePickedModerationText,
+} from '../lib/pickSanitize.js';
 
 function assert(cond, msg) {
   if (!cond) throw new Error(msg);
@@ -27,5 +31,17 @@ const glued =
   'If you need reminding:\nhttps://saintmarks.org/justice/refugees/What does the Bible say';
 const fixed = sanitizePickedModerationText(glued);
 assert(fixed.includes('refugees/\nWhat'), 'splits glued URL tail');
+
+assert(isPosterMetadataLine('D'), 'avatar initial');
+assert(isPosterMetadataLine('Daylene L.'), 'neighbor name');
+assert(isPosterMetadataLine('2 days ago'), 'relative time');
+
+const withByline = `D
+Daylene L.
+2 days ago
+Dear Nextdoor, please stop showing me homeless or dead animals. K? Thanks.`;
+const commentOnly = sanitizePickedModerationText(withByline);
+assert(commentOnly.startsWith('Dear Nextdoor'), 'drops leading byline');
+assert(!commentOnly.includes('Daylene'), 'no author name in output');
 
 console.log('OK — pick sanitize tests passed');

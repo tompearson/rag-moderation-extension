@@ -41,12 +41,23 @@ import {
   isByokConfigured,
   isLikelyGeminiKeyAuthFailure,
   sharedPoolActiveStatusMessage,
-  noSavedGeminiKeyBadgeTitle,
+  sharedPoolByokOffBadgeLabel,
+  sharedPoolByokOffBadgeTitle,
   shouldShowSharedPoolStatusForModerationError,
   isSharedPoolModerationFailureResult,
   shouldClearByokWithoutKey,
   geminiKeyAuthFailureStatusMessage,
 } from '../lib/geminiByok.js';
+import {
+  SHARED_POOL_STORAGE_KEY,
+  canUseSharedPoolForModeration,
+  formatSharedPoolRemainingLabel,
+  getSharedPoolModerationsUsed,
+  getSharedPoolRemaining,
+  isSharedPoolLimitExceededMessage,
+  sharedPoolLimitExceededMessage,
+  sharedPoolModerationBlockMessage,
+} from '../lib/sharedPoolQuota.js';
 import {
   GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL,
   INSTALL_CHROME_EXTENSION_GUIDE_URL,
@@ -69,6 +80,8 @@ import {
   consumePendingModerationDraft,
 } from '../lib/pendingModerationDraft.js';
 import { prepareTabCaptureFromSidePanel } from '../lib/prepareTabCapture.js';
+import { DISMISS_STALE_PICK_MODES, tearDownPickModeOnTab } from '../lib/pickMode.js';
+import { isReadablePageUrl } from '../lib/pageAccess.js';
 import {
   decisionClass,
   formatReportCategory,
@@ -192,6 +205,7 @@ function refreshExtensionContactSavedEmailNote(savedDisplay) {
 const mainPanel = document.getElementById('main-panel');
 const connectionBadge = document.getElementById('connection-badge');
 const byokBadge = document.getElementById('byok-badge');
+const sharedPoolQuotaLine = document.getElementById('shared-pool-quota-line');
 const installExtensionGuideLink = document.getElementById('install-extension-guide-link');
 const geminiKeyGuideLink = document.getElementById('gemini-key-guide-link');
 const sidepanelGuideSepInstall = document.getElementById('sidepanel-guide-sep-install');
@@ -223,6 +237,8 @@ const locationPicker = createStatePicker(document.getElementById('user-location'
   triggerId: 'user-location-trigger',
 });
 const contentInput = /** @type {HTMLTextAreaElement} */ (document.getElementById('content'));
+const DEFAULT_CONTENT_PLACEHOLDER =
+  'Select text from the page, or Paste post text here…';
 const pasteContentBtn = document.getElementById('paste-content-btn');
 const pickContentBtn = document.getElementById('pick-content-btn');
 const postContextDetails = document.getElementById('post-context-details');
@@ -230,8 +246,7 @@ const postContextInput = /** @type {HTMLTextAreaElement} */ (document.getElement
 const analysisSelect = /** @type {HTMLSelectElement} */ (document.getElementById('analysis-type'));
 const badWordsCheckbox = /** @type {HTMLInputElement} */ (document.getElementById('bad-words-enabled'));
 const moderateBtn = document.getElementById('moderate-btn');
-const MODERATE_BTN_PROMPT_CLASS = 'moderate-btn-prompt';
-const clearBtn = document.getElementById('clear-btn');
+const clearContentPillBtn = document.getElementById('clear-content-pill-btn');
 const moderationProgress = document.getElementById('moderation-progress');
 const moderationElapsed = document.getElementById('moderation-elapsed');
 const moderationLimit = document.getElementById('moderation-limit');
@@ -623,12 +638,110 @@ async function refreshConnectionBadge() {
   await refreshByokBadge(settings);
 }
 
+/**
+ * @param {import('../lib/userSettings.js').ExtensionSettings} settings
+ * @returns {Promise<number | null>}
+ */
+async function sharedPoolRemainingForUi(settings) {
+  if (hasSavedGeminiKey(settings)) return null;
+  const used = await getSharedPoolModerationsUsed();
+  return getSharedPoolRemaining(used);
+}
+
+function clearSharedPoolInfoStatus() {
+  if (!statusEl) return;
+  const msg = statusEl.textContent || '';
+  if (
+    !statusEl.classList.contains('status-info') ||
+    !/shared pool|shared moderations|limit reached|Save your own Gemini/i.test(msg)
+  ) {
+    return;
+  }
+  statusEl.textContent = '';
+  statusEl.classList.remove('status-info');
+}
+
+/**
+ * @param {import('../lib/userSettings.js').ExtensionSettings} [settingsIn]
+ */
+function applyContentPlaceholderForSharedPool(remaining, hasKey) {
+  if (!contentInput) return;
+  if (hasKey || remaining > 0) {
+    contentInput.placeholder = DEFAULT_CONTENT_PLACEHOLDER;
+    return;
+  }
+  contentInput.placeholder = formatSharedPoolRemainingLabel(0);
+}
+
+async function refreshSharedPoolQuotaLine(settingsIn) {
+  const settings = settingsIn || (await loadSettings());
+  const hasKey = hasSavedGeminiKey(settings);
+  const remaining = hasKey ? 1 : (await sharedPoolRemainingForUi(settings)) ?? 0;
+  applyContentPlaceholderForSharedPool(remaining, hasKey);
+
+  if (!sharedPoolQuotaLine) return;
+  if (hasKey) {
+    sharedPoolQuotaLine.textContent = '';
+    sharedPoolQuotaLine.hidden = true;
+    sharedPoolQuotaLine.classList.add('hidden');
+    sharedPoolQuotaLine.classList.remove('shared-pool-quota-line--exhausted');
+    return;
+  }
+  sharedPoolQuotaLine.textContent = formatSharedPoolRemainingLabel(remaining);
+  sharedPoolQuotaLine.hidden = false;
+  sharedPoolQuotaLine.classList.remove('hidden');
+  sharedPoolQuotaLine.classList.toggle('shared-pool-quota-line--exhausted', remaining === 0);
+}
+
+async function refreshModerateToolbarButton(settingsIn) {
+  if (!(moderateBtn instanceof HTMLButtonElement)) return;
+  if (activeModerationRequestId != null) return;
+
+  const hasContent = Boolean(contentInput.value.trim());
+  if (!hasContent) {
+    moderateBtn.disabled = true;
+    moderateBtn.classList.add('moderate-toolbar-muted');
+    moderateBtn.classList.remove('moderate-toolbar-ready');
+    moderateBtn.removeAttribute('title');
+    return;
+  }
+
+  const settings = settingsIn || (await loadSettings());
+  let poolBlocked = false;
+  if (!hasSavedGeminiKey(settings)) {
+    poolBlocked = !(await canUseSharedPoolForModeration(settings));
+  }
+
+  const alreadyModerated = currentModerationRequestKey() === lastSuccessfulModerationKey;
+  const ready = !poolBlocked && !alreadyModerated;
+
+  moderateBtn.disabled = !ready;
+  moderateBtn.classList.toggle('moderate-toolbar-muted', !ready);
+  moderateBtn.classList.toggle('moderate-toolbar-ready', ready);
+  if (poolBlocked) {
+    moderateBtn.title = 'Shared pool limit reached — add your Gemini key in Options.';
+  } else if (alreadyModerated) {
+    moderateBtn.title =
+      'Already moderated this text with these settings. Edit content, change analysis, or Clear content to run again.';
+  } else {
+    moderateBtn.removeAttribute('title');
+  }
+}
+
 async function refreshSharedPoolStatusHint() {
   if (!statusEl) return;
   if (activeModerationRequestId != null) return;
   const settings = await loadSettings();
-  if (hasSavedGeminiKey(settings)) return;
-  setInfoStatus(sharedPoolActiveStatusMessage());
+  if (hasSavedGeminiKey(settings)) {
+    clearSharedPoolInfoStatus();
+    return;
+  }
+  const remaining = await sharedPoolRemainingForUi(settings);
+  if (remaining === 0) {
+    setInfoStatus(sharedPoolLimitExceededMessage());
+    return;
+  }
+  setInfoStatus(sharedPoolActiveStatusMessage(remaining));
 }
 
 async function refreshByokBadge(settingsIn) {
@@ -647,10 +760,12 @@ async function refreshByokBadge(settingsIn) {
     byokBadge.setAttribute('aria-pressed', 'true');
   } else {
     byokBadge.classList.add('byok-badge--off', 'byok-badge--no-key');
-    byokBadge.textContent = 'Your key · Off';
-    byokBadge.title = noSavedGeminiKeyBadgeTitle();
+    byokBadge.textContent = sharedPoolByokOffBadgeLabel();
+    byokBadge.title = sharedPoolByokOffBadgeTitle();
     byokBadge.setAttribute('aria-pressed', 'false');
   }
+  await refreshModerateToolbarButton(settings);
+  await refreshSharedPoolQuotaLine(settings);
 }
 
 async function handleByokBadgeClick() {
@@ -662,7 +777,12 @@ async function handleByokBadgeClick() {
       if (shouldClearByokWithoutKey(settings)) {
         await saveSettingsPatch({ geminiByokEnabled: false });
       }
-      setInfoStatus(sharedPoolActiveStatusMessage());
+      const remaining = await sharedPoolRemainingForUi(settings);
+      setInfoStatus(
+        remaining === 0
+          ? sharedPoolLimitExceededMessage()
+          : sharedPoolActiveStatusMessage(remaining),
+      );
       await refreshByokBadge(await loadSettings());
     } else {
       setInfoStatus(
@@ -689,6 +809,7 @@ async function syncSidePanelFromStorage() {
   if (!statePickerBusy() && hasValidUserLocation(refreshed.userLocation)) {
     setPickerValues(refreshed.userLocation);
   }
+  syncPickContentButton();
 }
 
 async function maybeMigrateStoredLocation(settings) {
@@ -839,7 +960,8 @@ chrome.storage.onChanged.addListener((changes, area) => {
     changes.customApiOrigin ||
     changes[STORAGE_KEYS.geminiApiKey] ||
     changes[STORAGE_KEYS.geminiByokEnabled] ||
-    changes[STORAGE_KEYS.ragProvider]
+    changes[STORAGE_KEYS.ragProvider] ||
+    changes[SHARED_POOL_STORAGE_KEY]
   ) {
     syncSidePanelFromStorage().catch(() => {});
   }
@@ -897,8 +1019,15 @@ function setGeminiQuotaHelpStatus(byokWasOn = false) {
  */
 function setErrorStatus(message, noSavedKey = false) {
   const msg = sanitizeModerationReason(message);
+  if (isSharedPoolLimitExceededMessage(msg)) {
+    setInfoStatus(msg);
+    refreshByokBadge(loadSettings()).catch(() => {});
+    return;
+  }
   if (noSavedKey && shouldShowSharedPoolStatusForModerationError(msg)) {
-    setInfoStatus(sharedPoolActiveStatusMessage());
+    sharedPoolRemainingForUi(loadSettings())
+      .then((remaining) => setInfoStatus(sharedPoolActiveStatusMessage(remaining)))
+      .catch(() => setInfoStatus(sharedPoolActiveStatusMessage()));
     return;
   }
   if (isGeminiQuotaOrBillingIssue(msg)) {
@@ -909,9 +1038,11 @@ function setErrorStatus(message, noSavedKey = false) {
 }
 
 /** @param {import('../lib/userSettings.js').ExtensionSettings} settings */
-function setNoKeyPostModerationHint(settings) {
+async function setNoKeyPostModerationHint(settings) {
   if (hasSavedGeminiKey(settings)) return;
-  setInfoStatus(sharedPoolActiveStatusMessage());
+  const remaining = await sharedPoolRemainingForUi(settings);
+  setInfoStatus(sharedPoolActiveStatusMessage(remaining));
+  await refreshByokBadge(settings);
 }
 
 function currentModerationRequestKey() {
@@ -924,23 +1055,18 @@ function currentModerationRequestKey() {
 }
 
 function isModerateReadyToPrompt() {
-  if (!(moderateBtn instanceof HTMLButtonElement) || moderateBtn.disabled) return false;
+  if (!(moderateBtn instanceof HTMLButtonElement)) return false;
   if (!contentInput.value.trim()) return false;
   if (activeModerationRequestId) return false;
   return currentModerationRequestKey() !== lastSuccessfulModerationKey;
 }
 
-function applyModerateBtnPromptClass(on) {
-  if (!(moderateBtn instanceof HTMLButtonElement)) return;
-  moderateBtn.classList.toggle(MODERATE_BTN_PROMPT_CLASS, on);
-}
-
 function stopModerateBtnPrompt() {
-  applyModerateBtnPromptClass(false);
+  moderateBtn?.classList.remove('moderate-toolbar-ready');
 }
 
 function updateModerateBtnPrompt() {
-  applyModerateBtnPromptClass(isModerateReadyToPrompt());
+  refreshModerateToolbarButton().catch(() => {});
 }
 
 function startModerationProgress(timeoutSec) {
@@ -957,6 +1083,8 @@ function startModerationProgress(timeoutSec) {
   }, 100);
   abortModerateBtn.disabled = false;
   moderateBtn.disabled = true;
+  moderateBtn.classList.add('moderate-toolbar-muted');
+  moderateBtn.classList.remove('moderate-toolbar-ready');
   syncPickContentButton();
 }
 
@@ -967,10 +1095,10 @@ function stopModerationProgress() {
   }
   moderationProgress.classList.add('hidden');
   activeModerationRequestId = null;
-  moderateBtn.disabled = false;
   abortModerateBtn.disabled = true;
   syncPickContentButton();
-  updateModerateBtnPrompt();
+  moderateBtn.classList.remove('moderate-toolbar-muted');
+  refreshModerateToolbarButton().catch(() => {});
 }
 
 /**
@@ -1595,6 +1723,13 @@ moderateBtn.addEventListener('click', async () => {
     return;
   }
 
+  const sharedPoolBlock = await sharedPoolModerationBlockMessage(settings);
+  if (sharedPoolBlock) {
+    setInfoStatus(sharedPoolBlock);
+    await refreshByokBadge(settings);
+    return;
+  }
+
   const timeoutSec = settings.moderateTimeoutSec;
   const requestId = crypto.randomUUID();
   activeModerationRequestId = requestId;
@@ -1635,7 +1770,8 @@ moderateBtn.addEventListener('click', async () => {
         !byokActiveForRequest &&
         isSharedPoolModerationFailureResult(response.result)
       ) {
-        setInfoStatus(sharedPoolActiveStatusMessage());
+        const remaining = await sharedPoolRemainingForUi(settings);
+        setInfoStatus(sharedPoolActiveStatusMessage(remaining));
       } else {
         setStatus(moderationFailureStatusMessage(response.result), true);
       }
@@ -1647,7 +1783,7 @@ moderateBtn.addEventListener('click', async () => {
         reportFlags,
       );
       if (!hasSavedGeminiKey(settings)) {
-        setNoKeyPostModerationHint(settings);
+        await setNoKeyPostModerationHint(settings);
       } else if (settings.reportEmailEnabled && !actionsHtml) {
         setStatus(
           savedReport
@@ -1685,14 +1821,21 @@ abortModerateBtn.addEventListener('click', () => {
   setStatus('Stopping…');
 });
 
-clearBtn.addEventListener('click', () => {
+function clearModerationContentFields() {
+  if (pickModeInProgress) {
+    abortPickMode({ restoreField: false });
+  }
   contentInput.value = '';
   postContextInput.value = '';
   lastSuccessfulModerationKey = null;
   resultsEl.classList.add('hidden');
   stopModerateBtnPrompt();
   setStatus('');
-});
+  updateModerateBtnPrompt();
+  syncPickContentButton();
+}
+
+clearContentPillBtn?.addEventListener('click', clearModerationContentFields);
 
 /** @typedef {'content' | 'postContext'} CaptureField */
 
@@ -1808,6 +1951,22 @@ function abortPickMode({ restoreField = 'content' } = {}) {
   }
 }
 
+/** Clear orphaned pick overlays (panel idle). Panel may still have activeTab right after open. */
+function requestDismissStalePickModes() {
+  if (pickModeInProgress) return;
+  chrome.runtime.sendMessage({ type: DISMISS_STALE_PICK_MODES }).catch(() => {});
+  chrome.tabs
+    .query({ lastFocusedWindow: true })
+    .then((tabs) =>
+      Promise.all(
+        tabs.map((tab) =>
+          tab.id != null && isReadablePageUrl(tab.url) ? tearDownPickModeOnTab(tab.id) : undefined,
+        ),
+      ),
+    )
+    .catch(() => {});
+}
+
 /**
  * @param {CaptureField} field
  */
@@ -1828,7 +1987,9 @@ function syncPickContentButton() {
   pickContentBtn.classList.toggle('pick-btn-active', pickActive);
   pickContentBtn.classList.toggle('pick-btn-muted', moderating && !pickActive);
   pickContentBtn.setAttribute('aria-busy', pickActive ? 'true' : 'false');
-  pickContentBtn.textContent = pickActive ? 'Click text on the page…' : 'Click on Text to Moderate';
+  pickContentBtn.textContent = pickActive
+    ? 'Select text on the page…'
+    : 'Click here to select text you want to moderate';
 }
 
 /**
@@ -1851,7 +2012,9 @@ async function runPickModeForField(field) {
   const runId = ++pickRunGeneration;
   pickModeInProgress = true;
   syncPickContentButton();
-  setStatus('On the page: click on the text you want to capture. Esc cancels (here or on the page).');
+  setStatus(
+    'On the page: click on text or drag to select what to capture. Esc cancels (here or on the page).',
+  );
   let tabId;
   try {
     tabId = await prepareTabCaptureFromSidePanel();
@@ -1959,11 +2122,19 @@ chrome.storage.onChanged.addListener((changes, area) => {
 
 chrome.runtime.onMessage.addListener((message) => {
   if (message?.type === BYOK_CONTINUE_SHARED_POOL) {
-    setInfoStatus(sharedPoolActiveStatusMessage());
-    refreshByokBadge(loadSettings()).catch(() => {});
+    loadSettings()
+      .then(async (s) => {
+        const remaining = await sharedPoolRemainingForUi(s);
+        setInfoStatus(sharedPoolActiveStatusMessage(remaining));
+        await refreshByokBadge(s);
+      })
+      .catch(() => {});
     return false;
   }
   if (message?.type === EXTENSION_UI_SYNC) {
+    if (pickModeInProgress) {
+      abortPickMode({ restoreField: false });
+    }
     syncSidePanelFromStorage().catch(() => {});
   }
   return false;
@@ -1978,6 +2149,7 @@ document.addEventListener('visibilitychange', () => {
     return;
   }
   if (document.visibilityState === 'visible') {
+    requestDismissStalePickModes();
     syncSidePanelFromStorage().catch(() => {});
   }
 });
@@ -1998,8 +2170,11 @@ byokBadge?.addEventListener('click', (e) => {
   });
 });
 
+requestDismissStalePickModes();
 refreshConnectionBadge()
   .then(() => refreshSharedPoolStatusHint())
+  .then(() => refreshModerateToolbarButton())
+  .then(() => syncPickContentButton())
   .catch(() => {});
 consumePendingDraftOnLoad().catch(() => {});
 initLocationUi().catch((err) => {

@@ -117,18 +117,6 @@
           Got it — keep shared pool
         </button>
       </div>
-      <p class="muted">
-        Stored only in this browser. After you save a key, it is sent over HTTPS on
-        <strong>every</strong> moderation (your Google quota, not the shared pool). Get a key from
-        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a>
-        (<a
-          id="gemini-key-guide-link"
-          href="https://www.airesearchdog.net/extension/get-gemini-api-key#google"
-          target="_blank"
-          rel="noopener noreferrer"
-          >Step-by-step guide</a
-        >). <strong>Save key</strong> checks your key with Google first.
-      </p>
       <div class="field-header">
         <label for="gemini-api-key-input">Gemini API key</label>
         <button type="button" id="gemini-key-paste" class="small-btn" title="Paste from clipboard">
@@ -166,6 +154,7 @@
       <p id="gemini-byok-locked-hint" class="muted hidden">
         Your saved key is used for every moderation. Use <strong>Remove key</strong> to use the shared pool again.
       </p>
+      <p id="gemini-shared-pool-quota" class="muted hidden"></p>
       <p id="gemini-byok-status" class="status muted" aria-live="polite"></p>
       <button type="button" id="gemini-byok-details-toggle" class="secondary hidden">Details</button>
       <ul id="gemini-byok-details-list" class="muted hidden"></ul>
@@ -221,7 +210,8 @@
       <h2>Reset extension</h2>
       <p class="muted">
         Clears saved settings, sets profile to <strong>Production</strong>, and revokes granted API host
-        permissions. Side panel draft text is not cleared.
+        permissions. Side panel draft text is not cleared. Shared-pool moderation usage on this install
+        (<strong>up to 5</strong> without your own key) is <strong>not</strong> reset.
       </p>
       <button type="button" id="factory-reset" class="danger">Reset to clean state…</button>
     </section>

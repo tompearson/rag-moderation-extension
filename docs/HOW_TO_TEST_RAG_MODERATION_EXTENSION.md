@@ -96,7 +96,8 @@ Mark each row Pass / Fail / Skip.
 | Feature | Step | Expected |
 |---------|------|----------|
 | Paste | **Paste** | Content filled |
-| Pick mode | **Click on Text to Moderate** → allow host → click/drag | Content updated; pick mode exits; **Esc** cancels cleanly |
+| Pick mode | **Click here to select text you want to moderate** → allow host → click/drag | Content updated; pick mode exits; **Esc** cancels cleanly |
+| Pick after extension reload | **Reload** unpacked build at `chrome://extensions` → open side panel on post tab | Panel shows blue **Click here** (idle); **no** pick banner on the page until you click. If a banner is left over from an old session: **Esc** on the post tab or **refresh the post tab** once |
 | Context menu | Select text → **Send selection to RAG Moderation** | Panel opens/focuses with text |
 | Post context | Open **Post context** → enter text | Field holds text; **Moderate** succeeds |
 | Clear | **Clear content** | Field empty |
@@ -171,8 +172,10 @@ _Screenshot (capture during QA): Contact modal with message ready to send._
 | Valid key | **Save key** | **Your key · On** in header; every moderate uses your key |
 | Badge click (key saved) | Click **Your key · On** | Opens Options (Gemini); does **not** switch to shared pool |
 | Quota on your key | Moderate until quota error | Status mentions AI Studio and **Remove key** for shared pool |
-| Remove | **Remove key** | **Your key · Off**; shared pool; Options shows key field (no “keep shared pool” callout) |
-| Re-save | Paste + **Save key** | **Your key · On** again; locked-on until **Remove** |
+| Remove | **Remove key** | **Your key · Off** with **(N/5 left)** when applicable; status shows shared count; Options quota line |
+| Shared pool cap | With no key, moderate until **5** successes | Badge **limit reached**; **Moderate** disabled; status points to Options / [get-gemini-api-key](https://www.airesearchdog.net/extension/get-gemini-api-key) |
+| Factory reset at cap | **Reset to clean state** | Settings cleared; shared-pool count **unchanged**; still blocked until BYOK |
+| Re-save | Paste + **Save key** | **Your key · On** again; shared counter frozen (does not decrement while key saved) |
 
 ![Options: Gemini BYOK (optional)](/extension/images/how-to-test-options-gemini-byok.png)
 
@@ -188,6 +191,7 @@ Details: **[Get a Gemini API key](https://www.airesearchdog.net/extension/get-ge
 | **Stop** during **Moderate** | Request cancels |
 | Invalid report email in modal | Validation error |
 | **Esc** during pick mode | Pick cancelled; prior content restored if empty |
+| Side panel idle but post tab still shows pick banner (often after **Reload** on `chrome://extensions`) | **Esc** on the post tab clears it; if not, refresh the post tab. Reopen panel—blue **Click here** only; pick starts when you click the button |
 
 ---
 

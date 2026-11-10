@@ -173,6 +173,12 @@
       >
         Your key · Off
       </button>
+      <p
+        id="shared-pool-quota-line"
+        class="badge muted shared-pool-quota-line hidden"
+        aria-live="polite"
+        hidden
+      ></p>
       <p class="muted byok-guide-link">
         <a
           id="install-extension-guide-link"
@@ -199,18 +205,31 @@
           Paste
         </button>
       </div>
-      <button
-        type="button"
-        id="pick-content-btn"
-        class="pick-btn"
-        title="Click on the text you want to capture on the page"
-      >
-        Click on Text to Moderate
-      </button>
+      <div class="content-capture-actions">
+        <button
+          type="button"
+          id="pick-content-btn"
+          class="pick-btn"
+          title="Click on text or drag to select on the page"
+        >
+          Click here to select text you want to moderate
+        </button>
+        <button type="button" id="moderate-btn" class="moderate-toolbar-btn" title="Run moderation on content above">
+          Moderate
+        </button>
+        <button
+          type="button"
+          id="clear-content-pill-btn"
+          class="clear-content-pill"
+          title="Clear content and post context"
+        >
+          Clear content
+        </button>
+      </div>
       <textarea
         id="content"
         rows="6"
-        placeholder="Click on Text to Moderate, or Paste post text here…"
+        placeholder="Select text from the page, or Paste post text here…"
       ></textarea>
 
       <details id="post-context-details">
@@ -229,12 +248,6 @@
       <div class="row checkbox-row">
         <input id="bad-words-enabled" type="checkbox" checked />
         <label for="bad-words-enabled">Bad Words pre-screen</label>
-      </div>
-
-      <div class="actions">
-        <button type="button" id="moderate-btn" class="primary">Moderate</button>
-        <button type="button" id="clear-btn">Clear content</button>
-        <button type="button" class="options-toggle-btn secondary">Options</button>
       </div>
 
       <div id="moderation-progress" class="moderation-progress hidden" aria-live="polite">

@@ -47,7 +47,7 @@
   const banner = document.createElement('div');
   banner.id = BANNER_ID;
   banner.textContent =
-    'Click on the text you want to capture · Esc cancels (page or extension side panel)';
+    'Click on text or drag to select what to capture · Esc cancels (page or extension side panel)';
   Object.assign(banner.style, {
     position: 'fixed',
     top: '12px',
@@ -209,6 +209,65 @@
     return false;
   }
 
+  function isCommentTextBlock(el) {
+    const testId = (el.getAttribute('data-testid') ?? '').toLowerCase();
+    if (
+      testId &&
+      /comment-(text|body|content|message)|reply-(text|body|content|message)|post-(text|body|content)/.test(
+        testId,
+      )
+    ) {
+      return true;
+    }
+    const cls = String(el.className ?? '').toLowerCase();
+    return /(?:^|[\s_-])(comment|reply)[-_]?(text|body|content|message)(?:[\s_-]|$)/.test(cls);
+  }
+
+  function pickTargetTextLength(el) {
+    return String(el.innerText ?? el.textContent ?? '')
+      .replace(/\s+/g, ' ')
+      .trim().length;
+  }
+
+  function tightCaptureTargetForClick(el) {
+    if (!(el instanceof HTMLElement)) return null;
+
+    let best = el;
+    let bestLen = pickTargetTextLength(el);
+
+    for (let n = el; n && n !== document.body; n = n.parentElement) {
+      const len = pickTargetTextLength(n);
+      if (len < 10) continue;
+
+      if (isNextdoorPrimaryText(n)) return n;
+
+      if (isCommentTextBlock(n)) {
+        best = n;
+        bestLen = len;
+      }
+
+      const parent = n.parentElement;
+      if (!parent || parent === document.body) {
+        if (len >= 10 && len <= bestLen) best = n;
+        break;
+      }
+      const parentLen = pickTargetTextLength(parent);
+
+      if (parentLen > len + 100 && parentLen >= len * 1.35) {
+        best = n;
+        bestLen = len;
+        break;
+      }
+
+      if (isPostLikeBlock(n) && len > 0 && len < bestLen) {
+        best = n;
+        bestLen = len;
+      }
+    }
+
+    return bestLen >= 10 ? best : null;
+  }
+
   function smallestPickScopeContaining(el) {
     if (!(el instanceof HTMLElement)) return null;
     /** @type {HTMLElement[]} */
@@ -237,13 +296,26 @@
    */
   function captureTargetForElement(el) {
     if (!el) return null;
+    if (!(el instanceof HTMLElement) && el.parentElement instanceof HTMLElement) {
+      el = el.parentElement;
+    }
+    if (!(el instanceof HTMLElement)) return null;
 
-    let node = el;
-    while (node && node !== document.body) {
-      if (node instanceof HTMLElement && isNextdoorPrimaryText(node)) {
-        return node;
+    let deepestPrimary = null;
+    for (let node = el; node && node !== document.body; node = node.parentElement) {
+      if (isNextdoorPrimaryText(node)) deepestPrimary = node;
+    }
+    if (deepestPrimary) return deepestPrimary;
+
+    const tight = tightCaptureTargetForClick(el);
+    if (tight) {
+      const scoped = smallestPickScopeContaining(tight);
+      if (scoped) {
+        const tightLen = pickTargetTextLength(tight);
+        const scopedLen = pickTargetTextLength(scoped);
+        if (scopedLen <= tightLen * 1.35 + 60) return scoped;
       }
-      node = node.parentElement;
+      return tight;
     }
 
     const scoped = smallestPickScopeContaining(el);

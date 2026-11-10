@@ -1,14 +1,14 @@
 # Get a Gemini API key for moderation
 
-<div class="guide-preface-card" role="note">
-<p class="guide-preface-card__label">Before you begin</p>
-<p><strong>RAG Moderation Assistant</strong> must already be <strong>installed and available</strong> in Google Chrome (Web Store install, pinned toolbar icon, side panel). This guide does not walk through installation.</p>
-<p>If the extension is not installed yet, complete <a href="https://www.airesearchdog.net/extension/install-chrome-extension">Install RAG Moderation Assistant in Google Chrome</a> first, then return here.</p>
-</div>
+Before you begin
+
+**RAG Moderation Assistant** must already be **installed and available** in Google Chrome (Web Store install, pinned toolbar icon, side panel). This guide does not walk through installation.
+
+If the extension is not installed yet, complete [Install RAG Moderation Assistant in Google Chrome](https://www.airesearchdog.net/extension/install-chrome-extension) first, then return here.
 
 Use your own Google Gemini API key (BYOK) so moderations use **your** Google quota instead of the shared pool. This guide is for the **RAG Moderation Assistant** Chrome extension only.
 
-Official key page: [Google AI Studio — API keys](https://aistudio.google.com/apikey)
+Official key page: [Gemini API key in Google AI Studio](https://aistudio.google.com/docs/api-key)
 
 This guide covers **getting a Google key** and **saving it in Options**.
 
@@ -22,25 +22,17 @@ This guide covers **getting a Google key** and **saving it in Options**.
 
 ## Part 1 — Obtain a key from Google {#google}
 
-1. **Sign in**  
-   Open [Google AI Studio](https://aistudio.google.com/) and sign in with your Google account.
+Note: beacuse  you are obtaining a free Gemini API key do not provide any billing information if asked.
 
-2. **Accept terms**  
-   If this is your first visit, review and accept the developer terms and conditions.
+1. **Open the API key page**
 
-3. **Open the API keys area**  
-   Click **Get API key** or the key icon (often in the top-left menu or bottom-left of the dashboard).
+   Go to [Gemini API key in Google AI Studio](https://aistudio.google.com/docs/api-key) and sign in with your Google account if prompted.  
+     On that page, click **Create or view a Gemini API Key** (Google’s label for starting or opening your keys).
+2. **Name and copy the key**
 
-4. **Create a key**  
-   Click **Create API key**.
-
-5. **Choose a Google Cloud project**  
-   Create the key in a **new** Google Cloud project, or pick an **existing** project from the list. Either is fine for personal moderation use; quota and billing apply to that project.
-
-6. **Name and copy the key**  
    Give the key a name you will recognize (for example `RAG moderation BYOK`), confirm creation, and **copy** the full key string.  
-   Google shows it once in full — if you lose it, create a new key in AI Studio.  
-   Do not email the key, post it in chat, or store it where others can read it. Paste it only in the extension **Options** on your machine.
+     Google shows it once in full — if you lose it, create a new key in AI Studio using the same proceedure.  
+     Do not email the key, post it in chat, or store it where others can read it. Paste it only in the extension **Options** on your machine.
 
 You now have a Gemini API key on the clipboard (or saved in your password manager until you paste it).
 
@@ -50,20 +42,22 @@ You now have a Gemini API key on the clipboard (or saved in your password manage
 
 For **RAG Moderation Assistant**: the key stays in **this browser only**; it is not saved on the moderation website server.
 
-1. **Open the extension Options page**  
+1. **Open the extension Options page**
+
    From the side panel, click **Options**.
+2. **Go to “Your Gemini API key (recommended)”**
 
-2. **Go to “Your Gemini API key (recommended)”**  
    Scroll to that section.
+3. **Paste the key**
 
-3. **Paste the key**  
-   If you prefer the shared pool and do not want a personal key yet, then you may begin moderating now.  
-   Click in the **Gemini API key** field and paste (`Ctrl+V` / `Cmd+V`), or use **Paste** to read from the clipboard.  
-   The status line may show the **last four characters** once so you can confirm the right key; the full key is not shown again after save.
+   If you prefer the shared pool and do not want a personal key yet, then you may begin moderating now. Note that you will have limited usage with a shared key.   
+     Click in the **Gemini API key** field and paste (`Ctrl+V` / `Cmd+V`), or use **Paste** to read from the clipboard.  
+     The status line may show the **last four characters** once so you can confirm the right key; the full key is not shown again after save.
 
 ![Options: Gemini API key field after paste, before Save key](/extension/images/get-gemini-options-paste-key.png)
 
-4. **Start moderating**  
+4. **Start moderating**
+
    When your key is saved (or if you are using the shared pool), follow **[Visual moderation step by step](https://www.airesearchdog.net/extension/visual-moderation-step-by-step)** to capture post text, click **Moderate**, and read the results.
 
 ### Extension quick checks

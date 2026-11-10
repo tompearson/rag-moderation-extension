@@ -102,6 +102,26 @@
     return false;
   }
 
+  function isCommentTextBlock(el) {
+    const testId = (el.getAttribute('data-testid') ?? '').toLowerCase();
+    if (
+      testId &&
+      /comment-(text|body|content|message)|reply-(text|body|content|message)|post-(text|body|content)/.test(
+        testId,
+      )
+    ) {
+      return true;
+    }
+    const cls = String(el.className ?? '').toLowerCase();
+    return /(?:^|[\s_-])(comment|reply)[-_]?(text|body|content|message)(?:[\s_-]|$)/.test(cls);
+  }
+
+  function pickTargetTextLength(el) {
+    return String(el.innerText ?? el.textContent ?? '')
+      .replace(/\s+/g, ' ')
+      .trim().length;
+  }
+
   function smallestPickScopeContaining(el) {
     if (!(el instanceof HTMLElement)) return null;
     /** @type {HTMLElement[]} */
@@ -136,6 +156,30 @@
     return /^https?:\/\//i.test(url);
   }
 
+  function isPosterMetadataLine(line) {
+    const t = String(line).trim();
+    if (!t) return true;
+    if (/^[A-Z]$/.test(t)) return true;
+    if (/^(?:just now|yesterday)$/i.test(t)) return true;
+    if (
+      /^\d+\s*(?:s|sec|secs?|second|seconds|m|min|mins?|minute|minutes|h|hr|hrs?|hour|hours|d|day|days|w|wk|week|weeks|mo|month|months|y|yr|years?)\s+ago$/i.test(
+        t,
+      )
+    ) {
+      return true;
+    }
+    if (/^[A-Z][a-z]+(?:['\u2019][a-z]+)?\s+[A-Z]\.$/.test(t)) return true;
+    return false;
+  }
+
+  function stripLeadingPosterMetadata(lines) {
+    let i = 0;
+    while (i < lines.length && isPosterMetadataLine(lines[i])) {
+      i += 1;
+    }
+    return lines.slice(i);
+  }
+
   function sanitizePickedModerationText(text) {
     let out = String(text).replace(/\r/g, '');
     out = out.replace(/(https:\/\/[^\s]*?[a-z0-9\/])([A-Z][a-zA-Z])/g, '$1\n$2');
@@ -154,6 +198,7 @@
       }
       if (/^Post details$/i.test(line)) continue;
       if (/^\d+$/.test(line)) continue;
+      if (isPosterMetadataLine(line)) continue;
 
       if (/^https?:\/\//i.test(line)) {
         if (!isExternalModerationUrl(line)) continue;
@@ -167,7 +212,8 @@
       lines.push(line);
     }
 
-    return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+    const body = stripLeadingPosterMetadata(lines);
+    return body.join('\n').replace(/\n{3,}/g, '\n\n').trim();
   }
 
   /**
@@ -214,21 +260,19 @@
    */
   function pickTextWalkRoot(target) {
     if (!(target instanceof HTMLElement)) return null;
-    const scoped = smallestPickScopeContaining(target);
-    if (scoped) {
-      const len = scoped.textContent?.length ?? 0;
-      if (len <= MAX_PICK_SCOPE_CHARS) return scoped;
-    }
-    if (isNextdoorPrimaryText(target)) {
-      let node = target.parentElement;
-      while (node && node !== document.body) {
-        const n = node.textContent?.length ?? 0;
-        if (n > 0 && n <= MAX_PICK_SCOPE_CHARS) return node;
-        node = node.parentElement;
-      }
+    if (isNextdoorPrimaryText(target) || isCommentTextBlock(target)) {
       return target;
     }
-    return scoped ?? target;
+
+    const targetLen = pickTargetTextLength(target);
+    const scoped = smallestPickScopeContaining(target);
+    if (scoped) {
+      const scopedLen = pickTargetTextLength(scoped);
+      if (scopedLen <= MAX_PICK_SCOPE_CHARS) {
+        if (scoped === target || scopedLen <= targetLen * 1.35 + 60) return scoped;
+      }
+    }
+    return target;
   }
 
   /**
@@ -246,7 +290,32 @@
 
     const cls = typeof el.className === 'string' ? el.className.toLowerCase() : '';
     if (
-      /link-preview|opengraph|unfurled|post-actions|comment-actions|reaction-bar|byline-header/.test(
+      /link-preview|opengraph|unfurled|post-actions|comment-actions|reaction-bar|byline-header|comment-header|author-row|author-info|member-line|profile-card|avatar-row|neighbor-card/.test(
+        cls,
+      )
+    ) {
+      return true;
+    }
+    if (
+      /comment-header|author-info|profile-name|member-name|avatar|profile-image|profile-picture|comment-author|post-author|author-avatar|user-avatar|attribution/.test(
+        testId,
+      )
+    ) {
+      return true;
+    }
+
+    if (el.tagName === 'TIME') return true;
+
+    if (el.tagName === 'A') {
+      const href = el.getAttribute('href') ?? '';
+      if (/nextdoor\.com\/(profile|pages)\//i.test(href) || /\/user\//i.test(href)) {
+        const linkText = (el.innerText ?? el.textContent ?? '').trim();
+        if (linkText.length > 0 && linkText.length < 56) return true;
+      }
+    }
+
+    if (
+      /avatar|profile-photo|profile-picture|user-avatar|author-avatar|post-author|comment-author|byline|attribution|member-badge|neighbor-avatar/.test(
         cls,
       )
     ) {

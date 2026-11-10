@@ -55,11 +55,15 @@ Threat: anyone with access to your OS user profile can read extension storage. U
 
 ## Side panel indicator
 
-The side panel shows **Your key · On** when a key is saved (no toggle off); **Your key · Off** only when no key is saved (shared pool). Badge click opens **Options** (Gemini section when a key exists).
+The side panel shows **Your key · On** when a key is saved (no toggle off); **Your key · Off** only when no key is saved (shared pool). When off, the badge may show **(N/5 left)** until the install allowance is used. Badge click opens **Options** (Gemini section when a key exists).
+
+## Shared pool allowance (no saved key)
+
+With **Your key · Off**, the extension enforces **up to 5 successful shared-pool moderations per install** (client-side counter in `chrome.storage.local`). BYOK moderations do **not** consume this allowance. **Remove key** does **not** reset the counter. **Reset extension** (factory reset) clears settings and keys but **preserves** the shared-pool usage count. At **0** remaining, **Moderate** is blocked until you **Save key** (unlimited use of your Google quota while the key stays saved).
 
 ## Quota and returning to shared pool
 
-While a key is saved, moderations always use it. If Google returns quota or billing errors, fix limits in **Google AI Studio** or **Remove key** in Options to use the shared pool again. The extension does **not** auto-fallback to the shared pool. After **Remove key**, Options focuses the key field and hides the first-time “shared pool” callout.
+While a key is saved, moderations always use it. If Google returns quota or billing errors, fix limits in **Google AI Studio** or **Remove key** in Options to use the shared pool again (subject to any remaining install allowance). The extension does **not** auto-fallback to the shared pool. After **Remove key**, Options shows **N of 5** shared moderations left (when applicable) and focuses the key field.
 
 **Local RAG:** With **Local dev** and a **RAG** provider, run `npm run dev` from the extension repo (RAG on `:8000`, API on `:3001`).
 

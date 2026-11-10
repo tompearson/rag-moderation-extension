@@ -3,6 +3,7 @@ import {
   extractTextFromCaptureTarget,
   isNextdoorPrimaryText,
   mergeAnchorHrefsIntoText,
+  tightCaptureTargetForClick,
 } from '../lib/contentPickTargets.js';
 
 function assert(cond, msg) {
@@ -11,12 +12,14 @@ function assert(cond, msg) {
 
 /** Minimal HTMLElement stubs for unit tests (no jsdom). */
 class MockHTMLElement {
-  constructor(tag, classNames, text) {
+  constructor(tag, classNames, text, opts = {}) {
     this.tagName = tag.toUpperCase();
     this.parentElement = null;
     this.textContent = text;
     this.innerText = text;
-    this.offsetHeight = 20;
+    this.offsetHeight = opts.offsetHeight ?? 20;
+    this.className = classNames.join(' ');
+    this._testId = opts.testId ?? null;
     const classes = new Set(classNames);
     this.classList = {
       contains: (c) => classes.has(c),
@@ -25,7 +28,8 @@ class MockHTMLElement {
       },
     };
   }
-  getAttribute() {
+  getAttribute(name) {
+    if (name === 'data-testid') return this._testId;
     return null;
   }
   hasAttribute() {
@@ -76,5 +80,43 @@ const alreadyHas = mergeAnchorHrefsIntoText(
   'https://nextdoor.com/',
 );
 assert(alreadyHas === `${body}\nhttps://saintmarks.org/justice/refugees/`, 'skip duplicate href');
+
+const parentPost = new MockHTMLElement(
+  'div',
+  [],
+  'Thea how do we people can post about them if they like.',
+);
+const commentBody = new MockHTMLElement(
+  'div',
+  [],
+  'Dear Nextdoor, please stop showing me homeless or dead animals. K? Thanks.',
+  { testId: 'comment-body' },
+);
+const threadArticle = new MockHTMLElement(
+  'article',
+  [],
+  `${parentPost.innerText} Daylene L. 2 days ago ${commentBody.innerText}`,
+);
+commentBody.parentElement = threadArticle;
+parentPost.parentElement = threadArticle;
+threadArticle.parentElement = document.body;
+
+const clickLeaf = new MockHTMLElement(
+  'span',
+  ['Linkify'],
+  'Dear Nextdoor, please stop showing me homeless or dead animals. K? Thanks.',
+);
+clickLeaf.parentElement = commentBody;
+
+const tight = tightCaptureTargetForClick(clickLeaf);
+assert(tight === clickLeaf, 'Linkify comment text stays tight');
+
+const clickPlain = new MockHTMLElement('span', [], commentBody.innerText);
+clickPlain.parentElement = commentBody;
+const tightPlain = tightCaptureTargetForClick(clickPlain);
+assert(tightPlain === commentBody, 'stops at comment-body, not whole article');
+
+const cap = captureTargetForElement(clickPlain);
+assert(cap === commentBody || cap === clickLeaf, 'capture avoids parent post in thread');
 
 console.log('OK — content pick target tests passed');

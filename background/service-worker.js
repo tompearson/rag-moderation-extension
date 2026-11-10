@@ -5,8 +5,18 @@ import { postModerate, moderateTimeoutMs } from '../lib/moderateClient.js';
 import { loadSettings, isFeedLocationConfirmed } from '../lib/userSettings.js';
 import { normalizeReportEmail, isValidReportEmail } from '../lib/validateReportEmail.js';
 import { hasSavedGeminiKey, resolveUserApiKeyForModeration } from '../lib/geminiByok.js';
+import {
+  assertCanUseSharedPoolForModeration,
+  recordSharedPoolModerationSuccessIfApplicable,
+} from '../lib/sharedPoolQuota.js';
 import { MODERATION_TARGET_TAB_SESSION_KEY, isReadablePageUrl } from '../lib/pageAccess.js';
-import { startPickModeOnActiveTab, settlePickModeMessage, cancelPickModeOnTab } from '../lib/pickMode.js';
+import {
+  DISMISS_STALE_PICK_MODES,
+  dismissStalePickOverlaysForAllTabs,
+  startPickModeOnActiveTab,
+  settlePickModeMessage,
+  cancelPickModeOnTab,
+} from '../lib/pickMode.js';
 import {
   registerModerationContextMenu,
   handleModerationContextMenuClick,
@@ -18,8 +28,13 @@ function onInstalled() {
   registerModerationContextMenu();
 }
 
-chrome.runtime.onInstalled.addListener(onInstalled);
+chrome.runtime.onInstalled.addListener(() => {
+  onInstalled();
+  dismissStalePickOverlaysForAllTabs().catch(() => {});
+});
 registerModerationContextMenu();
+
+dismissStalePickOverlaysForAllTabs().catch(() => {});
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   handleModerationContextMenuClick(info, tab).catch(() => {});
@@ -93,8 +108,11 @@ async function runModeration(settings, payload, requestId, signal) {
     body.reporterEmail = reporterEmail;
   }
 
+  await assertCanUseSharedPoolForModeration(settings);
+
   const timeoutMs = moderateTimeoutMs(settings.moderateTimeoutSec);
   const result = await postModerate(api.moderateUrl, body, { signal, timeoutMs });
+  await recordSharedPoolModerationSuccessIfApplicable(settings, result);
   return { result, api };
 }
 
@@ -114,6 +132,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     cancelPickModeOnTab(tabId).catch(() => {});
     sendResponse({ ok: true });
     return false;
+  }
+
+  if (message?.type === DISMISS_STALE_PICK_MODES) {
+    dismissStalePickOverlaysForAllTabs()
+      .then(() => sendResponse({ ok: true }))
+      .catch(() => sendResponse({ ok: false }));
+    return true;
   }
 
   if (message?.type === 'START_PICK_MODE') {
