@@ -24,9 +24,16 @@ function preprocessMarkdown(raw) {
 
 /** @param {string} html */
 function postprocessBodyHtml(html) {
-  return html
-    .replace(/<h2>On this page<\/h2>/, '<h2 id="toc">On this page</h2>')
-    .replace(/<h2>All guides \(in order\)<\/h2>/, '<h2 id="guides">All guides (in order)</h2>');
+  return (
+    html
+      .replace(/<h2>On this page<\/h2>/, '<h2 id="toc">On this page</h2>')
+      .replace(/<h2>All guides \(in order\)<\/h2>/, '<h2 id="guides">All guides (in order)</h2>')
+      // GFM autolink turns help@… into mailto; keep contact email plain text.
+      .replace(
+        /<a href="mailto:help@airesearchdog\.net">help@airesearchdog\.net<\/a>/g,
+        'help@airesearchdog.net',
+      )
+  );
 }
 
 const markdown = readFileSync(mdPath, 'utf8');

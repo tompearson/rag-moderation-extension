@@ -2,7 +2,7 @@
 
 This page is the **top-level home** for all public **RAG Moderation Assistant** guides on airesearchdog.net. Use it as the entry point for moderators, testers, and policy readers. The guides below are listed in **recommended order** — the sequence most people follow from first install through daily moderation, optional setup, and legal pages.
 
-**Contact:** Questions about these guides or the extension? Email **help@airesearchdog.net**.
+<p><strong>Contact:</strong> Questions about these guides or the extension? Email <strong>help@airesearchdog.net</strong>.</p>
 
 ## On this page {#toc}
 
