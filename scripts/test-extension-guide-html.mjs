@@ -10,7 +10,7 @@ assert.match(EXTENSION_GUIDE_PAGE_CSS, /system-ui/, 'uses system font stack');
 assert.match(EXTENSION_GUIDE_PAGE_CSS, /\.site-header/, 'neighborhood header');
 assert.match(EXTENSION_GUIDE_PAGE_CSS, /--green:/, 'theme tokens');
 assert.match(EXTENSION_GUIDE_PAGE_CSS, /\.guide-preface-card/, 'preface card');
-assert.equal(EXTENSION_GUIDE_NAV.length, 3, 'guide nav links');
+assert.equal(EXTENSION_GUIDE_NAV.length, 4, 'guide nav links');
 
 const html = renderExtensionGuideHtml({
   pageTitle: 'Test',

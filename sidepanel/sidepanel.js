@@ -319,14 +319,23 @@ async function restoreLastSuccessfulModerationKeyFromSession() {
  * @param {string} analysisType
  * @param {boolean} badWordsEnabled
  * @param {string} userLocation
+ * @param {string} [ragProvider]
  */
-function moderationRequestKey(content, postContext, analysisType, badWordsEnabled, userLocation) {
+function moderationRequestKey(
+  content,
+  postContext,
+  analysisType,
+  badWordsEnabled,
+  userLocation,
+  ragProvider = '',
+) {
   return JSON.stringify({
     c: content,
     p: postContext.trim(),
     a: analysisType,
     b: badWordsEnabled,
     l: (userLocation || '').trim(),
+    r: (ragProvider || '').trim(),
   });
 }
 
@@ -763,6 +772,7 @@ async function refreshModerateToolbarButton(settingsIn) {
       analysisSelect.value,
       badWordsCheckbox.checked,
       loc,
+      settings.ragProvider,
     ) === lastSuccessfulModerationKey;
   const ready = !poolBlocked && !alreadyModerated;
 
@@ -773,7 +783,7 @@ async function refreshModerateToolbarButton(settingsIn) {
     moderateBtn.title = 'Shared pool limit reached — add your Gemini key in Options.';
   } else if (alreadyModerated) {
     moderateBtn.title =
-      'Already moderated this text with these settings. Edit content, change analysis or feed location, or Clear content to run again.';
+      'Already moderated this text with these settings. Edit content, change analysis, provider, or feed location, or Clear content to run again.';
   } else {
     moderateBtn.removeAttribute('title');
   }
@@ -861,6 +871,7 @@ async function syncSidePanelFromStorage() {
     setPickerValues(refreshed.userLocation);
   }
   syncPickContentButton();
+  await refreshModerateToolbarButton(refreshed);
 }
 
 async function maybeMigrateStoredLocation(settings) {
@@ -1098,21 +1109,24 @@ async function setNoKeyPostModerationHint(settings) {
   await refreshByokBadge(settings);
 }
 
-function currentModerationRequestKey() {
+async function currentModerationRequestKey() {
+  const settings = await loadSettings();
   return moderationRequestKey(
     contentInput.value.trim(),
     postContextInput.value.trim(),
     analysisSelect.value,
     badWordsCheckbox.checked,
     currentFeedLocationForRequestKey(),
+    settings.ragProvider,
   );
 }
 
-function isModerateReadyToPrompt() {
+async function isModerateReadyToPrompt() {
   if (!(moderateBtn instanceof HTMLButtonElement)) return false;
   if (!contentInput.value.trim()) return false;
   if (activeModerationRequestId) return false;
-  return currentModerationRequestKey() !== lastSuccessfulModerationKey;
+  const key = await currentModerationRequestKey();
+  return key !== lastSuccessfulModerationKey;
 }
 
 function stopModerateBtnPrompt() {
@@ -1291,6 +1305,9 @@ function buildReportActionsHtml(result, apiOrigin, flags) {
   if (canReview) {
     parts.push(
       `<button type="button" class="secondary small-btn review-decision-btn">${REVIEW_THIS_REPORT_LABEL}</button>`,
+    );
+    parts.push(
+      '<button type="button" class="secondary small-btn options-toggle-btn">Options</button>',
     );
   }
   parts.push('</div>');
@@ -1724,7 +1741,7 @@ function renderResults(result, apiOrigin, flags) {
     ${mode ? `<p class="muted">Mode: ${mode}${contract ? ` · ${contract}` : ''}</p>` : ''}
     ${timingLine}
     ${renderContextImpactHtml(result.contextImpact)}
-    ${renderRagSourcesFoldHtml(result.ragSources)}
+    ${renderRagSourcesFoldHtml(result.ragSources, { moderationMode: result.moderationMode })}
     ${renderGeminiAiDisclaimerAfterRagHtml()}
   `;
   resultsEl.classList.remove('hidden');
@@ -1749,10 +1766,11 @@ moderateBtn.addEventListener('click', async () => {
     analysisType,
     badWordsEnabled,
     resolveStoredUserLocation(settings.userLocation),
+    settings.ragProvider,
   );
   if (requestKey === lastSuccessfulModerationKey) {
     setStatus(
-      'Already moderated this same text with these settings. Your last decision is in the Results section below—edit content, change analysis or feed location, or Clear content to run again.',
+      'Already moderated this same text with these settings. Your last decision is in the Results section below—edit content, change analysis, provider, or feed location, or Clear content to run again.',
       true,
     );
     resultsEl.classList.remove('hidden');
@@ -2230,13 +2248,14 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
-for (const optionsToggleBtn of document.querySelectorAll('.options-toggle-btn')) {
-  optionsToggleBtn.addEventListener('click', () => {
-    toggleOptionsPage().catch((err) => {
-      setStatus(err instanceof Error ? err.message : String(err), true);
-    });
+document.addEventListener('click', (e) => {
+  const optionsToggleBtn =
+    e.target instanceof Element ? e.target.closest('.options-toggle-btn') : null;
+  if (!optionsToggleBtn) return;
+  toggleOptionsPage().catch((err) => {
+    setStatus(err instanceof Error ? err.message : String(err), true);
   });
-}
+});
 
 byokBadge?.addEventListener('click', (e) => {
   e.preventDefault();

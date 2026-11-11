@@ -9,8 +9,12 @@ export const EXTENSION_GUIDE_FOOTER_PATHS = {
 /** Linked from Related guides sections in extension docs. */
 export const EXTENSION_AI_GENERATED_ANALYSIS_PATH = '/extension/important-ai-generated-analysis';
 
+/** Top-level documentation index (public/extension/index.html). */
+export const EXTENSION_DOCS_HOME_PATH = '/extension/guides';
+
 /** Same-origin guide paths (works on production host). */
 export const EXTENSION_GUIDE_NAV = [
+  { href: EXTENSION_DOCS_HOME_PATH, label: 'All guides' },
   { href: '/extension/install-chrome-extension', label: 'Install' },
   { href: '/extension/get-gemini-api-key', label: 'Gemini key' },
   { href: '/extension/privacy', label: 'Privacy' },
@@ -18,6 +22,7 @@ export const EXTENSION_GUIDE_NAV = [
 
 /** All published /extension/* guide pages (footer site map). */
 export const EXTENSION_GUIDE_SITEMAP = [
+  { href: EXTENSION_DOCS_HOME_PATH, label: 'Documentation home' },
   { href: '/extension/install-chrome-extension', label: 'Install (Web Store)' },
   { href: '/extension/install-chrome-extension-developer', label: 'Install (developer)' },
   { href: '/extension/get-latest-extension', label: 'Get latest ZIP' },
