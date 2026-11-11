@@ -19,16 +19,14 @@ const outPath = join(outDir, 'guides.html');
 function preprocessMarkdown(raw) {
   return raw
     .replace(/^## On this page \{#toc\}/m, '## On this page')
-    .replace(/^## All guides \(in order\) \{#guides\}/m, '## All guides (in order)')
-    .replace(/^## Related guides \{#related\}/m, '## Related guides');
+    .replace(/^## All guides \(in order\) \{#guides\}/m, '## All guides (in order)');
 }
 
 /** @param {string} html */
 function postprocessBodyHtml(html) {
   return html
     .replace(/<h2>On this page<\/h2>/, '<h2 id="toc">On this page</h2>')
-    .replace(/<h2>All guides \(in order\)<\/h2>/, '<h2 id="guides">All guides (in order)</h2>')
-    .replace(/<h2>Related guides<\/h2>/, '<h2 id="related">Related guides</h2>');
+    .replace(/<h2>All guides \(in order\)<\/h2>/, '<h2 id="guides">All guides (in order)</h2>');
 }
 
 const markdown = readFileSync(mdPath, 'utf8');

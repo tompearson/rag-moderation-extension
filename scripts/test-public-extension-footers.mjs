@@ -33,6 +33,8 @@ const aiHref = EXTENSION_AI_GENERATED_ANALYSIS_PATH.replace(/\//g, '\\/');
 
 /** Borderless pages (no extension guide chrome). */
 const BORDERLESS_EXTENSION_HTML = new Set(['invite-sample-report.html']);
+/** Documentation index lists all guides; no duplicate Related guides block. */
+const NO_RELATED_GUIDES_SECTION = new Set(['guides.html']);
 
 for (const file of htmlFiles) {
   if (BORDERLESS_EXTENSION_HTML.has(file)) continue;
@@ -55,13 +57,15 @@ for (const file of htmlFiles) {
       `${file}: AI notice missing from site map`,
     );
   }
-  assert.match(html, new RegExp(`id="related">Related guides`), `${file}: missing Related guides`);
-  if (file !== 'important-ai-generated-analysis.html') {
-    assert.match(
-      html,
-      new RegExp(`${aiHref}">Important — AI-generated analysis`),
-      `${file}: missing AI notice in Related guides`,
-    );
+  if (!NO_RELATED_GUIDES_SECTION.has(file)) {
+    assert.match(html, new RegExp(`id="related">Related guides`), `${file}: missing Related guides`);
+    if (file !== 'important-ai-generated-analysis.html') {
+      assert.match(
+        html,
+        new RegExp(`${aiHref}">Important — AI-generated analysis`),
+        `${file}: missing AI notice in Related guides`,
+      );
+    }
   }
 }
 

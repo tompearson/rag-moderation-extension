@@ -47,9 +47,53 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
-.options-legal {
+.options-guide-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   margin: 0 0 var(--section-gap);
-  font-size: 13px;
+}
+
+a.options-guide-pill,
+button.options-guide-pill {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-decoration: none;
+  color: var(--fg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--fg) 5%, transparent);
+  cursor: pointer;
+  vertical-align: baseline;
+}
+
+a.options-guide-pill:hover,
+button.options-guide-pill:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+a.options-guide-pill:focus-visible,
+button.options-guide-pill:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+a.options-guide-pill.options-guide-pill--muted {
+  color: var(--muted);
+}
+
+a.options-guide-pill.options-guide-pill--muted:hover {
+  color: var(--primary);
+}
+
+button.options-guide-pill--button {
+  font: inherit;
+  margin: 0;
 }
 
 .options-main {
@@ -92,16 +136,6 @@ body {
 .options-section--danger {
   border-color: color-mix(in srgb, #b91c1c 38%, var(--border));
   background: color-mix(in srgb, #b91c1c 6%, var(--surface));
-}
-
-#extension-install-guide-link {
-  color: #64748b;
-}
-
-@media (prefers-color-scheme: dark) {
-  #extension-install-guide-link {
-    color: #94a3b8;
-  }
 }
 
 .options-header-title {

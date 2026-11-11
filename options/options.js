@@ -48,6 +48,7 @@ import {
 } from '../lib/sharedPoolQuota.js';
 import {
   GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL,
+  EXTENSION_DOCS_HOME_URL,
   INSTALL_CHROME_EXTENSION_GUIDE_URL,
   EXTENSION_PRIVACY_POLICY_URL,
   EXTENSION_TERMS_URL,
@@ -137,12 +138,16 @@ const geminiKeyGuideLink = document.getElementById('gemini-key-guide-link');
 if (geminiKeyGuideLink) {
   geminiKeyGuideLink.href = GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL;
 }
+const extensionDocsHomeLink = document.getElementById('extension-docs-home-link');
 const extensionInstallGuideLink = document.getElementById('extension-install-guide-link');
 const extensionHowToGuideLink = document.getElementById('extension-how-to-guide-link');
 const extensionPrivacyLink = document.getElementById('extension-privacy-link');
 const extensionTermsLink = document.getElementById('extension-terms-link');
 
 function wirePublicGuideLinks() {
+  if (extensionDocsHomeLink) {
+    extensionDocsHomeLink.href = EXTENSION_DOCS_HOME_URL;
+  }
   if (extensionInstallGuideLink) {
     extensionInstallGuideLink.href = INSTALL_CHROME_EXTENSION_GUIDE_URL;
   }

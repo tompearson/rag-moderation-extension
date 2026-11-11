@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {
   GET_GEMINI_API_KEY_GUIDE_URL,
   GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL,
+  EXTENSION_DOCS_HOME_URL,
   INSTALL_CHROME_EXTENSION_GUIDE_URL,
   INSTALL_CHROME_EXTENSION_DEVELOPER_GUIDE_URL,
   EXTENSION_PRIVACY_POLICY_URL,
@@ -18,6 +19,10 @@ assert.match(GET_GEMINI_API_KEY_GUIDE_URL, /^https:\/\/www\.airesearchdog\.net\/
 assert.equal(
   GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL,
   'https://www.airesearchdog.net/extension/get-gemini-api-key#google',
+);
+assert.equal(
+  EXTENSION_DOCS_HOME_URL,
+  'https://www.airesearchdog.net/extension/guides.html',
 );
 assert.equal(
   INSTALL_CHROME_EXTENSION_GUIDE_URL,

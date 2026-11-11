@@ -15,9 +15,17 @@
       </div>
       <button type="button" class="close-options secondary header-btn">Close</button>
     </header>
-    <p class="options-legal muted">
+    <nav class="options-guide-pills" aria-label="Extension guides and policies">
       <a
+        id="extension-docs-home-link"
+        class="options-guide-pill"
+        href="#"
+        target="_blank"
+        rel="noopener noreferrer"
+        >All guides</a
+      ><a
         id="extension-install-guide-link"
+        class="options-guide-pill options-guide-pill--muted"
         href="#"
         target="_blank"
         rel="noopener noreferrer"
@@ -25,18 +33,25 @@
         >Install in Chrome</a
       ><a
         id="extension-how-to-guide-link"
+        class="options-guide-pill"
         href="#"
         target="_blank"
         rel="noopener noreferrer"
         hidden
         >How to moderate</a
-      ><span class="options-legal-sep" aria-hidden="true"> · </span
-      ><a id="extension-privacy-link" href="#" target="_blank" rel="noopener noreferrer">Privacy policy</a
-      ><span class="options-legal-sep" aria-hidden="true"> · </span
-      ><a id="extension-terms-link" href="#" target="_blank" rel="noopener noreferrer">Terms of use</a
-      ><span class="options-legal-sep" aria-hidden="true"> · </span
-      ><button type="button" id="options-extension-contact-open" class="options-inline-link">Contact</button>
-    </p>
+      ><a
+        id="extension-privacy-link"
+        class="options-guide-pill"
+        href="#"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Privacy policy</a
+      ><a id="extension-terms-link" class="options-guide-pill" href="#" target="_blank" rel="noopener noreferrer"
+        >Terms of use</a
+      ><button type="button" id="options-extension-contact-open" class="options-guide-pill options-guide-pill--button">
+        Contact
+      </button>
+    </nav>
 
     <main class="options-main">
     <section class="options-section">
