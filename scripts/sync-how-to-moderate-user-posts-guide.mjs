@@ -19,6 +19,7 @@ const outPath = join(outDir, 'how-to-moderate-user-posts.html');
 const SECTION_IDS = [
   ['On this page', 'toc'],
   ['Before you moderate', 'before-you-moderate'],
+  ['Go to Nextdoor', 'go-to-nextdoor'],
   ['Open the side panel', 'open-the-side-panel'],
   ['Confirm feed location', 'confirm-feed-location'],
   ['Put post text in the panel', 'put-post-text-in-the-panel'],

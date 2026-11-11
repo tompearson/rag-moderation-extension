@@ -7,6 +7,7 @@
 ## On this page {#toc}
 
 - [Before you moderate](#before-you-moderate)
+- [Go to Nextdoor](#go-to-nextdoor)
 - [Open the side panel](#open-the-side-panel)
 - [Confirm feed location](#confirm-feed-location)
 - [Put post text in the panel](#put-post-text-in-the-panel)
@@ -28,6 +29,14 @@ You should have the extension **pinned** on the Chrome toolbar and be signed int
 Read **[Important — AI-generated analysis](https://www.airesearchdog.net/extension/important-ai-generated-analysis)** first. The tool can be wrong; you remain responsible for the outcome on the platform.
 
 If you have not installed the extension yet, start with **[Install RAG Moderation Assistant in Google Chrome](https://www.airesearchdog.net/extension/install-chrome-extension)**. For your own Google quota, see **[Get a Gemini API key](https://www.airesearchdog.net/extension/get-gemini-api-key)**.
+
+---
+
+## Go to Nextdoor {#go-to-nextdoor}
+
+In Chrome, open the Nextdoor site where you moderate. For most moderators, that is the neighborhood **news feed**, typically at **[https://nextdoor.com/news_feed/](https://nextdoor.com/news_feed/)**. Sign in if prompted so you can view the posts and comments you need to review.
+
+Stay on the feed or post page you are working from before you open the extension side panel in the next step.
 
 ---
 
