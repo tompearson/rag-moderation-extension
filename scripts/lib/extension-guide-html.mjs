@@ -394,6 +394,21 @@ export const EXTENSION_GUIDE_PAGE_CSS = `
     box-shadow: var(--shadow);
   }
 
+  a.guide-image-nav {
+    display: inline-block;
+    margin: 1rem 0 1.35rem;
+    border-radius: 10px;
+    text-decoration: none;
+  }
+
+  a.guide-image-nav img {
+    margin: 0;
+  }
+
+  a.guide-image-nav:hover img {
+    border-color: var(--green);
+  }
+
   .guide-image-lightbox {
     position: fixed;
     inset: 0;
