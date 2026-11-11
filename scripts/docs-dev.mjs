@@ -33,6 +33,7 @@ const EXTENSION_PATHS = [
   '/extension/visual-moderation-step-by-step',
   '/extension/contact',
   '/extension/get-latest-extension',
+  '/extension/invite-sample-report',
 ];
 
 const openBrowser = process.argv.includes('--open');

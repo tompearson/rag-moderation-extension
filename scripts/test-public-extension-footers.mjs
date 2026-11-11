@@ -31,7 +31,11 @@ assert.ok(htmlFiles.length > 0, 'expected synced HTML under public/extension');
 
 const aiHref = EXTENSION_AI_GENERATED_ANALYSIS_PATH.replace(/\//g, '\\/');
 
+/** Borderless pages (no extension guide chrome). */
+const BORDERLESS_EXTENSION_HTML = new Set(['invite-sample-report.html']);
+
 for (const file of htmlFiles) {
+  if (BORDERLESS_EXTENSION_HTML.has(file)) continue;
   const html = readFileSync(join(extensionPublicDir, file), 'utf8');
   assert.match(html, /site-footer__sitemap/, `${file}: missing footer site map`);
   assert.match(html, /site-footer__legal/, `${file}: missing legal footer row`);
