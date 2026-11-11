@@ -58,10 +58,7 @@ import {
   sharedPoolLimitExceededMessage,
   sharedPoolModerationBlockMessage,
 } from '../lib/sharedPoolQuota.js';
-import {
-  GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL,
-  INSTALL_CHROME_EXTENSION_GUIDE_URL,
-} from '../lib/geminiKeyUserHelp.js';
+import { GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL } from '../lib/geminiKeyUserHelp.js';
 import { isStoreBuild } from '../lib/buildConfig.js';
 import { formatExtensionVersionLabel, getExtensionVersion } from '../lib/extensionVersion.js';
 import { STORAGE_KEYS } from '../lib/userSettings.js';
@@ -206,17 +203,10 @@ const mainPanel = document.getElementById('main-panel');
 const connectionBadge = document.getElementById('connection-badge');
 const byokBadge = document.getElementById('byok-badge');
 const sharedPoolQuotaLine = document.getElementById('shared-pool-quota-line');
-const installExtensionGuideLink = document.getElementById('install-extension-guide-link');
 const geminiKeyGuideLink = document.getElementById('gemini-key-guide-link');
 
-if (installExtensionGuideLink) {
-  installExtensionGuideLink.href = INSTALL_CHROME_EXTENSION_GUIDE_URL;
-}
 if (geminiKeyGuideLink) {
   geminiKeyGuideLink.href = GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL;
-}
-if (isStoreBuild()) {
-  if (installExtensionGuideLink) installExtensionGuideLink.hidden = true;
 }
 
 const extensionVersionLabel = document.getElementById('extension-version-label');
