@@ -40,11 +40,7 @@ You may get email from **info@airesearchdog.net** when a new **sideload** build 
 
 6. **Enable the extension on its card**
 
-   1. Find **RAG Moderation Assistant** and make sure the **unlabeled slider** at the bottom-right of its card is **enabled** (on).
-
-      ![RAG Moderation Assistant extension card with the enable slider turned on](/extension/images/install-chrome-extensions-card-enabled.png)
-
-   2. In the upper-right area of Chrome (known as the extension toolbar), click on the **chicklet**.
+   1. In the upper-right area of Chrome (known as the extension toolbar), click on the **chicklet**.
 
       ![Extensions puzzle-piece icon in the Chrome toolbar](/extension/images/install-chrome-extensions-puzzle-chicklet.png)
 
@@ -55,6 +51,10 @@ You may get email from **info@airesearchdog.net** when a new **sideload** build 
       The thumbtack should have a slash through it and the extension may open in your current window. The extension should be visible in the extension toolbar.
 
       ![RAG Moderation Assistant icon pinned in the Chrome extension toolbar](/extension/images/install-chrome-toolbar-extension-icon.png)
+
+   2. Find **RAG Moderation Assistant** and make sure the **unlabeled slider** at the bottom-right of its card is **enabled** (on).
+
+      ![RAG Moderation Assistant extension card with the enable slider turned on](/extension/images/install-chrome-extensions-card-enabled.png)
 
 ---
 
