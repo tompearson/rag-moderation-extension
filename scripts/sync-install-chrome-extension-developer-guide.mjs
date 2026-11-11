@@ -35,6 +35,10 @@ function postprocessBodyHtml(html) {
       /<h2>Part 1 — Enable an unpacked extension<\/h2>/,
       '<h2 id="developer">Part 1 — Enable an unpacked extension</h2>',
     )
+    .replace(
+      /<p><strong>Enable the extension on its card<\/strong><\/p>/,
+      '<p id="enable-extension-card"><strong>Enable the extension on its card</strong></p>',
+    )
     .replace(/<h2>Related guides<\/h2>/, '<h2 id="related">Related guides</h2>');
 }
 

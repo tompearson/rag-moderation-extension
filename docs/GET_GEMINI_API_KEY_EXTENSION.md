@@ -27,18 +27,20 @@ Note: beacuse  you are obtaining a free Gemini API key do not provide any billin
 1. **Open the API key page**
 
    Go to [Gemini API key in Google AI Studio](https://aistudio.google.com/docs/api-key) and sign in with your Google account if prompted.  
-     On that page, click **Create or view a Gemini API Key** (Google’s label for starting or opening your keys).
+      On that page, click **Create or view a Gemini API Key** (Google’s label for starting or opening your keys).
 2. **Name and copy the key**
 
    Give the key a name you will recognize (for example `RAG moderation BYOK`), confirm creation, and **copy** the full key string.  
-     Google shows it once in full — if you lose it, create a new key in AI Studio using the same proceedure.  
-     Do not email the key, post it in chat, or store it where others can read it. Paste it only in the extension **Options** on your machine.
+      Google shows it once in full — if you lose it, create a new key in AI Studio using the same proceedure.  
+      Do not email the key, post it in chat, or store it where others can read it. Paste it only in the extension **Options** on your machine.
 
 You now have a Gemini API key on the clipboard (or saved in your password manager until you paste it).
 
 ---
 
 ## Part 2 — Add your key in the extension {#options}
+
+**Launch the extension first:** In `chrome://extensions`, **RAG Moderation Assistant** must be **enabled on its card** (and pinned on the toolbar if you open it from there) before **Options** and the side panel work. For unpacked / sideload installs, follow step 6 — **[Enable the extension on its card](https://www.airesearchdog.net/extension/install-chrome-extension-developer#enable-extension-card)** — in [Install (developer / unpacked)](https://www.airesearchdog.net/extension/install-chrome-extension-developer#developer).
 
 For **RAG Moderation Assistant**: the key stays in **this browser only**; it is not saved on the moderation website server.
 
@@ -51,7 +53,7 @@ For **RAG Moderation Assistant**: the key stays in **this browser only**; it is 
 3. **Paste the key**
 
    Click in the **Gemini API key** field and paste (`Ctrl+V` / `Cmd+V`), or use **Paste** to read from the clipboard.  
-     The status line may show the **last four characters** once so you can confirm the right key; the full key is not shown again after save.
+      The status line may show the **last four characters** once so you can confirm the right key; the full key is not shown again after save. Your key will never be exported using the Options/Bakcup settings.
 
 ![Options: Gemini API key field after paste, before Save key](/extension/images/get-gemini-options-paste-key.png)
 
