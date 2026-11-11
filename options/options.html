@@ -38,51 +38,24 @@
       ><button type="button" id="options-extension-contact-open" class="options-inline-link">Contact</button>
     </p>
 
-    <details class="options-advanced-panel" id="section-environment">
-      <summary>Advanced</summary>
-      <div class="options-advanced-panel__body">
-        <div id="env-profile-controls">
-          <label for="env-profile">Profile</label>
-          <p class="muted">Saves when you change the profile. Custom origin saves on blur or when you leave the field.</p>
-          <select id="env-profile">
-            <option value="local">Local dev</option>
-            <option value="production">Production</option>
-            <option value="custom">Custom origin</option>
-          </select>
-
-          <label for="custom-origin">Custom API origin (https://host, no path)</label>
-          <input id="custom-origin" type="url" placeholder="https://example.com" disabled />
-        </div>
-        <p id="env-store-note" class="muted" hidden>
-          This build uses the <strong>Production</strong> profile.
-        </p>
-
-        <button type="button" id="grant-permission" class="secondary">Grant host permission for current origin</button>
-        <p id="permission-status" class="muted"></p>
-
-        <div class="options-advanced-subsection">
-          <h3 class="options-subsection-title">Platform intelligence</h3>
-          <p class="muted">Same as Universal’s first two providers. Saves when you change the selection.</p>
-          <label for="rag-provider">Provider</label>
-          <select id="rag-provider">
-            <option value="NextDoor-prompt-production-28-rag">Nextdoor V28.0.114 (RAG)</option>
-            <option value="NextDoor-prompt-production-28">Nextdoor V28.0.114 (no RAG)</option>
-          </select>
-          <p id="byok-rag-hint" class="muted hidden"></p>
-        </div>
-
-        <div class="options-advanced-subsection" id="section-dev-identity">
-          <h3 class="options-subsection-title">Moderation identity (dev)</h3>
-          <p class="muted">Saves when you leave each field or close Options.</p>
-          <label for="moderator-id">moderatorId</label>
-          <input id="moderator-id" type="text" />
-          <label for="device-id">deviceId</label>
-          <input id="device-id" type="text" />
-        </div>
+    <main class="options-main">
+    <section class="options-section">
+      <h2>Feed location</h2>
+      <label for="opt-location-trigger">State</label>
+      <p class="muted">
+        Open the list, then scroll (wheel or trackpad) or use arrow keys and Enter to pick a state.
+        Saves when you select a state. Other Options fields save as you change them or when you close
+        this page.
+      </p>
+      <div id="opt-location" class="state-picker-host"></div>
+      <div class="actions">
+        <button type="button" id="reset-location" class="danger">Reset location</button>
       </div>
-    </details>
+      <p class="muted">To move or recover all preferences, use <strong>Backup settings</strong> below.</p>
+      <p id="save-status" class="status muted" aria-live="polite"></p>
+    </section>
 
-    <section>
+    <section class="options-section">
       <h2>Moderation request</h2>
       <label for="moderate-timeout-sec">Timeout (seconds)</label>
       <input
@@ -99,7 +72,7 @@
       </p>
     </section>
 
-    <section>
+    <section class="options-section">
       <h2>Saved full report</h2>
       <label for="report-share-email">Report email</label>
       <input id="report-share-email" type="email" autocomplete="email" placeholder="you@example.com" />
@@ -109,45 +82,10 @@
       </div>
     </section>
 
-    <section id="section-invite-friend">
-      <h2>Invite a friend</h2>
-      <p class="muted">
-        Email a friend an invitation to try RAG Moderation Assistant. You can add an optional personal note (up to 300
-        characters). We send a fixed message with install and how-to links; your note appears at the top when provided.
-      </p>
-      <label for="invite-friend-email">Friend's email</label>
-      <input
-        id="invite-friend-email"
-        type="email"
-        autocomplete="off"
-        placeholder="friend@example.com"
-        aria-describedby="invite-friend-error invite-friend-status"
-      />
-      <label for="invite-personal-message">Personal message (optional)</label>
-      <textarea
-        id="invite-personal-message"
-        rows="3"
-        maxlength="300"
-        placeholder="Short note for your friend…"
-      ></textarea>
-      <p id="invite-personal-char-count" class="char-count muted">0 / 300</p>
-      <details class="invite-email-preview" open>
-        <summary>What we send</summary>
-        <p class="muted invite-preview-subject">Subject: <span id="invite-preview-subject"></span></p>
-        <div id="invite-preview-personal" class="invite-preview-personal hidden" role="status">
-          <strong>Note from you</strong>
-          <p id="invite-preview-personal-text" class="invite-preview-personal-text"></p>
-        </div>
-        <ul id="invite-preview-bullets" class="muted invite-preview-bullets"></ul>
-      </details>
-      <p id="invite-friend-error" class="error hidden" role="alert"></p>
-      <div class="row actions-inline">
-        <button type="button" id="invite-friend-send" class="primary">Send invite</button>
-      </div>
-      <p id="invite-friend-status" class="status muted hidden" aria-live="polite"></p>
-    </section>
-
-    <section id="section-gemini-byok" class="gemini-byok-section">
+    <section
+      id="section-gemini-byok"
+      class="options-section options-section--emphasis gemini-byok-section"
+    >
       <h2 id="gemini-byok-section-title">Your Gemini API key (recommended)</h2>
       <div id="gemini-byok-shared-pool-row" class="byok-shared-pool-row hidden">
         <p id="gemini-byok-shared-pool-text" class="muted"></p>
@@ -203,27 +141,45 @@
       </div>
     </section>
 
-    <div class="options-close-row">
-      <button type="button" class="close-options secondary">Close</button>
-    </div>
-
-    <section>
-      <h2>Feed location</h2>
-      <label for="opt-location-trigger">State</label>
+    <section id="section-invite-friend" class="options-section">
+      <h2>Invite a friend</h2>
       <p class="muted">
-        Open the list, then scroll (wheel or trackpad) or use arrow keys and Enter to pick a state.
-        Saves when you select a state. Other Options fields save as you change them or when you close
-        this page.
+        Email a friend an invitation to try RAG Moderation Assistant. You can add an optional personal note (up to 300
+        characters). We send a fixed message with install and how-to links; your note appears at the top when provided.
       </p>
-      <div id="opt-location" class="state-picker-host"></div>
-      <div class="actions">
-        <button type="button" id="reset-location" class="danger">Reset location</button>
+      <label for="invite-friend-email">Friend's email</label>
+      <input
+        id="invite-friend-email"
+        type="email"
+        autocomplete="off"
+        placeholder="friend@example.com"
+        aria-describedby="invite-friend-error invite-friend-status"
+      />
+      <label for="invite-personal-message">Personal message (optional)</label>
+      <textarea
+        id="invite-personal-message"
+        rows="3"
+        maxlength="300"
+        placeholder="Short note for your friend…"
+      ></textarea>
+      <p id="invite-personal-char-count" class="char-count muted">0 / 300</p>
+      <details class="invite-email-preview" open>
+        <summary>What we send</summary>
+        <p class="muted invite-preview-subject">Subject: <span id="invite-preview-subject"></span></p>
+        <div id="invite-preview-personal" class="invite-preview-personal hidden" role="status">
+          <strong>Note from you</strong>
+          <p id="invite-preview-personal-text" class="invite-preview-personal-text"></p>
+        </div>
+        <ul id="invite-preview-bullets" class="muted invite-preview-bullets"></ul>
+      </details>
+      <p id="invite-friend-error" class="error hidden" role="alert"></p>
+      <div class="row actions-inline">
+        <button type="button" id="invite-friend-send" class="primary">Send invite</button>
       </div>
-      <p class="muted">To move or recover all preferences, use <strong>Backup settings</strong> below.</p>
-      <p id="save-status" class="status muted" aria-live="polite"></p>
+      <p id="invite-friend-status" class="status muted hidden" aria-live="polite"></p>
     </section>
 
-    <section id="section-backup-settings">
+    <section id="section-backup-settings" class="options-section">
       <h2>Backup settings</h2>
       <p class="muted">
         <strong>Export settings</strong> downloads a JSON file; <strong>Import settings</strong>
@@ -244,7 +200,7 @@
       </div>
     </section>
 
-    <section>
+    <section class="options-section options-section--danger">
       <h2>Reset extension</h2>
       <p class="muted">
         Clears saved settings, sets profile to <strong>Production</strong>, and revokes granted API host
@@ -253,6 +209,84 @@
       </p>
       <button type="button" id="factory-reset" class="danger">Reset to clean state…</button>
     </section>
+
+    <details class="options-advanced-panel" id="section-environment">
+      <summary>Advanced</summary>
+      <div class="options-advanced-panel__body">
+        <div id="env-profile-controls">
+          <label for="env-profile">Profile</label>
+          <p class="muted">Saves when you change the profile. Custom origin saves on blur or when you leave the field.</p>
+          <select id="env-profile">
+            <option value="local">Local dev</option>
+            <option value="production">Production</option>
+            <option value="custom">Custom origin</option>
+          </select>
+
+          <label for="custom-origin">Custom API origin (https://host, no path)</label>
+          <input id="custom-origin" type="url" placeholder="https://example.com" disabled />
+        </div>
+        <p id="env-store-note" class="muted" hidden>
+          This build uses the <strong>Production</strong> profile.
+        </p>
+
+        <button type="button" id="grant-permission" class="secondary">Grant host permission for current origin</button>
+        <p id="permission-status" class="muted"></p>
+
+        <div class="options-advanced-subsection">
+          <h3 class="options-subsection-title">Platform intelligence</h3>
+          <p class="muted">Same as Universal’s first two providers. Saves when you change the selection.</p>
+          <label for="rag-provider">Provider</label>
+          <select id="rag-provider">
+            <option value="NextDoor-prompt-production-28-rag">Nextdoor V28.0.114 (RAG)</option>
+            <option value="NextDoor-prompt-production-28">Nextdoor V28.0.114 (no RAG)</option>
+          </select>
+          <p id="byok-rag-hint" class="muted hidden"></p>
+        </div>
+
+        <div class="options-advanced-subsection" id="section-dev-identity">
+          <h3 class="options-subsection-title">Moderation identity (dev)</h3>
+          <p class="muted">Saves when you leave each field or close Options.</p>
+          <label for="moderator-id">moderatorId</label>
+          <input id="moderator-id" type="text" />
+          <label for="device-id">deviceId</label>
+          <input id="device-id" type="text" />
+        </div>
+      </div>
+    </details>
+
+    <div class="options-close-row">
+      <button type="button" class="close-options secondary">Close</button>
+    </div>
+    </main>
+
+    <div
+      id="options-gemini-remove-modal"
+      class="modal hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="options-gemini-remove-modal-title"
+    >
+      <div class="modal-card">
+        <div class="modal-card-header">
+          <h2 id="options-gemini-remove-modal-title">Remove your Gemini key?</h2>
+          <button
+            type="button"
+            id="options-gemini-remove-modal-close"
+            class="modal-close"
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+        <p id="options-gemini-remove-lead" class="gemini-remove-modal-lead"></p>
+        <p id="options-gemini-remove-personal" class="muted gemini-remove-modal-personal"></p>
+        <p class="muted gemini-remove-modal-note">Your key is removed from this device only. You can paste it again later.</p>
+        <div class="modal-actions">
+          <button type="button" id="options-gemini-remove-confirm" class="danger">Remove key</button>
+          <button type="button" id="options-gemini-remove-cancel" class="primary">Keep using my key</button>
+        </div>
+      </div>
+    </div>
 
     <div
       id="options-extension-contact-modal"
@@ -300,10 +334,6 @@
           <button type="button" id="options-extension-contact-cancel" class="secondary">Cancel</button>
         </div>
       </div>
-    </div>
-
-    <div class="options-close-row">
-      <button type="button" class="close-options secondary">Close</button>
     </div>
 
     <script src="show-version.js"></script>

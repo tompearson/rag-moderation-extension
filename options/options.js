@@ -37,6 +37,7 @@ import {
   isRagProviderId,
   sharedPoolStillWorksSuffix,
   sharedPoolActiveStatusMessage,
+  buildGeminiKeyRemoveConfirmMessage,
 } from '../lib/geminiByok.js';
 import {
   SHARED_POOL_MODERATION_LIMIT,
@@ -121,6 +122,13 @@ const GEMINI_BYOK_CHECKBOX_LABEL = 'Turn on my key for moderations (recommend)';
 const geminiKeyPasteBtn = document.getElementById('gemini-key-paste');
 const geminiKeySaveBtn = document.getElementById('gemini-key-save');
 const geminiKeyRemoveBtn = document.getElementById('gemini-key-remove');
+const geminiRemoveKeyModal = document.getElementById('options-gemini-remove-modal');
+const geminiRemoveModalTitle = document.getElementById('options-gemini-remove-modal-title');
+const geminiRemoveLead = document.getElementById('options-gemini-remove-lead');
+const geminiRemovePersonal = document.getElementById('options-gemini-remove-personal');
+const geminiRemoveConfirmBtn = document.getElementById('options-gemini-remove-confirm');
+const geminiRemoveCancelBtn = document.getElementById('options-gemini-remove-cancel');
+const geminiRemoveModalCloseBtn = document.getElementById('options-gemini-remove-modal-close');
 const geminiByokStatus = document.getElementById('gemini-byok-status');
 const geminiKeySavedHint = document.getElementById('gemini-key-saved-hint');
 const geminiKeyFieldError = document.getElementById('gemini-key-field-error');
@@ -698,6 +706,10 @@ updateInvitePersonalCharCount();
 
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
+  if (geminiRemoveKeyModal && !geminiRemoveKeyModal.classList.contains('hidden')) {
+    hideGeminiRemoveKeyModal();
+    return;
+  }
   if (optionsExtensionContactModal && !optionsExtensionContactModal.classList.contains('hidden')) {
     hideOptionsExtensionContactModal();
   }
@@ -1101,7 +1113,36 @@ async function handleGeminiKeySave() {
   }
 }
 
-async function handleGeminiKeyRemove() {
+function hideGeminiRemoveKeyModal() {
+  geminiRemoveKeyModal?.classList.add('hidden');
+}
+
+async function showGeminiRemoveKeyModal() {
+  const used = await getSharedPoolModerationsUsed();
+  const left = getSharedPoolRemaining(used);
+  const copy = buildGeminiKeyRemoveConfirmMessage(left);
+  if (geminiRemoveModalTitle) geminiRemoveModalTitle.textContent = copy.title;
+  if (geminiRemoveLead) geminiRemoveLead.innerHTML = copy.leadHtml;
+  if (geminiRemovePersonal) geminiRemovePersonal.innerHTML = copy.personalKeyHtml;
+  if (geminiRemoveConfirmBtn) geminiRemoveConfirmBtn.textContent = copy.confirmLabel;
+  if (geminiRemoveCancelBtn) geminiRemoveCancelBtn.textContent = copy.cancelLabel;
+  geminiRemoveKeyModal?.classList.remove('hidden');
+  geminiRemoveCancelBtn?.focus();
+}
+
+async function promptGeminiKeyRemove() {
+  const s = await loadSettings();
+  if (!hasSavedGeminiKey(s)) {
+    if (geminiApiKeyInput) geminiApiKeyInput.value = '';
+    clearGeminiKeyFieldError();
+    refreshGeminiKeyPendingStatusFromField();
+    return;
+  }
+  await showGeminiRemoveKeyModal();
+}
+
+async function performGeminiKeyRemove() {
+  hideGeminiRemoveKeyModal();
   await saveSettingsPatch({ geminiApiKey: '', geminiByokEnabled: false });
   if (geminiApiKeyInput) geminiApiKeyInput.value = '';
   if (geminiByokEnabled) geminiByokEnabled.checked = false;
@@ -1509,7 +1550,15 @@ geminiKeySaveBtn?.addEventListener('click', () => {
 });
 
 geminiKeyRemoveBtn?.addEventListener('click', () => {
-  handleGeminiKeyRemove().catch((err) => {
+  promptGeminiKeyRemove().catch((err) => {
+    setGeminiByokStatus(err instanceof Error ? err.message : String(err), true);
+  });
+});
+
+geminiRemoveCancelBtn?.addEventListener('click', () => hideGeminiRemoveKeyModal());
+geminiRemoveModalCloseBtn?.addEventListener('click', () => hideGeminiRemoveKeyModal());
+geminiRemoveConfirmBtn?.addEventListener('click', () => {
+  performGeminiKeyRemove().catch((err) => {
     setGeminiByokStatus(err instanceof Error ? err.message : String(err), true);
   });
 });

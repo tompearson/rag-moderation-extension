@@ -144,12 +144,13 @@ Mark each row Pass / Fail / Skip.
 | Feed location | Options state picker | Matches panel; **Reset location** shows modal again |
 | Factory reset | **Reset to clean state** | Onboarding flows return |
 | Invite a friend | Friend email + optional note → **Send invite** (Production API + Resend on server) | Success status; friend receives invite email; fields clear; preview updates |
+| Options layout | Scroll Options top → bottom | Card sections: Feed location → Moderation → Report email → Gemini → Invite → Backup → Reset → **Advanced** (collapsed at bottom); one **Close** at end of main |
 
 ![Options: version, timeout, report email](/extension/images/how-to-test-options-report-timeout.png)
 
 ![Options: feed location and reset](/extension/images/how-to-test-options-feed-save.png)
 
-_Screenshot may still show a removed “Save all settings” button until recaptured._
+_Screenshot may still show a removed “Save all settings” button or pre-card layout until recaptured (Options now uses bordered section cards)._
 
 Use a **placeholder report email** (or blur) in public screenshots if you prefer not to show a personal address.
 
@@ -173,7 +174,7 @@ _Screenshot (capture during QA): Contact modal with message ready to send._
 | Valid key | **Save key** | **Your key · On** in header; every moderate uses your key |
 | Badge click (key saved) | Click **Your key · On** | Opens Options (Gemini); does **not** switch to shared pool |
 | Quota on your key | Moderate until quota error | Status mentions AI Studio and **Remove key** for shared pool |
-| Remove | **Remove key** | **Your key · Off** with **(N/5 left)** when applicable; status shows shared count; Options quota line |
+| Remove | **Remove key** → confirm dialog (shared pool left vs trial ended) → **Remove key** or **Keep using my key** | **Your key · Off** with **(N/5 left)** when applicable; status shows shared count; Options quota line |
 | Shared pool cap | With no key, moderate until **5** successes | Badge **limit reached**; **Moderate** disabled; status points to Options / [get-gemini-api-key](https://www.airesearchdog.net/extension/get-gemini-api-key) |
 | Factory reset at cap | **Reset to clean state** | Settings cleared; shared-pool count **unchanged**; still blocked until BYOK |
 | Re-save | Paste + **Save key** | **Your key · On** again; shared counter frozen (does not decrement while key saved) |

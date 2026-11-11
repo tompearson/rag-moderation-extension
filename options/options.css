@@ -1,17 +1,40 @@
 :root {
   color-scheme: light dark;
+  --bg: #f8fafc;
+  --fg: #0f172a;
+  --muted: #64748b;
   --border: #cbd5e1;
-  font-family: system-ui, sans-serif;
+  --primary: #2563eb;
+  --surface: #ffffff;
+  --radius: 12px;
+  --section-gap: 14px;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.5;
-  max-width: 640px;
-  margin: 24px auto;
-  padding: 0 16px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
+    --bg: #0f172a;
+    --fg: #e2e8f0;
+    --muted: #94a3b8;
     --border: #334155;
+    --primary: #3b82f6;
+    --surface: #1e293b;
   }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0 auto;
+  padding: 16px 16px 28px;
+  max-width: 640px;
+  background: var(--bg);
+  color: var(--fg);
 }
 
 .options-header {
@@ -19,12 +42,56 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
 }
 
 .options-legal {
-  margin: 0 0 16px;
+  margin: 0 0 var(--section-gap);
   font-size: 13px;
+}
+
+.options-main {
+  margin: 0;
+}
+
+.options-section {
+  margin: 0 0 var(--section-gap);
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--fg) 5%, transparent);
+}
+
+.options-section h2 {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.options-section > h2 + .muted {
+  margin: 0 0 12px;
+}
+
+.options-section > h2 + label,
+.options-section > h2 + .field-header {
+  margin-top: 8px;
+}
+
+.options-section label {
+  margin-top: 10px;
+}
+
+.options-section--emphasis {
+  border-color: color-mix(in srgb, var(--primary) 42%, var(--border));
+  background: color-mix(in srgb, var(--primary) 5%, var(--surface));
+}
+
+.options-section--danger {
+  border-color: color-mix(in srgb, #b91c1c 38%, var(--border));
+  background: color-mix(in srgb, #b91c1c 6%, var(--surface));
 }
 
 #extension-install-guide-link {
@@ -57,7 +124,8 @@ button.header-btn {
 }
 
 .options-close-row {
-  margin: 28px 0;
+  margin: 4px 0 0;
+  padding-top: 4px;
   display: flex;
   justify-content: flex-end;
 }
@@ -103,7 +171,7 @@ select {
 }
 
 .muted {
-  color: #64748b;
+  color: var(--muted);
 }
 
 .hidden {
@@ -111,11 +179,12 @@ select {
 }
 
 .options-advanced-panel {
-  margin: 16px 0 20px;
+  margin: 0 0 var(--section-gap);
   padding: 0;
   border: 1px solid var(--border);
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--border) 8%, transparent);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--fg) 5%, transparent);
 }
 
 .options-advanced-panel summary {
@@ -209,10 +278,10 @@ select {
 @keyframes gemini-byok-section-attention {
   0%,
   100% {
-    background: transparent;
+    background: color-mix(in srgb, var(--primary) 5%, var(--surface));
   }
   50% {
-    background: color-mix(in srgb, #2563eb 6%, transparent);
+    background: color-mix(in srgb, var(--primary) 14%, var(--surface));
   }
 }
 
@@ -222,10 +291,6 @@ select {
 
 #section-gemini-byok.gemini-byok-section--attention {
   animation: gemini-byok-section-attention 0.85s ease-in-out 4;
-  border-radius: 8px;
-  padding: 8px;
-  margin-left: -8px;
-  margin-right: -8px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -442,6 +507,26 @@ textarea {
   margin-top: 0;
 }
 
+.modal-actions .danger {
+  margin-top: 0;
+}
+
+.gemini-remove-modal-lead {
+  margin: 0 0 10px;
+  line-height: 1.5;
+}
+
+.gemini-remove-modal-personal {
+  margin: 0 0 10px;
+  line-height: 1.45;
+}
+
+.gemini-remove-modal-note {
+  margin: 0 0 4px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
 .char-count {
   margin: 4px 0 0;
   font-size: 0.85rem;
@@ -493,9 +578,9 @@ textarea {
 .invite-email-preview {
   margin: 12px 0;
   padding: 10px 12px;
-  border: 1px solid var(--border, #cbd5e1);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background: rgba(248, 250, 252, 0.85);
+  background: color-mix(in srgb, var(--border) 12%, var(--surface));
 }
 
 .invite-preview-subject {
@@ -514,8 +599,8 @@ textarea {
   margin: 8px 0;
   padding: 8px 10px;
   border-radius: 6px;
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--surface);
+  border: 1px solid var(--border);
   font-size: 0.9rem;
 }
 
@@ -526,7 +611,7 @@ textarea {
 .invite-preview-personal-text {
   margin: 6px 0 0;
   white-space: pre-wrap;
-  color: #334155;
+  color: var(--fg);
 }
 
 #invite-friend-status:not(.hidden) {
