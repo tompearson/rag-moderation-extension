@@ -1,11 +1,13 @@
 # Contact — RAG Moderation Assistant
 
-**Last updated:** November 4, 2026  
+**Last updated:** November 10, 2026  
 **Operator:** airesearchdog (“we,” “us”)
 
 Use the addresses below for **questions about the extension, this website, or our policies**. We read mail sent to each address.
 
 **Do not** email neighbor post or comment text to these addresses expecting an automated moderation report. Use the **extension side panel** instead (see [How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts)).
+
+**Invite a friend** (Options in the extension) is separate from Contact: it emails someone you choose an installation guide via our API (from **noreply@airesearchdog.net**). That message is not monitored for replies—use **help@airesearchdog.net** for questions, not reply-to-the-invite.
 
 ## On this page {#toc}
 

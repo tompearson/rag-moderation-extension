@@ -484,3 +484,51 @@ textarea {
   font-size: 0.9rem;
   line-height: 1.4;
 }
+
+#section-invite-friend textarea {
+  resize: vertical;
+  min-height: 4.5em;
+}
+
+.invite-email-preview {
+  margin: 12px 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border, #cbd5e1);
+  border-radius: 8px;
+  background: rgba(248, 250, 252, 0.85);
+}
+
+.invite-preview-subject {
+  margin: 8px 0 6px;
+  font-size: 0.9rem;
+}
+
+.invite-preview-bullets {
+  margin: 8px 0 0;
+  padding-left: 1.2em;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.invite-preview-personal {
+  margin: 8px 0;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  font-size: 0.9rem;
+}
+
+.invite-preview-personal.hidden {
+  display: none;
+}
+
+.invite-preview-personal-text {
+  margin: 6px 0 0;
+  white-space: pre-wrap;
+  color: #334155;
+}
+
+#invite-friend-status:not(.hidden) {
+  margin-top: 8px;
+}

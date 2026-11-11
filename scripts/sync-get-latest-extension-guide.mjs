@@ -6,6 +6,8 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
+  DOWNLOAD_PATH,
+  STABLE_ZIP_NAME,
   formatLatestReleaseMetadataForGuide,
   resolveUniversalDir,
 } from './lib/latestReleaseArtifacts.mjs';
@@ -43,7 +45,16 @@ function preprocessMarkdown(raw) {
 }
 
 function postprocessBodyHtml(html) {
+  const downloadHref = DOWNLOAD_PATH.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const downloadLinkRe = new RegExp(
+    `<a href="${downloadHref}">Download latest build</a>`,
+    'g',
+  );
   return html
+    .replace(
+      downloadLinkRe,
+      `<a id="download" href="${DOWNLOAD_PATH}">Download latest build</a>`,
+    )
     .replace(
       /<h2>Current sideload build<\/h2>/,
       '<h2 id="current-sideload-build">Current sideload build</h2>',

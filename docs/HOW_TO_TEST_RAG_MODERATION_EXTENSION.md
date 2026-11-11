@@ -143,6 +143,7 @@ Mark each row Pass / Fail / Skip.
 | Report email toggle | Turn **Email report** off | Email button hidden; Open/Review remain when id exists |
 | Feed location | Options state picker | Matches panel; **Reset location** shows modal again |
 | Factory reset | **Reset to clean state** | Onboarding flows return |
+| Invite a friend | Friend email + optional note → **Send invite** (Production API + Resend on server) | Success status; friend receives invite email; fields clear; preview updates |
 
 ![Options: version, timeout, report email](/extension/images/how-to-test-options-report-timeout.png)
 

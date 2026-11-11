@@ -6,7 +6,8 @@ Use it when you are testing an unpacked install in Chrome or Edge — not for th
 
 ## On this page {#toc}
 
-- [Current sideload build](#current-sideload-build) (version, SHA256, download — updated each `package:store`)
+- [Current sideload build](#current-sideload-build) (version, SHA256 — updated each `package:store`)
+- [Download latest build](#download) (`rag-moderation-assistant.zip`)
 - [After you download](#after-you-download)
 - [Related guides](#related)
 

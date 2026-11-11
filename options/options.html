@@ -109,6 +109,44 @@
       </div>
     </section>
 
+    <section id="section-invite-friend">
+      <h2>Invite a friend</h2>
+      <p class="muted">
+        Email a friend an invitation to try RAG Moderation Assistant. You can add an optional personal note (up to 300
+        characters). We send a fixed message with install and how-to links; your note appears at the top when provided.
+      </p>
+      <label for="invite-friend-email">Friend's email</label>
+      <input
+        id="invite-friend-email"
+        type="email"
+        autocomplete="off"
+        placeholder="friend@example.com"
+        aria-describedby="invite-friend-error invite-friend-status"
+      />
+      <label for="invite-personal-message">Personal message (optional)</label>
+      <textarea
+        id="invite-personal-message"
+        rows="3"
+        maxlength="300"
+        placeholder="Short note for your friend…"
+      ></textarea>
+      <p id="invite-personal-char-count" class="char-count muted">0 / 300</p>
+      <details class="invite-email-preview" open>
+        <summary>What we send</summary>
+        <p class="muted invite-preview-subject">Subject: <span id="invite-preview-subject"></span></p>
+        <div id="invite-preview-personal" class="invite-preview-personal hidden" role="status">
+          <strong>Note from you</strong>
+          <p id="invite-preview-personal-text" class="invite-preview-personal-text"></p>
+        </div>
+        <ul id="invite-preview-bullets" class="muted invite-preview-bullets"></ul>
+      </details>
+      <p id="invite-friend-error" class="error hidden" role="alert"></p>
+      <div class="row actions-inline">
+        <button type="button" id="invite-friend-send" class="primary">Send invite</button>
+      </div>
+      <p id="invite-friend-status" class="status muted hidden" aria-live="polite"></p>
+    </section>
+
     <section id="section-gemini-byok" class="gemini-byok-section">
       <h2 id="gemini-byok-section-title">Your Gemini API key (recommended)</h2>
       <div id="gemini-byok-shared-pool-row" class="byok-shared-pool-row hidden">

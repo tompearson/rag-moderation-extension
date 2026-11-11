@@ -1,4 +1,9 @@
-import { ENV_PROFILES, resolveApiConfig, formatApiProfileUiLabel } from '../lib/envProfiles.js';
+import {
+  ENV_PROFILES,
+  resolveApiConfig,
+  resolveSettingsApiConfig,
+  formatApiProfileUiLabel,
+} from '../lib/envProfiles.js';
 import { ensureGeminiApiPermission, ensureHostPermission } from '../lib/permissions.js';
 import {
   loadSettings,
@@ -15,6 +20,11 @@ import { closeOptionsPageIfOpen } from '../lib/optionsPage.js';
 import { normalizeReportEmail, isValidReportEmail } from '../lib/validateReportEmail.js';
 import { fillRagProviderSelect, DEFAULT_RAG_PROVIDER } from '../lib/ragProviders.js';
 import { postExtensionContact } from '../lib/extensionContactClient.js';
+import {
+  postExtensionInviteFriend,
+  INVITE_PERSONAL_MESSAGE_MAX,
+  resolveInstallGuideUrlForInvite,
+} from '../lib/extensionInviteClient.js';
 import { buildExtensionContactOptionsSnapshot } from '../lib/extensionContactSettingsSnapshot.js';
 import {
   loadLastModerationContactContext,
@@ -41,6 +51,7 @@ import {
   EXTENSION_PRIVACY_POLICY_URL,
   EXTENSION_TERMS_URL,
   EXTENSION_HOW_TO_MODERATE_URL,
+  EXTENSION_HOW_TO_MODERATE_INVITE_URL,
 } from '../lib/geminiKeyUserHelp.js';
 import {
   BYOK_CONTINUE_SHARED_POOL,
@@ -275,6 +286,22 @@ const optionsExtensionContactWantReply = /** @type {HTMLInputElement | null} */ 
 );
 const optionsExtensionContactEmailRow = document.getElementById('options-extension-contact-email-row');
 const optionsExtensionContactSavedEmailNote = document.getElementById('options-extension-contact-saved-email-note');
+
+const INVITE_EMAIL_SUBJECT = 'Try RAG Moderation Assistant for community moderators';
+const inviteFriendEmail = /** @type {HTMLInputElement | null} */ (
+  document.getElementById('invite-friend-email')
+);
+const invitePersonalMessage = /** @type {HTMLTextAreaElement | null} */ (
+  document.getElementById('invite-personal-message')
+);
+const invitePersonalCharCount = document.getElementById('invite-personal-char-count');
+const invitePreviewSubject = document.getElementById('invite-preview-subject');
+const invitePreviewPersonal = document.getElementById('invite-preview-personal');
+const invitePreviewPersonalText = document.getElementById('invite-preview-personal-text');
+const invitePreviewBullets = document.getElementById('invite-preview-bullets');
+const inviteFriendError = document.getElementById('invite-friend-error');
+const inviteFriendStatus = document.getElementById('invite-friend-status');
+const inviteFriendSend = document.getElementById('invite-friend-send');
 
 /** While Options contact modal is open: saved report email existed when modal opened. */
 let optionsExtensionContactModalHadSavedEmail = false;
@@ -545,6 +572,129 @@ optionsExtensionContactReply?.addEventListener('blur', () => {
   clearOptionsExtensionContactReplySaveTimer();
   void maybeSaveOptionsExtensionContactReplyEmail();
 });
+
+function setInviteFriendError(msg) {
+  if (!inviteFriendError) return;
+  if (!msg) {
+    inviteFriendError.classList.add('hidden');
+    inviteFriendError.textContent = '';
+    return;
+  }
+  inviteFriendError.textContent = msg;
+  inviteFriendError.classList.remove('hidden');
+}
+
+function setInviteFriendStatus(msg, isError = false) {
+  if (!inviteFriendStatus) return;
+  if (!msg) {
+    inviteFriendStatus.classList.add('hidden');
+    inviteFriendStatus.textContent = '';
+    inviteFriendStatus.classList.remove('error');
+    return;
+  }
+  inviteFriendStatus.textContent = msg;
+  inviteFriendStatus.classList.remove('hidden');
+  inviteFriendStatus.classList.toggle('error', isError);
+}
+
+function updateInvitePersonalCharCount() {
+  if (!invitePersonalCharCount || !invitePersonalMessage) return;
+  const n = invitePersonalMessage.value.length;
+  invitePersonalCharCount.textContent = `${n} / ${INVITE_PERSONAL_MESSAGE_MAX}`;
+}
+
+function refreshInvitePreview() {
+  if (invitePreviewSubject) {
+    invitePreviewSubject.textContent = INVITE_EMAIL_SUBJECT;
+  }
+  const installUrl = resolveInstallGuideUrlForInvite();
+  if (invitePreviewBullets) {
+    invitePreviewBullets.innerHTML = '';
+    const items = [
+      ['Install or get the extension', installUrl],
+      ['How to moderate user posts', EXTENSION_HOW_TO_MODERATE_INVITE_URL],
+      ['Privacy policy', EXTENSION_PRIVACY_POLICY_URL],
+    ];
+    for (const [label, href] of items) {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.href = href;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.textContent = label;
+      li.appendChild(a);
+      invitePreviewBullets.appendChild(li);
+    }
+  }
+  const note = invitePersonalMessage?.value.trim() ?? '';
+  if (invitePreviewPersonal && invitePreviewPersonalText) {
+    if (note) {
+      invitePreviewPersonalText.textContent = note.slice(0, INVITE_PERSONAL_MESSAGE_MAX);
+      invitePreviewPersonal.classList.remove('hidden');
+    } else {
+      invitePreviewPersonalText.textContent = '';
+      invitePreviewPersonal.classList.add('hidden');
+    }
+  }
+}
+
+async function sendInviteFriend() {
+  setInviteFriendError('');
+  setInviteFriendStatus('');
+  if (!inviteFriendEmail) return;
+  const friendRaw = normalizeReportEmail(inviteFriendEmail.value);
+  if (!friendRaw || !isValidReportEmail(friendRaw)) {
+    setInviteFriendError('Enter a valid email address for your friend.');
+    return;
+  }
+  const settings = await loadSettings();
+  const api = resolveSettingsApiConfig(settings, isStoreBuild());
+  if (!api.apiOrigin) {
+    setInviteFriendError('Set a valid API profile in Advanced.');
+    return;
+  }
+  const permitted = await ensureHostPermission(api.apiOrigin);
+  if (!permitted) {
+    setInviteFriendError(
+      `Host permission denied for ${formatApiProfileUiLabel(api)}. Use Grant host permission in Advanced.`,
+    );
+    return;
+  }
+  if (inviteFriendSend instanceof HTMLButtonElement) {
+    inviteFriendSend.disabled = true;
+  }
+  try {
+    const personalMessage = invitePersonalMessage?.value.trim() ?? '';
+    await postExtensionInviteFriend(api.apiOrigin, {
+      friendEmail: friendRaw,
+      personalMessage,
+      installGuideUrl: resolveInstallGuideUrlForInvite(),
+    });
+    inviteFriendEmail.value = '';
+    if (invitePersonalMessage) invitePersonalMessage.value = '';
+    updateInvitePersonalCharCount();
+    refreshInvitePreview();
+    setInviteFriendStatus('Invite sent.');
+  } catch (err) {
+    setInviteFriendError(err instanceof Error ? err.message : String(err));
+  } finally {
+    if (inviteFriendSend instanceof HTMLButtonElement) {
+      inviteFriendSend.disabled = false;
+    }
+  }
+}
+
+inviteFriendSend?.addEventListener('click', () => {
+  sendInviteFriend().catch((err) => {
+    setInviteFriendError(err instanceof Error ? err.message : String(err));
+  });
+});
+invitePersonalMessage?.addEventListener('input', () => {
+  updateInvitePersonalCharCount();
+  refreshInvitePreview();
+});
+refreshInvitePreview();
+updateInvitePersonalCharCount();
 
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;

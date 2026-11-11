@@ -281,8 +281,37 @@ let reviewDecisionSubmitBlocked = false;
 let reviewDecisionRating = null;
 
 /** Fingerprint of last successful moderation (skip duplicate API runs). */
+const LAST_MODERATION_KEY_SESSION = 'lastSuccessfulModerationKey';
 /** @type {string | null} */
 let lastSuccessfulModerationKey = null;
+
+/**
+ * @param {string | null} key
+ */
+async function persistLastSuccessfulModerationKey(key) {
+  lastSuccessfulModerationKey = key;
+  try {
+    if (key) {
+      await chrome.storage.session.set({ [LAST_MODERATION_KEY_SESSION]: key });
+    } else {
+      await chrome.storage.session.remove(LAST_MODERATION_KEY_SESSION);
+    }
+  } catch {
+    /* session storage unavailable */
+  }
+}
+
+async function restoreLastSuccessfulModerationKeyFromSession() {
+  try {
+    const stored = await chrome.storage.session.get(LAST_MODERATION_KEY_SESSION);
+    const key = stored[LAST_MODERATION_KEY_SESSION];
+    if (typeof key === 'string' && key) {
+      lastSuccessfulModerationKey = key;
+    }
+  } catch {
+    /* ignore */
+  }
+}
 
 /**
  * @param {string} content
@@ -302,7 +331,7 @@ function moderationRequestKey(content, postContext, analysisType, badWordsEnable
 }
 
 function currentFeedLocationForRequestKey() {
-  return locationPicker.getValue() || DEFAULT_USER_LOCATION;
+  return resolveStoredUserLocation(locationPicker.getValue());
 }
 
 /** @type {'onboarding' | 'sendReport'} */
@@ -726,7 +755,15 @@ async function refreshModerateToolbarButton(settingsIn) {
     poolBlocked = !(await canUseSharedPoolForModeration(settings));
   }
 
-  const alreadyModerated = currentModerationRequestKey() === lastSuccessfulModerationKey;
+  const loc = resolveStoredUserLocation(settings.userLocation);
+  const alreadyModerated =
+    moderationRequestKey(
+      contentInput.value.trim(),
+      postContextInput.value.trim(),
+      analysisSelect.value,
+      badWordsCheckbox.checked,
+      loc,
+    ) === lastSuccessfulModerationKey;
   const ready = !poolBlocked && !alreadyModerated;
 
   moderateBtn.disabled = !ready;
@@ -1704,12 +1741,14 @@ moderateBtn.addEventListener('click', async () => {
   const postContext = postContextInput.value.trim();
   const analysisType = analysisSelect.value;
   const badWordsEnabled = badWordsCheckbox.checked;
+
+  const settings = await loadSettings();
   const requestKey = moderationRequestKey(
     content,
     postContext,
     analysisType,
     badWordsEnabled,
-    currentFeedLocationForRequestKey(),
+    resolveStoredUserLocation(settings.userLocation),
   );
   if (requestKey === lastSuccessfulModerationKey) {
     setStatus(
@@ -1724,7 +1763,6 @@ moderateBtn.addEventListener('click', async () => {
   setStatus('');
   resultsEl.classList.add('hidden');
 
-  const settings = await loadSettings();
   const byokActiveForRequest = isByokConfigured(settings);
   if (shouldClearByokWithoutKey(settings)) {
     await saveSettingsPatch({ geminiByokEnabled: false });
@@ -1786,7 +1824,8 @@ moderateBtn.addEventListener('click', async () => {
     };
     renderResults(response.result, response.meta?.apiOrigin, reportFlags);
     if (!isModerationFailureResult(response.result)) {
-      lastSuccessfulModerationKey = requestKey;
+      await persistLastSuccessfulModerationKey(requestKey);
+      updateModerateBtnPrompt();
     }
     if (isModerationFailureResult(response.result)) {
       const reason = sanitizeModerationReason(String(response.result?.reason || ''));
@@ -1855,7 +1894,7 @@ function clearModerationContentFields() {
   }
   contentInput.value = '';
   postContextInput.value = '';
-  lastSuccessfulModerationKey = null;
+  void persistLastSuccessfulModerationKey(null);
   resultsEl.classList.add('hidden');
   stopModerateBtnPrompt();
   setStatus('');
@@ -1882,7 +1921,7 @@ function clearCaptureField(field) {
   const el = textareaForField(field);
   el.value = '';
   if (field === 'content') {
-    lastSuccessfulModerationKey = null;
+    void persistLastSuccessfulModerationKey(null);
     resultsEl.classList.add('hidden');
     stopModerateBtnPrompt();
   }
@@ -2208,7 +2247,8 @@ byokBadge?.addEventListener('click', (e) => {
 });
 
 requestDismissStalePickModes();
-refreshConnectionBadge()
+restoreLastSuccessfulModerationKeyFromSession()
+  .then(() => refreshConnectionBadge())
   .then(() => refreshSharedPoolStatusHint())
   .then(() => refreshModerateToolbarButton())
   .then(() => syncPickContentButton())

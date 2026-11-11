@@ -1,6 +1,6 @@
 # Privacy Policy — RAG Moderation Assistant (Chrome / Edge extension)
 
-**Last updated:** November 4, 2026  
+**Last updated:** November 10, 2026  
 **Operator:** airesearchdog (“we,” “us”)  
 **Contact:** [admin@airesearchdog.net](mailto:admin@airesearchdog.net) (privacy). Other addresses: [Contact page](https://www.airesearchdog.net/extension/contact).  
 
@@ -50,6 +50,7 @@ The extension is intended for **moderators and administrators**, not for general
 | **Dev identifiers (Advanced)** | `moderatorId`, `deviceId` defaults or values you set | Stored locally; sent with each moderation request |
 | **Feedback you choose to send** | Comment on “Review this report” | Sent to airesearchdog’s API with a random **`feedbackSessionId`** in **`chrome.storage.session`** (browser session, not synced across devices) |
 | **Short-lived session data** | Pending draft from context menu, active tab id for pick mode | **`chrome.storage.session`**; cleared when the browser session ends |
+| **Invite a friend (Options)** | Friend’s email and optional personal note (up to 300 characters) | Sent **only when you tap Send invite** to airesearchdog’s API for one-time email delivery; **not** stored on your device |
 
 The extension does **not** use `chrome.storage.sync`. It does **not** include third-party analytics or crash-reporting SDKs in the extension package.
 
@@ -98,7 +99,12 @@ If you save a Gemini key, the extension may call **`generativelanguage.googleapi
 
 When **no** Gemini key is saved, moderations use the **shared pool** described under [Costs, quotas, and your Gemini key](#costs-quotas-and-your-gemini-key). Content still goes to airesearchdog’s API and may be processed by Google on the server side.
 
-### 4. Help links
+### 4. Contact and invite (only when you use them)
+
+- **Contact** (side panel or Options): when you send a message, the text and optional reply email go to airesearchdog’s API so we can email **help@** / respond; not stored in extension local storage beyond what you already saved (e.g. report email).
+- **Invite a friend** (Options): when you send an invite, your friend’s email and optional personal note go to airesearchdog’s API so we can email them a one-time invitation (install/how-to links and a sample report); we do **not** save those fields on your device.
+
+### 5. Help links
 
 The side panel and Options may open **help pages** we host (for example, how to get a Gemini key or install the extension). Opening those pages does not by itself send moderation content.
 
