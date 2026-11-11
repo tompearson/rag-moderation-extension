@@ -179,20 +179,30 @@
         aria-live="polite"
         hidden
       ></p>
-      <p class="muted byok-guide-link">
+      <nav class="sidepanel-guide-pills" aria-label="Extension guides and support">
         <a
           id="install-extension-guide-link"
+          class="sidepanel-guide-pill sidepanel-guide-pill--muted"
           href="#"
           target="_blank"
           rel="noopener noreferrer"
           title="You already have this extension installed—opens the Web Store install guide for reference or sharing."
           >Install in Chrome</a
-        ><span id="sidepanel-guide-sep-install" aria-hidden="true"> · </span
-        ><a id="gemini-key-guide-link" href="#" target="_blank" rel="noopener noreferrer"
+        ><a
+          id="gemini-key-guide-link"
+          class="sidepanel-guide-pill"
+          href="#"
+          target="_blank"
+          rel="noopener noreferrer"
           >Get a Gemini key</a
-        ><span id="sidepanel-guide-sep-contact" aria-hidden="true"> · </span
-        ><button type="button" id="extension-contact-open-btn" class="link-btn">Contact</button>
-      </p>
+        ><button
+          type="button"
+          id="extension-contact-open-btn"
+          class="sidepanel-guide-pill sidepanel-guide-pill--button"
+        >
+          Contact
+        </button>
+      </nav>
     </header>
 
     <main id="main-panel" class="blocked" aria-hidden="true">
@@ -250,9 +260,18 @@
         <label for="bad-words-enabled">Bad Words pre-screen</label>
       </div>
 
-      <div id="moderation-progress" class="moderation-progress hidden" aria-live="polite">
-        <span id="moderation-elapsed" class="elapsed">0.0s</span>
-        <span id="moderation-limit" class="muted"></span>
+      <div
+        id="moderation-progress"
+        class="moderation-progress hidden"
+        aria-live="polite"
+        role="status"
+        aria-label="Moderation in progress"
+      >
+        <span class="moderation-progress-label">Moderating…</span>
+        <span class="moderation-progress-timer" aria-hidden="true">
+          <span id="moderation-elapsed" class="elapsed">0.0s</span>
+          <span id="moderation-limit" class="moderation-progress-limit"></span>
+        </span>
         <button type="button" id="abort-moderate-btn" class="small-btn danger-outline" disabled>Stop</button>
       </div>
 

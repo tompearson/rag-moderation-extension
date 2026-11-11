@@ -208,7 +208,6 @@ const byokBadge = document.getElementById('byok-badge');
 const sharedPoolQuotaLine = document.getElementById('shared-pool-quota-line');
 const installExtensionGuideLink = document.getElementById('install-extension-guide-link');
 const geminiKeyGuideLink = document.getElementById('gemini-key-guide-link');
-const sidepanelGuideSepInstall = document.getElementById('sidepanel-guide-sep-install');
 
 if (installExtensionGuideLink) {
   installExtensionGuideLink.href = INSTALL_CHROME_EXTENSION_GUIDE_URL;
@@ -218,7 +217,6 @@ if (geminiKeyGuideLink) {
 }
 if (isStoreBuild()) {
   if (installExtensionGuideLink) installExtensionGuideLink.hidden = true;
-  if (sidepanelGuideSepInstall) sidepanelGuideSepInstall.hidden = true;
 }
 
 const extensionVersionLabel = document.getElementById('extension-version-label');

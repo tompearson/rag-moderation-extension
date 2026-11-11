@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "RAG Moderation Assistant",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "Side panel moderation via Community Moderation Tool (RAG provider).",
   "icons": {
     "16": "icons/icon-16.png",
