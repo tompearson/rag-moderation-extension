@@ -48,13 +48,15 @@ You may get email from **info@airesearchdog.net** when a new **sideload** build 
 
       ![Pin (thumbtack) for RAG Moderation Assistant in the Extensions menu](/extension/images/install-chrome-extensions-pin-thumbtack.png)
 
-      The thumbtack should have a slash through it and the extension may open in your current window. The extension should be visible in the extension toolbar.
-
-      ![RAG Moderation Assistant icon pinned in the Chrome extension toolbar](/extension/images/install-chrome-toolbar-extension-icon.png)
+      The thumbtack should have a slash through it and the extension may open in your current window.
 
    2. Find **RAG Moderation Assistant** and make sure the **unlabeled slider** at the bottom-right of its card is **enabled** (on).
 
       ![RAG Moderation Assistant extension card with the enable slider turned on](/extension/images/install-chrome-extensions-card-enabled.png)
+
+   3. You should see the **RAG Moderation Assistant** icon in the extension toolbar (below). You may begin moderating — see **[How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts)**.
+
+      ![RAG Moderation Assistant icon pinned in the Chrome extension toolbar](/extension/images/install-chrome-toolbar-extension-icon.png)
 
 ---
 
