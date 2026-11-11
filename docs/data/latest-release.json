@@ -1,9 +1,9 @@
 {
-  "version": "0.2.9",
-  "sha256": "4ba17c1101c06d90d831f3a6be89ba42a0a03ea5bb190205109e293f2d9b4bbb",
-  "builtAt": "2026-11-11T21:58:15.037Z",
+  "version": "0.2.10",
+  "sha256": "8b22f289a843e54302b0228b0b544d12f85d04520cfde143fdbfac30ddfbc6d9",
+  "builtAt": "2026-11-11T23:47:49.814Z",
   "zipFileName": "rag-moderation-assistant.zip",
   "downloadPath": "/extension/downloads/rag-moderation-assistant.zip",
-  "versionedZipFileName": "rag-moderation-assistant-0.2.9.zip",
+  "versionedZipFileName": "rag-moderation-assistant-0.2.10.zip",
   "note": "Unzip the download, then Load unpacked in chrome://extensions — see the developer install guide."
 }
