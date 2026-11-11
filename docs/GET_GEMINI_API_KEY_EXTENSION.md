@@ -43,7 +43,7 @@ You now have a Gemini API key on the clipboard (or saved in your password manage
 In the browser's toolbar, if you do not see the RAG Extension's icon, click the image below. [How to make it visible is explained](https://www.airesearchdog.net/extension/install-chrome-extension-developer#enable-extension-card).
 
 <a href="https://www.airesearchdog.net/extension/install-chrome-extension-developer#enable-extension-card">
-<img src="/extension/images/install-chrome-extensions-card-enabled.png" alt="RAG Moderation Assistant extension card with the enable slider turned on" width="560" />
+<img src="/extension/images/install-chrome-toolbar-extension-icon.png" alt="RAG Moderation Assistant icon pinned in the Chrome extension toolbar" width="560" />
 </a>
 
 For **RAG Moderation Assistant**: the key stays in **this browser only**; it is not saved on the moderation website server.
