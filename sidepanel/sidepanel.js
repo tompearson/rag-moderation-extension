@@ -240,6 +240,7 @@ const moderationElapsed = document.getElementById('moderation-elapsed');
 const moderationLimit = document.getElementById('moderation-limit');
 const abortModerateBtn = document.getElementById('abort-moderate-btn');
 const statusEl = document.getElementById('status');
+const moderateBlockedHint = document.getElementById('moderate-blocked-hint');
 const resultsEl = document.getElementById('results');
 
 /** @type {ReturnType<typeof setInterval> | null} */
@@ -685,7 +686,7 @@ function clearSharedPoolInfoStatus() {
   const msg = statusEl.textContent || '';
   if (
     !statusEl.classList.contains('status-info') ||
-    !/shared pool|shared moderations|limit reached|Save your own Gemini/i.test(msg)
+    !/shared pool|shared moderations|limit reached|free shared trial|Save your own Gemini/i.test(msg)
   ) {
     return;
   }
@@ -738,18 +739,23 @@ async function refreshModerateToolbarButton(settingsIn) {
   }
 
   const hasContent = Boolean(contentInput.value.trim());
-  if (!hasContent) {
-    moderateBtn.disabled = true;
-    moderateBtn.classList.add('moderate-toolbar-muted');
-    moderateBtn.classList.remove('moderate-toolbar-ready');
-    moderateBtn.removeAttribute('title');
-    return;
-  }
-
   const settings = settingsIn || (await loadSettings());
   let poolBlocked = false;
   if (!hasSavedGeminiKey(settings)) {
     poolBlocked = !(await canUseSharedPoolForModeration(settings));
+  }
+
+  if (!hasContent) {
+    moderateBtn.disabled = poolBlocked ? false : true;
+    moderateBtn.classList.add('moderate-toolbar-muted');
+    moderateBtn.classList.remove('moderate-toolbar-ready');
+    if (poolBlocked) {
+      moderateBtn.title =
+        'Free shared trial over — click for how to add your Gemini key in Options.';
+    } else {
+      moderateBtn.removeAttribute('title');
+    }
+    return;
   }
 
   const loc = resolveStoredUserLocation(settings.userLocation);
@@ -764,16 +770,18 @@ async function refreshModerateToolbarButton(settingsIn) {
     ) === lastSuccessfulModerationKey;
   const ready = !poolBlocked && !alreadyModerated;
 
-  moderateBtn.disabled = !ready;
+  moderateBtn.disabled = pickModeInProgress || !hasContent;
   moderateBtn.classList.toggle('moderate-toolbar-muted', !ready);
   moderateBtn.classList.toggle('moderate-toolbar-ready', ready);
   if (poolBlocked) {
-    moderateBtn.title = 'Shared pool limit reached — add your Gemini key in Options.';
+    moderateBtn.title =
+      'Free shared trial over — click for how to add your Gemini key in Options.';
   } else if (alreadyModerated) {
     moderateBtn.title =
       'Already moderated this text with these settings. Edit content, change analysis, provider, or feed location, or Clear content to run again.';
   } else {
     moderateBtn.removeAttribute('title');
+    hideModerateBlockedHint();
   }
 }
 
@@ -1041,6 +1049,25 @@ function setInfoStatus(msg) {
   statusEl.classList.remove('error');
   statusEl.classList.add('status-info');
   statusEl.textContent = msg || '';
+}
+
+function hideModerateBlockedHint() {
+  if (!moderateBlockedHint) return;
+  moderateBlockedHint.textContent = '';
+  moderateBlockedHint.classList.add('hidden');
+}
+
+function showSharedPoolTrialEndedUi() {
+  const msg = sharedPoolLimitExceededMessage();
+  statusEl.classList.remove('status-info');
+  setStatus(msg, true);
+  if (moderateBlockedHint) {
+    moderateBlockedHint.textContent = msg;
+    moderateBlockedHint.classList.remove('hidden');
+    moderateBlockedHint.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  } else {
+    statusEl?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
 }
 
 function setGeminiQuotaHelpStatus(byokWasOn = false) {
@@ -1736,7 +1763,13 @@ function renderResults(result, apiOrigin, flags) {
   scrollResultsIntoView();
 }
 
-moderateBtn.addEventListener('click', async () => {
+async function handleModerateButtonClick() {
+  const settings = await loadSettings();
+  if (!hasSavedGeminiKey(settings) && !(await canUseSharedPoolForModeration(settings))) {
+    showSharedPoolTrialEndedUi();
+    return;
+  }
+
   const content = contentInput.value.trim();
   if (!content) {
     setStatus('Enter content to moderate.', true);
@@ -1746,8 +1779,6 @@ moderateBtn.addEventListener('click', async () => {
   const postContext = postContextInput.value.trim();
   const analysisType = analysisSelect.value;
   const badWordsEnabled = badWordsCheckbox.checked;
-
-  const settings = await loadSettings();
   const requestKey = moderationRequestKey(
     content,
     postContext,
@@ -1767,6 +1798,7 @@ moderateBtn.addEventListener('click', async () => {
   }
 
   setStatus('');
+  hideModerateBlockedHint();
   resultsEl.classList.add('hidden');
 
   const byokActiveForRequest = isByokConfigured(settings);
@@ -1797,7 +1829,7 @@ moderateBtn.addEventListener('click', async () => {
 
   const sharedPoolBlock = await sharedPoolModerationBlockMessage(settings);
   if (sharedPoolBlock) {
-    setInfoStatus(sharedPoolBlock);
+    showSharedPoolTrialEndedUi();
     await refreshByokBadge(settings);
     return;
   }
@@ -1883,7 +1915,15 @@ moderateBtn.addEventListener('click', async () => {
   } finally {
     stopModerationProgress();
   }
-});
+}
+
+if (moderateBtn instanceof HTMLButtonElement) {
+  moderateBtn.addEventListener('click', () => {
+    void handleModerateButtonClick().catch((err) => {
+      setStatus(err instanceof Error ? err.message : String(err), true);
+    });
+  });
+}
 
 abortModerateBtn.addEventListener('click', () => {
   if (!activeModerationRequestId) return;
@@ -1904,6 +1944,7 @@ function clearModerationContentFields() {
   resultsEl.classList.add('hidden');
   stopModerateBtnPrompt();
   setStatus('');
+  hideModerateBlockedHint();
   updateModerateBtnPrompt();
   syncPickContentButton();
 }
@@ -2253,6 +2294,7 @@ byokBadge?.addEventListener('click', (e) => {
   });
 });
 
+syncMainPanelBlocked();
 requestDismissStalePickModes();
 restoreLastSuccessfulModerationKeyFromSession()
   .then(() => refreshConnectionBadge())

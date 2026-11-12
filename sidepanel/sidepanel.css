@@ -339,6 +339,27 @@ button.moderate-toolbar-btn.moderate-toolbar-muted {
   opacity: 0.92;
 }
 
+button.moderate-toolbar-btn.moderate-toolbar-muted:not(:disabled) {
+  cursor: pointer;
+}
+
+.moderate-blocked-hint {
+  width: min(100%, 22rem);
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #7f1d1d;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.moderate-blocked-hint.hidden {
+  display: none;
+}
+
 button.pick-btn {
   display: block;
   padding: 10px 14px;
