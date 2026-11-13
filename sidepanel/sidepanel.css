@@ -744,6 +744,13 @@ button.danger-outline {
   word-break: break-word;
 }
 
+.results .copy-block-label {
+  font-size: 16px;
+  line-height: 1.55;
+  font-weight: 700;
+  color: var(--results-prose);
+}
+
 .results .copy-block-body,
 .results p.moderation-linked-prose,
 .results .context-impact p {

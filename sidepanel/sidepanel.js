@@ -64,6 +64,7 @@ import { GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL } from '../lib/geminiKeyUserHelp
 import { isStoreBuild } from '../lib/buildConfig.js';
 import { formatExtensionVersionLabel, getExtensionVersion } from '../lib/extensionVersion.js';
 import { STORAGE_KEYS } from '../lib/userSettings.js';
+import { openNextdoorNewsFeedForModeration } from '../lib/nextdoorFeedNav.js';
 import { ensureHostPermission } from '../lib/permissions.js';
 import { postExtensionContact } from '../lib/extensionContactClient.js';
 import { buildExtensionContactOptionsSnapshot } from '../lib/extensionContactSettingsSnapshot.js';
@@ -785,6 +786,11 @@ async function refreshModerateToolbarButton(settingsIn) {
     moderateBtn.removeAttribute('title');
     hideModerateBlockedHint();
   }
+}
+
+function navigateToNextdoorFeedOnPanelOpen() {
+  if (pickModeInProgress) return;
+  openNextdoorNewsFeedForModeration().catch(() => {});
 }
 
 async function refreshSharedPoolStatusHint() {
@@ -2300,6 +2306,7 @@ document.addEventListener('visibilitychange', () => {
     return;
   }
   if (document.visibilityState === 'visible') {
+    navigateToNextdoorFeedOnPanelOpen();
     requestDismissStalePickModes();
     syncSidePanelFromStorage().catch(() => {});
   }
@@ -2323,6 +2330,7 @@ byokBadge?.addEventListener('click', (e) => {
 });
 
 syncMainPanelBlocked();
+navigateToNextdoorFeedOnPanelOpen();
 requestDismissStalePickModes();
 restoreLastSuccessfulModerationKeyFromSession()
   .then(() => refreshConnectionBadge())
