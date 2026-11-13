@@ -55,7 +55,9 @@ import {
   getSharedPoolModerationsUsed,
   getSharedPoolRemaining,
   isSharedPoolLimitExceededMessage,
+  SHARED_POOL_TRIAL_GEMINI_GUIDE_URL,
   sharedPoolLimitExceededMessage,
+  sharedPoolLimitExceededMessageBody,
   sharedPoolModerationBlockMessage,
 } from '../lib/sharedPoolQuota.js';
 import { GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL } from '../lib/geminiKeyUserHelp.js';
@@ -795,7 +797,11 @@ async function refreshSharedPoolStatusHint() {
   }
   const remaining = await sharedPoolRemainingForUi(settings);
   if (remaining === 0) {
-    setInfoStatus(sharedPoolLimitExceededMessage());
+    if (statusEl) {
+      statusEl.classList.remove('error');
+      statusEl.classList.add('status-info');
+      fillSharedPoolTrialEndedContent(statusEl);
+    }
     return;
   }
   setInfoStatus(sharedPoolActiveStatusMessage(remaining));
@@ -835,11 +841,13 @@ async function handleByokBadgeClick() {
         await saveSettingsPatch({ geminiByokEnabled: false });
       }
       const remaining = await sharedPoolRemainingForUi(settings);
-      setInfoStatus(
-        remaining === 0
-          ? sharedPoolLimitExceededMessage()
-          : sharedPoolActiveStatusMessage(remaining),
-      );
+      if (remaining === 0) {
+        statusEl.classList.remove('error');
+        statusEl.classList.add('status-info');
+        fillSharedPoolTrialEndedContent(statusEl);
+      } else {
+        setInfoStatus(sharedPoolActiveStatusMessage(remaining));
+      }
       await refreshByokBadge(await loadSettings());
     } else {
       setInfoStatus(
@@ -1053,16 +1061,34 @@ function setInfoStatus(msg) {
 
 function hideModerateBlockedHint() {
   if (!moderateBlockedHint) return;
-  moderateBlockedHint.textContent = '';
+  moderateBlockedHint.replaceChildren();
   moderateBlockedHint.classList.add('hidden');
 }
 
+/**
+ * @param {HTMLElement} el
+ */
+function fillSharedPoolTrialEndedContent(el) {
+  el.replaceChildren();
+  el.append(document.createTextNode(`${sharedPoolLimitExceededMessageBody()} Guide: `));
+  const guide = document.createElement('a');
+  guide.href = GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL || SHARED_POOL_TRIAL_GEMINI_GUIDE_URL;
+  guide.target = '_blank';
+  guide.rel = 'noopener noreferrer';
+  guide.textContent = SHARED_POOL_TRIAL_GEMINI_GUIDE_URL;
+  el.append(guide);
+}
+
+function setSharedPoolTrialEndedStatus(el) {
+  el.classList.remove('status-info');
+  el.classList.add('error');
+  fillSharedPoolTrialEndedContent(el);
+}
+
 function showSharedPoolTrialEndedUi() {
-  const msg = sharedPoolLimitExceededMessage();
-  statusEl.classList.remove('status-info');
-  setStatus(msg, true);
+  if (statusEl) setSharedPoolTrialEndedStatus(statusEl);
   if (moderateBlockedHint) {
-    moderateBlockedHint.textContent = msg;
+    fillSharedPoolTrialEndedContent(moderateBlockedHint);
     moderateBlockedHint.classList.remove('hidden');
     moderateBlockedHint.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   } else {
@@ -1099,7 +1125,9 @@ function setGeminiQuotaHelpStatus(byokWasOn = false) {
 function setErrorStatus(message, noSavedKey = false) {
   const msg = sanitizeModerationReason(message);
   if (isSharedPoolLimitExceededMessage(msg)) {
-    setInfoStatus(msg);
+    statusEl.classList.remove('error');
+    statusEl.classList.add('status-info');
+    fillSharedPoolTrialEndedContent(statusEl);
     refreshByokBadge(loadSettings()).catch(() => {});
     return;
   }
