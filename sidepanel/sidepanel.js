@@ -86,11 +86,11 @@ import {
 } from '../lib/pendingModerationDraft.js';
 import { prepareTabCaptureFromSidePanel } from '../lib/prepareTabCapture.js';
 import { DISMISS_STALE_PICK_MODES, tearDownPickModeOnTab } from '../lib/pickMode.js';
+import { isReadablePageUrl } from '../lib/pageAccess.js';
 import {
-  isActiveTabNextdoorInPanelWindow,
-  PICK_REQUIRES_ACTIVE_NEXTDOOR_MSG,
-  isReadablePageUrl,
-} from '../lib/pageAccess.js';
+  isFocusedTabNextdoorInPanelWindow,
+  NEXTDOOR_REQUIRED_MSG,
+} from '../lib/moderationDomain.js';
 import {
   decisionClass,
   formatReportCategory,
@@ -113,9 +113,6 @@ const nextdoorNavigateClose = document.getElementById('nextdoor-navigate-close')
 
 /** @type {((choice: 'navigate' | 'cancel') => void) | null} */
 let nextdoorNavigateDialogResolve = null;
-
-/** Visible tab is not Nextdoor — block in-page capture; Moderate opens navigate dialog. */
-let offNextdoorModerationGate = false;
 
 const modal = document.getElementById('location-modal');
 const modalError = document.getElementById('modal-error');
@@ -764,17 +761,13 @@ async function refreshModerateToolbarButton(settingsIn) {
     return;
   }
 
-  if (offNextdoorModerationGate) {
-    const onNextdoor = await isActiveTabNextdoorInPanelWindow();
-    if (onNextdoor) {
-      offNextdoorModerationGate = false;
-    } else {
-      moderateBtn.disabled = false;
-      moderateBtn.classList.add('moderate-toolbar-muted');
-      moderateBtn.classList.remove('moderate-toolbar-ready');
-      moderateBtn.title = 'Open your Nextdoor tab to moderate.';
-      return;
-    }
+  const onNextdoor = await isFocusedTabNextdoorInPanelWindow();
+  if (!onNextdoor) {
+    moderateBtn.disabled = false;
+    moderateBtn.classList.add('moderate-toolbar-muted');
+    moderateBtn.classList.remove('moderate-toolbar-ready');
+    moderateBtn.title = 'Open your Nextdoor tab to moderate.';
+    return;
   }
 
   const hasContent = Boolean(contentInput.value.trim());
@@ -1130,7 +1123,7 @@ function finishNextdoorNavigateDialog(/** @type {'navigate' | 'cancel'} */ choic
 function promptNextdoorNavigateDialog() {
   if (!nextdoorNavigateModal) return Promise.resolve('cancel');
   if (nextdoorNavigateModalDesc) {
-    nextdoorNavigateModalDesc.textContent = PICK_REQUIRES_ACTIVE_NEXTDOOR_MSG;
+    nextdoorNavigateModalDesc.textContent = NEXTDOOR_REQUIRED_MSG;
   }
   nextdoorNavigateModal.classList.remove('hidden');
   syncMainPanelBlocked();
@@ -1144,7 +1137,7 @@ nextdoorNavigateNow?.addEventListener('click', () => finishNextdoorNavigateDialo
 nextdoorNavigateCancel?.addEventListener('click', () => finishNextdoorNavigateDialog('cancel'));
 nextdoorNavigateClose?.addEventListener('click', () => finishNextdoorNavigateDialog('cancel'));
 
-function clearModerationFieldsForWrongTab() {
+function clearContentWhenNotOnNextdoor() {
   if (pickModeInProgress) {
     abortPickMode({ restoreField: false });
   }
@@ -1158,24 +1151,23 @@ function clearModerationFieldsForWrongTab() {
   syncPickContentButton();
 }
 
-async function syncActiveTabModerationGate() {
-  const onNextdoor = await isActiveTabNextdoorInPanelWindow();
-  const wasOff = offNextdoorModerationGate;
-  offNextdoorModerationGate = !onNextdoor;
-  if (!onNextdoor && (!wasOff || contentInput.value.trim() || postContextInput.value.trim())) {
-    clearModerationFieldsForWrongTab();
+/** Drop captured text when the focused tab is not Nextdoor; refresh Moderate. */
+async function syncFocusedTabModerationPolicy() {
+  const onNextdoor = await isFocusedTabNextdoorInPanelWindow();
+  if (!onNextdoor && (contentInput.value.trim() || postContextInput.value.trim())) {
+    clearContentWhenNotOnNextdoor();
   }
   await refreshModerateToolbarButton();
 }
 
 /** @returns {Promise<boolean>} */
-async function requireActiveNextdoorTabOrNavigate() {
-  if (await isActiveTabNextdoorInPanelWindow()) return true;
+async function ensureFocusedNextdoorOrNavigate() {
+  if (await isFocusedTabNextdoorInPanelWindow()) return true;
   const choice = await promptNextdoorNavigateDialog();
   if (choice !== 'navigate') return false;
   await openNextdoorNewsFeedForModeration({ force: true });
-  await syncActiveTabModerationGate();
-  return isActiveTabNextdoorInPanelWindow();
+  await syncFocusedTabModerationPolicy();
+  return isFocusedTabNextdoorInPanelWindow();
 }
 
 /**
@@ -1906,7 +1898,7 @@ function renderResults(result, apiOrigin, flags) {
 
 async function handleModerateButtonClick() {
   const settings = await loadSettings();
-  const onNextdoor = await requireActiveNextdoorTabOrNavigate();
+  const onNextdoor = await ensureFocusedNextdoorOrNavigate();
   if (!onNextdoor) return;
 
   if (!hasSavedGeminiKey(settings) && !(await canUseSharedPoolForModeration(settings))) {
@@ -2288,7 +2280,7 @@ async function runPickModeForField(field) {
     setStatus('Already waiting for a click on the page. Click text there or press Esc.', true);
     return;
   }
-  const onNextdoor = await requireActiveNextdoorTabOrNavigate();
+  const onNextdoor = await ensureFocusedNextdoorOrNavigate();
   if (!onNextdoor) return;
 
   let tabId;
@@ -2339,7 +2331,6 @@ async function runPickModeForField(field) {
   }
   applyPickedText(response.text, field);
   pickFieldRestoreText = '';
-  offNextdoorModerationGate = false;
   if (field === 'content') updateModerateBtnPrompt();
   else refreshModerateToolbarButton().catch(() => {});
 }
@@ -2422,7 +2413,7 @@ chrome.runtime.onMessage.addListener((message) => {
     return false;
   }
   if (message?.type === 'ACTIVE_TAB_CHANGED') {
-    syncActiveTabModerationGate().catch(() => {});
+    syncFocusedTabModerationPolicy().catch(() => {});
     return false;
   }
   if (message?.type === EXTENSION_UI_SYNC) {
@@ -2430,7 +2421,7 @@ chrome.runtime.onMessage.addListener((message) => {
       abortPickMode({ restoreField: false });
     }
     syncSidePanelFromStorage().catch(() => {});
-    syncActiveTabModerationGate().catch(() => {});
+    syncFocusedTabModerationPolicy().catch(() => {});
   }
   return false;
 });
@@ -2447,7 +2438,7 @@ document.addEventListener('visibilitychange', () => {
     navigateToNextdoorFeedOnPanelOpen();
     requestDismissStalePickModes();
     syncSidePanelFromStorage().catch(() => {});
-    syncActiveTabModerationGate().catch(() => {});
+    syncFocusedTabModerationPolicy().catch(() => {});
   }
 });
 
@@ -2481,7 +2472,7 @@ restoreLastSuccessfulModerationKeyFromSession()
     }
   })
   .then(() => refreshSharedPoolStatusHint())
-  .then(() => syncActiveTabModerationGate())
+  .then(() => syncFocusedTabModerationPolicy())
   .then(() => syncPickContentButton())
   .catch(() => {});
 consumePendingDraftOnLoad().catch(() => {});

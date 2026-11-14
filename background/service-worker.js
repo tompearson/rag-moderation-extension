@@ -22,7 +22,7 @@ import {
   handleModerationContextMenuClick,
 } from '../lib/contextMenu.js';
 import { EXTENSION_UI_SYNC } from '../lib/extensionUiSync.js';
-import { registerAutoNavMonitor } from '../lib/autoNavMonitor.js';
+import { registerAutoNavMonitor } from '../lib/autoNav.js';
 
 function onInstalled() {
   chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {});

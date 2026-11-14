@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import {
   moderationCaptureTabId,
   resolvePickTabIdForSidePanel,
-  isActiveTabNextdoorForModeration,
-  PICK_REQUIRES_ACTIVE_NEXTDOOR_MSG,
-} from '../lib/pageAccess.js';
+  isFocusedTabNextdoor,
+  NEXTDOOR_REQUIRED_MSG,
+} from '../lib/moderationDomain.js';
 
 assert.equal(
   moderationCaptureTabId({ id: 1, url: 'https://nextdoor.com/p/abc' }),
@@ -30,13 +30,13 @@ assert.equal(
 );
 assert.throws(
   () => resolvePickTabIdForSidePanel({ id: 11, url: 'https://mail.google.com/' }),
-  (err) => err instanceof Error && err.message === PICK_REQUIRES_ACTIVE_NEXTDOOR_MSG,
+  (err) => err instanceof Error && err.message === NEXTDOOR_REQUIRED_MSG,
   'rejects active non-nextdoor',
 );
 assert.equal(
-  isActiveTabNextdoorForModeration({ id: 12, url: 'https://nextdoor.com/p/x' }),
+  isFocusedTabNextdoor({ id: 12, url: 'https://nextdoor.com/p/x' }),
   true,
 );
-assert.equal(isActiveTabNextdoorForModeration({ id: 13, url: 'https://gemini.google.com/' }), false);
+assert.equal(isFocusedTabNextdoor({ id: 13, url: 'https://gemini.google.com/' }), false);
 
-console.log('OK — page access moderation tab tests passed');
+console.log('OK — moderation domain tests passed');
