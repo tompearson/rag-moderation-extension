@@ -9,7 +9,7 @@ import {
   assertCanUseSharedPoolForModeration,
   recordSharedPoolModerationSuccessIfApplicable,
 } from '../lib/sharedPoolQuota.js';
-import { MODERATION_TARGET_TAB_SESSION_KEY, isReadablePageUrl } from '../lib/pageAccess.js';
+import { MODERATION_TARGET_TAB_SESSION_KEY, moderationCaptureTabId } from '../lib/pageAccess.js';
 import {
   DISMISS_STALE_PICK_MODES,
   dismissStalePickOverlaysForAllTabs,
@@ -22,6 +22,7 @@ import {
   handleModerationContextMenuClick,
 } from '../lib/contextMenu.js';
 import { EXTENSION_UI_SYNC } from '../lib/extensionUiSync.js';
+import { registerAutoNavMonitor } from '../lib/autoNavMonitor.js';
 
 function onInstalled() {
   chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {});
@@ -33,6 +34,7 @@ chrome.runtime.onInstalled.addListener(() => {
   dismissStalePickOverlaysForAllTabs().catch(() => {});
 });
 registerModerationContextMenu();
+registerAutoNavMonitor();
 
 dismissStalePickOverlaysForAllTabs().catch(() => {});
 
@@ -44,12 +46,13 @@ chrome.tabs.onActivated.addListener(({ tabId }) => {
   chrome.tabs
     .get(tabId)
     .then((tab) => {
-      if (isReadablePageUrl(tab.url)) {
+      if (moderationCaptureTabId(tab) != null) {
         return chrome.storage.session.set({ [MODERATION_TARGET_TAB_SESSION_KEY]: tabId });
       }
       return undefined;
     })
     .catch(() => {});
+  chrome.runtime.sendMessage({ type: 'ACTIVE_TAB_CHANGED' }).catch(() => {});
 });
 
 /** @type {Map<string, AbortController>} */

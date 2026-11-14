@@ -82,10 +82,15 @@ import { BYOK_CONTINUE_SHARED_POOL, EXTENSION_UI_SYNC } from '../lib/extensionUi
 import {
   PENDING_DRAFT_SESSION_KEY,
   consumePendingModerationDraft,
+  peekPendingModerationDraft,
 } from '../lib/pendingModerationDraft.js';
 import { prepareTabCaptureFromSidePanel } from '../lib/prepareTabCapture.js';
 import { DISMISS_STALE_PICK_MODES, tearDownPickModeOnTab } from '../lib/pickMode.js';
-import { isReadablePageUrl } from '../lib/pageAccess.js';
+import {
+  isActiveTabNextdoorInPanelWindow,
+  PICK_REQUIRES_ACTIVE_NEXTDOOR_MSG,
+  isReadablePageUrl,
+} from '../lib/pageAccess.js';
 import {
   decisionClass,
   formatReportCategory,
@@ -99,6 +104,18 @@ import {
   moderationTextToLinkedHtml,
   stripMarkdownLinksToPlainText,
 } from '../lib/moderationLinkedHtml.js';
+
+const nextdoorNavigateModal = document.getElementById('nextdoor-navigate-modal');
+const nextdoorNavigateModalDesc = document.getElementById('nextdoor-navigate-modal-desc');
+const nextdoorNavigateNow = document.getElementById('nextdoor-navigate-now');
+const nextdoorNavigateCancel = document.getElementById('nextdoor-navigate-cancel');
+const nextdoorNavigateClose = document.getElementById('nextdoor-navigate-close');
+
+/** @type {((choice: 'navigate' | 'cancel') => void) | null} */
+let nextdoorNavigateDialogResolve = null;
+
+/** Visible tab is not Nextdoor — block in-page capture; Moderate opens navigate dialog. */
+let offNextdoorModerationGate = false;
 
 const modal = document.getElementById('location-modal');
 const modalError = document.getElementById('modal-error');
@@ -359,7 +376,9 @@ function syncMainPanelBlocked() {
   const emailOpen = reportEmailModal && !reportEmailModal.classList.contains('hidden');
   const reviewOpen = reviewDecisionModal && !reviewDecisionModal.classList.contains('hidden');
   const contactOpen = extensionContactModal && !extensionContactModal.classList.contains('hidden');
-  const blocked = locationOpen || emailOpen || reviewOpen || contactOpen;
+  const nextdoorNavOpen =
+    nextdoorNavigateModal && !nextdoorNavigateModal.classList.contains('hidden');
+  const blocked = locationOpen || emailOpen || reviewOpen || contactOpen || nextdoorNavOpen;
   mainPanel.classList.toggle('blocked', blocked);
   mainPanel.setAttribute('aria-hidden', blocked ? 'true' : 'false');
 }
@@ -745,6 +764,19 @@ async function refreshModerateToolbarButton(settingsIn) {
     return;
   }
 
+  if (offNextdoorModerationGate) {
+    const onNextdoor = await isActiveTabNextdoorInPanelWindow();
+    if (onNextdoor) {
+      offNextdoorModerationGate = false;
+    } else {
+      moderateBtn.disabled = false;
+      moderateBtn.classList.add('moderate-toolbar-muted');
+      moderateBtn.classList.remove('moderate-toolbar-ready');
+      moderateBtn.title = 'Open your Nextdoor tab to moderate.';
+      return;
+    }
+  }
+
   const hasContent = Boolean(contentInput.value.trim());
   const settings = settingsIn || (await loadSettings());
   let poolBlocked = false;
@@ -792,9 +824,12 @@ async function refreshModerateToolbarButton(settingsIn) {
   }
 }
 
-function navigateToNextdoorFeedOnPanelOpen() {
+async function navigateToNextdoorFeedOnPanelOpen() {
   if (pickModeInProgress) return;
-  openNextdoorNewsFeedForModeration().catch(() => {});
+  const draft = await peekPendingModerationDraft();
+  if (draft) return;
+  const settings = await loadSettings();
+  openNextdoorNewsFeedForModeration({ enabled: settings.autoNavEnabled }).catch(() => {});
 }
 
 async function refreshSharedPoolStatusHint() {
@@ -1077,6 +1112,70 @@ function hideModerateBlockedHint() {
   if (!moderateBlockedHint) return;
   moderateBlockedHint.replaceChildren();
   moderateBlockedHint.classList.add('hidden');
+}
+
+function hideNextdoorNavigateDialog() {
+  nextdoorNavigateModal?.classList.add('hidden');
+  syncMainPanelBlocked();
+}
+
+function finishNextdoorNavigateDialog(/** @type {'navigate' | 'cancel'} */ choice) {
+  hideNextdoorNavigateDialog();
+  const resolve = nextdoorNavigateDialogResolve;
+  nextdoorNavigateDialogResolve = null;
+  resolve?.(choice);
+}
+
+/** @returns {Promise<'navigate' | 'cancel'>} */
+function promptNextdoorNavigateDialog() {
+  if (!nextdoorNavigateModal) return Promise.resolve('cancel');
+  if (nextdoorNavigateModalDesc) {
+    nextdoorNavigateModalDesc.textContent = PICK_REQUIRES_ACTIVE_NEXTDOOR_MSG;
+  }
+  nextdoorNavigateModal.classList.remove('hidden');
+  syncMainPanelBlocked();
+  nextdoorNavigateNow?.focus();
+  return new Promise((resolve) => {
+    nextdoorNavigateDialogResolve = resolve;
+  });
+}
+
+nextdoorNavigateNow?.addEventListener('click', () => finishNextdoorNavigateDialog('navigate'));
+nextdoorNavigateCancel?.addEventListener('click', () => finishNextdoorNavigateDialog('cancel'));
+nextdoorNavigateClose?.addEventListener('click', () => finishNextdoorNavigateDialog('cancel'));
+
+function clearModerationFieldsForWrongTab() {
+  if (pickModeInProgress) {
+    abortPickMode({ restoreField: false });
+  }
+  contentInput.value = '';
+  postContextInput.value = '';
+  void persistLastSuccessfulModerationKey(null);
+  resultsEl.classList.add('hidden');
+  stopModerateBtnPrompt();
+  setStatus('');
+  hideModerateBlockedHint();
+  syncPickContentButton();
+}
+
+async function syncActiveTabModerationGate() {
+  const onNextdoor = await isActiveTabNextdoorInPanelWindow();
+  const wasOff = offNextdoorModerationGate;
+  offNextdoorModerationGate = !onNextdoor;
+  if (!onNextdoor && (!wasOff || contentInput.value.trim() || postContextInput.value.trim())) {
+    clearModerationFieldsForWrongTab();
+  }
+  await refreshModerateToolbarButton();
+}
+
+/** @returns {Promise<boolean>} */
+async function requireActiveNextdoorTabOrNavigate() {
+  if (await isActiveTabNextdoorInPanelWindow()) return true;
+  const choice = await promptNextdoorNavigateDialog();
+  if (choice !== 'navigate') return false;
+  await openNextdoorNewsFeedForModeration({ force: true });
+  await syncActiveTabModerationGate();
+  return isActiveTabNextdoorInPanelWindow();
 }
 
 /**
@@ -1807,6 +1906,9 @@ function renderResults(result, apiOrigin, flags) {
 
 async function handleModerateButtonClick() {
   const settings = await loadSettings();
+  const onNextdoor = await requireActiveNextdoorTabOrNavigate();
+  if (!onNextdoor) return;
+
   if (!hasSavedGeminiKey(settings) && !(await canUseSharedPoolForModeration(settings))) {
     showSharedPoolTrialEndedUi();
     return;
@@ -2186,20 +2288,23 @@ async function runPickModeForField(field) {
     setStatus('Already waiting for a click on the page. Click text there or press Esc.', true);
     return;
   }
-  const runId = ++pickRunGeneration;
-  pickModeInProgress = true;
-  syncPickContentButton();
-  setStatus(
-    'On the page: click on text or drag to select what to capture. Esc cancels (here or on the page).',
-  );
+  const onNextdoor = await requireActiveNextdoorTabOrNavigate();
+  if (!onNextdoor) return;
+
   let tabId;
   try {
     tabId = await prepareTabCaptureFromSidePanel();
   } catch (err) {
     setStatus(err instanceof Error ? err.message : String(err), true);
-    endPickModeUi();
     return;
   }
+  const runId = ++pickRunGeneration;
+  pickModeInProgress = true;
+  syncPickContentButton();
+  hideModerateBlockedHint();
+  setStatus(
+    'On the page: click on text or drag to select what to capture. Esc cancels (here or on the page).',
+  );
   pickFieldRestoreText = textareaForField(field).value;
   attachPickEscapeListener(tabId);
   let response;
@@ -2234,7 +2339,9 @@ async function runPickModeForField(field) {
   }
   applyPickedText(response.text, field);
   pickFieldRestoreText = '';
+  offNextdoorModerationGate = false;
   if (field === 'content') updateModerateBtnPrompt();
+  else refreshModerateToolbarButton().catch(() => {});
 }
 
 function applyContentFromClipboard(text) {
@@ -2314,11 +2421,16 @@ chrome.runtime.onMessage.addListener((message) => {
       .catch(() => {});
     return false;
   }
+  if (message?.type === 'ACTIVE_TAB_CHANGED') {
+    syncActiveTabModerationGate().catch(() => {});
+    return false;
+  }
   if (message?.type === EXTENSION_UI_SYNC) {
     if (pickModeInProgress) {
       abortPickMode({ restoreField: false });
     }
     syncSidePanelFromStorage().catch(() => {});
+    syncActiveTabModerationGate().catch(() => {});
   }
   return false;
 });
@@ -2335,6 +2447,7 @@ document.addEventListener('visibilitychange', () => {
     navigateToNextdoorFeedOnPanelOpen();
     requestDismissStalePickModes();
     syncSidePanelFromStorage().catch(() => {});
+    syncActiveTabModerationGate().catch(() => {});
   }
 });
 
@@ -2368,7 +2481,7 @@ restoreLastSuccessfulModerationKeyFromSession()
     }
   })
   .then(() => refreshSharedPoolStatusHint())
-  .then(() => refreshModerateToolbarButton())
+  .then(() => syncActiveTabModerationGate())
   .then(() => syncPickContentButton())
   .catch(() => {});
 consumePendingDraftOnLoad().catch(() => {});

@@ -24,6 +24,7 @@ const sampleSettings = {
   geminiApiKey: 'AIzaSySECRET',
   geminiByokEnabled: true,
   reportOpenTabEnabled: true,
+  autoNavEnabled: false,
 };
 
 const exported = buildSettingsExport(sampleSettings, {
@@ -34,6 +35,7 @@ const exported = buildSettingsExport(sampleSettings, {
 assert.equal(exported.format, SETTINGS_BACKUP_FORMAT);
 assert.equal(exported.schemaVersion, SETTINGS_BACKUP_SCHEMA_VERSION);
 assert.ok(!('geminiApiKey' in exported.settings));
+assert.ok(!('autoNavEnabled' in exported.settings));
 assert.equal(exported.settings.userLocation, 'Oregon');
 assert.equal(exported.localPrefs.geminiRagStyleTest, true);
 

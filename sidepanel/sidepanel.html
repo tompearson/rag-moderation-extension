@@ -8,6 +8,26 @@
     <link rel="stylesheet" href="../lib/statePicker.css" />
   </head>
   <body>
+    <div
+      id="nextdoor-navigate-modal"
+      class="modal hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="nextdoor-navigate-modal-title"
+    >
+      <div class="modal-card">
+        <div class="modal-card-header">
+          <h2 id="nextdoor-navigate-modal-title">Nextdoor tab required</h2>
+          <button type="button" id="nextdoor-navigate-close" class="modal-close" aria-label="Close">×</button>
+        </div>
+        <p id="nextdoor-navigate-modal-desc" class="muted"></p>
+        <div class="modal-actions">
+          <button type="button" id="nextdoor-navigate-now" class="primary">Navigate now</button>
+          <button type="button" id="nextdoor-navigate-cancel" class="secondary">Cancel</button>
+        </div>
+      </div>
+    </div>
+
     <div id="location-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div class="modal-card">
         <h2 id="modal-title">Confirm feed location</h2>

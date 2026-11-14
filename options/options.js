@@ -105,6 +105,9 @@ const factoryResetBtn = document.getElementById('factory-reset');
 const saveStatus = document.getElementById('save-status');
 const reportShareEmail = /** @type {HTMLInputElement} */ (document.getElementById('report-share-email'));
 const reportEmailEnabled = /** @type {HTMLInputElement} */ (document.getElementById('report-email-enabled'));
+const autoNavEnabled = /** @type {HTMLInputElement | null} */ (
+  document.getElementById('auto-nav-enabled')
+);
 const geminiApiKeyInput = /** @type {HTMLInputElement} */ (
   document.getElementById('gemini-api-key-input')
 );
@@ -1271,7 +1274,19 @@ async function syncEnvFromStorage() {
   envProfile.value = s.envProfileId;
   customOrigin.value = s.customApiOrigin || '';
   toggleCustomOrigin();
+  if (autoNavEnabled) {
+    autoNavEnabled.checked = s.autoNavEnabled;
+  }
   await refreshPermissionStatus();
+}
+
+async function persistAutoNav(showFeedback = false) {
+  if (!autoNavEnabled) return;
+  const settings = await loadSettings();
+  const next = autoNavEnabled.checked;
+  if (settings.autoNavEnabled === next) return;
+  await saveSettingsPatch({ autoNavEnabled: next });
+  if (showFeedback) setStatus('Auto Nav saved.');
 }
 
 async function persistEnvProfile(showFeedback = false) {
@@ -1485,7 +1500,7 @@ optLocationPicker.onChange(async (selected) => {
 
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== 'local') return;
-  if (changes.envProfileId || changes.customApiOrigin) {
+  if (changes.envProfileId || changes.customApiOrigin || changes.autoNavEnabled) {
     if (skipEnvSettingsSync) return;
     syncEnvFromStorage().catch(() => {});
   }
@@ -1603,6 +1618,12 @@ geminiByokTurnOnDismiss?.addEventListener('click', () => {
 
 reportEmailEnabled.addEventListener('change', () => {
   persistReportToggles(true).catch((err) => {
+    setStatus(err instanceof Error ? err.message : String(err), true);
+  });
+});
+
+autoNavEnabled?.addEventListener('change', () => {
+  persistAutoNav(true).catch((err) => {
     setStatus(err instanceof Error ? err.message : String(err), true);
   });
 });
