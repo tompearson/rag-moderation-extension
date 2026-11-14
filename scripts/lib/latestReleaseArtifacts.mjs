@@ -68,23 +68,43 @@ function formatBuiltAtIso(stats) {
 }
 
 /**
+ * Human-readable packaging time for the sideload ZIP (from `builtAt` ISO).
+ * @param {string} builtAtIso
+ * @returns {string}
+ */
+export function formatZipCreatedAtDisplay(builtAtIso) {
+  const trimmed = String(builtAtIso ?? '').trim();
+  if (!trimmed) return '—';
+  const d = new Date(trimmed);
+  if (Number.isNaN(d.getTime())) return trimmed;
+  const formatted = new Intl.DateTimeFormat('en-US', {
+    dateStyle: 'long',
+    timeStyle: 'medium',
+    timeZone: 'UTC',
+  }).format(d);
+  return `${formatted} UTC`;
+}
+
+/**
  * @param {Record<string, unknown>} meta
  */
 export function formatLatestReleaseMetadataForGuide(meta) {
   const version = String(meta.version ?? '');
   const builtAt = String(meta.builtAt ?? '');
+  const zipCreated = formatZipCreatedAtDisplay(builtAt);
   const sha256 = String(meta.sha256 ?? '');
   const downloadPath = String(meta.downloadPath ?? DOWNLOAD_PATH);
   const versionedName = meta.versionedZipFileName
     ? String(meta.versionedZipFileName)
     : `rag-moderation-assistant-${version}.zip`;
 
-  return `## Current sideload build
+  return `## Current sideload build {#current-sideload-build}
 
 | Field | Value |
 |-------|-------|
 | **Version** | ${version} |
-| **Built** | ${builtAt} |
+| **ZIP created** | ${zipCreated} |
+| **ZIP created (ISO)** | \`${builtAt}\` |
 | **SHA256** | \`${sha256}\` |
 
 **[Download latest build](${downloadPath})** (\`${STABLE_ZIP_NAME}\`)

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {
   DOWNLOAD_PATH,
   formatLatestReleaseMetadataForGuide,
+  formatZipCreatedAtDisplay,
 } from './lib/latestReleaseArtifacts.mjs';
 import { renderExtensionGuideHtml } from './lib/extension-guide-html.mjs';
 
@@ -14,8 +15,15 @@ const fixture = {
   versionedZipFileName: 'rag-moderation-assistant-1.2.3.zip',
 };
 
+assert.equal(
+  formatZipCreatedAtDisplay('2026-01-15T12:00:00.000Z'),
+  'January 15, 2026 at 12:00:00 PM UTC',
+);
+
 const block = formatLatestReleaseMetadataForGuide(fixture);
 assert.match(block, /1\.2\.3/, 'version in metadata');
+assert.match(block, /\*\*ZIP created\*\*/, 'zip created label');
+assert.match(block, /January 15, 2026 at 12:00:00 PM UTC/, 'zip created display in metadata');
 assert.match(block, /a{64}/, 'sha256 in metadata');
 assert.match(block, new RegExp(`\\]\\(${DOWNLOAD_PATH.replace(/\//g, '\\/')}\\)`), 'download link');
 

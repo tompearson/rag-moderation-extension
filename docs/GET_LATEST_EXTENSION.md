@@ -1,12 +1,12 @@
 # Get the latest extension (sideload ZIP)
 
-This page lists the **current store-shaped sideload build** for **RAG Moderation Assistant**: version, build time, SHA256, and a **direct download** from this site.
+This page lists the **current store-shaped sideload build** for **RAG Moderation Assistant**: version, **when the ZIP was created** (each `npm run package:store`), SHA256, and a **direct download** from this site.
 
 Use it when you are testing an unpacked install in Chrome or Edge — not for the Chrome Web Store listing.
 
 ## On this page {#toc}
 
-- [Current sideload build](#current-sideload-build) (version, SHA256 — updated each `package:store`)
+- [Current sideload build](#current-sideload-build) (version, ZIP created date, SHA256 — updated each `package:store`)
 - [Download latest build](#download) (`rag-moderation-assistant.zip`)
 - [After you download](#after-you-download)
 - [Related guides](#related)
