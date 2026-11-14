@@ -14,14 +14,21 @@
         opacity: 0;
       }
     </style>
-    <script src="https://www.google.com/recaptcha/api.js?render=__RECAPTCHA_SITE_KEY__" async defer></script>
+    <script src="__RECAPTCHA_SCRIPT_SRC__" async defer></script>
   </head>
   <body>
     <script>
       (function () {
         var SITE_KEY = '__RECAPTCHA_SITE_KEY__';
+        var USE_LEGACY = __RECAPTCHA_USE_LEGACY__;
         var ALLOWED_EXTENSION_IDS = __RECAPTCHA_BRIDGE_EXTENSION_IDS_JSON__;
         var pending = false;
+
+        function grecaptchaClient() {
+          var g = window.grecaptcha;
+          if (!g) return null;
+          return USE_LEGACY ? g : g.enterprise || g;
+        }
 
         function isAllowedExtensionOrigin(origin) {
           if (typeof origin !== 'string' || !origin.startsWith('chrome-extension://')) {
@@ -58,8 +65,8 @@
           }
           pending = true;
           try {
-            var gr = window.grecaptcha;
-            if (!gr) {
+            var gr = grecaptchaClient();
+            if (!gr || !gr.execute) {
               postError(event.source, event.origin, 'reCAPTCHA not loaded');
               pending = false;
               return;

@@ -63,8 +63,20 @@ for (const id of envIds) {
   if (!allowedIds.includes(id)) allowedIds.push(id);
 }
 
+for (const [key, val] of Object.entries(envLocal)) {
+  if (val && !process.env[key]) process.env[key] = val;
+}
+
+const { getRecaptchaScriptSrc, useLegacyRecaptchaScript } = await import(
+  `file://${join(universalDir, 'server/shared/recaptchaSiteKey.js')}`
+);
+const useLegacy = useLegacyRecaptchaScript();
+const scriptSrc = siteKey ? getRecaptchaScriptSrc(siteKey) : 'https://www.google.com/recaptcha/api.js?render=missing-site-key';
+
 let html = readFileSync(src, 'utf8');
 html = html.replaceAll('__RECAPTCHA_SITE_KEY__', siteKey || 'missing-site-key');
+html = html.replaceAll('__RECAPTCHA_SCRIPT_SRC__', scriptSrc);
+html = html.replaceAll('__RECAPTCHA_USE_LEGACY__', useLegacy ? 'true' : 'false');
 html = html.replaceAll('__RECAPTCHA_BRIDGE_EXTENSION_IDS_JSON__', JSON.stringify(allowedIds));
 
 mkdirSync(outDir, { recursive: true });
