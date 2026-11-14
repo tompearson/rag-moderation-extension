@@ -9,7 +9,7 @@ When running shell commands, **state the working directory** (or `cd` there firs
 
 | Goal | Directory | Command |
 |------|-----------|---------|
-| Extension tests, store ZIP, **start local API stack** | `~/Projects/rag-moderation-extension` | `npm test`, `npm run package:store`, **`npm run dev`** / **`npm run dev:full`** |
+| Extension tests, store ZIP, **start local API stack** | `~/Projects/rag-moderation-extension` | `npm test`, `npm run package:store`, **`npm run publish:latest-sideload`** (ZIP + docs site), **`npm run dev`** / **`npm run dev:full`** |
 | Load unpacked extension | `~/Projects/rag-moderation-extension` | Chrome/Edge → Load unpacked (this folder) |
 | Universal API/UI only (without extension helper) | `~/Projects/community-moderation-tool/Moderation-Tool-Universal` | `npm run dev:server`, `npm run dev`, `npm run dev:full`, `npm run test:rag-smoke` |
 | RAG service only | `~/Projects/first-rag-system` | `.venv/bin/uvicorn rag_api:app --host 127.0.0.1 --port 8000` |

@@ -1,0 +1,32 @@
+---
+description: After package:store, commit latest-release.json and deploy sideload ZIP to production docs
+alwaysApply: true
+---
+
+# Store ZIP → docs site (get-latest-extension)
+
+Building a store ZIP is **not done** when `dist/rag-moderation-assistant.zip` exists locally. Users download from [get-latest-extension](https://www.airesearchdog.net/extension/get-latest-extension) — that page and the ZIP are served from **Moderation-Tool-Universal**, not from a git push of the extension repo alone.
+
+## When the user asks to build / package a ZIP
+
+**From `rag-moderation-extension`:**
+
+1. `npm test` then `npm run package:store` (writes `dist/*`, `docs/data/latest-release.json`, copies ZIP + syncs `get-latest-extension.html` into Universal `public/extension/`).
+2. Optionally `npm run verify:store-zip`.
+
+## Ship to public docs (required unless user says local-only / no deploy)
+
+3. **Commit** `docs/data/latest-release.json` with the code change (same commit as the release-worthy diff when applicable). Push the extension repo when the user wants it published.
+4. **Deploy sideload to production** — pick one:
+   - **From `rag-moderation-extension`:** `npm run publish:latest-sideload` (package + guide syncs + Universal `deploy:prod`), or
+   - **From `Moderation-Tool-Universal`:** `npm run deploy:prod` after step 1 (ZIP + HTML must already be on disk under `public/extension/`).
+5. **Verify:** SHA256 on [get-latest-extension](https://www.airesearchdog.net/extension/get-latest-extension) matches `docs/data/latest-release.json` (or `curl -sL …/downloads/rag-moderation-assistant.zip | sha256sum`).
+
+If deploy was skipped, say clearly that production still serves the **previous** build and give the expected SHA256 from `latest-release.json`.
+
+## Do not
+
+- Treat `git push` on the extension repo alone as updating the download page.
+- Forget `latest-release.json` when committing a maintainer release that included `package:store`.
+
+See `docs/EXTENSION_BUILD_AND_RELEASE_OVERVIEW.md` and `docs/RELEASE.md`.
