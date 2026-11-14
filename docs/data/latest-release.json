@@ -1,7 +1,7 @@
 {
   "version": "0.2.12",
-  "sha256": "6106c2747931eef29bf721356ec9f246d2f32e9f02aff67f67f8c4860e700f8f",
-  "builtAt": "2026-11-13T16:07:02.157Z",
+  "sha256": "7fd14423bfff7fcbec290d678c5d06ecdda9a5b183b312751f31e1b460eb274d",
+  "builtAt": "2026-11-14T18:44:18.468Z",
   "zipFileName": "rag-moderation-assistant.zip",
   "downloadPath": "/extension/downloads/rag-moderation-assistant.zip",
   "versionedZipFileName": "rag-moderation-assistant-0.2.12.zip",
