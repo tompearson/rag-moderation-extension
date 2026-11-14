@@ -1,6 +1,6 @@
 # Privacy Policy — RAG Moderation Assistant (Chrome / Edge extension)
 
-**Last updated:** November 10, 2026  
+**Last updated:** November 13, 2026  
 **Operator:** airesearchdog (“we,” “us”)  
 **Contact:** [admin@airesearchdog.net](mailto:admin@airesearchdog.net) (privacy). Other addresses: [Contact page](https://www.airesearchdog.net/extension/contact).  
 
@@ -98,6 +98,10 @@ The extension uses **HTTPS only** for the moderation API—it does **not** accep
 If you save a Gemini key, the extension may call **`generativelanguage.googleapis.com`** directly from your browser to **validate** the key (minimal test requests; optional RAG-style embed/chat probes). While a key is saved, it is also sent with each moderation to airesearchdog’s API so Google can process embed/chat for that request. Extension BYOK keys are **not** stored in the separate web app’s moderator database. Google’s use of data is governed by [Google’s policies](https://policies.google.com/privacy) and your Google Cloud / AI Studio terms.
 
 When **no** Gemini key is saved, moderations use the **shared pool** described under [Costs, quotas, and your Gemini key](#costs-quotas-and-your-gemini-key). Content still goes to airesearchdog’s API and may be processed by Google on the server side.
+
+### 3b. Google reCAPTCHA (shared pool only)
+
+When you use the **shared pool** (no saved Gemini key), the extension may load a small **hidden page** on **airesearchdog.net** that runs **Google reCAPTCHA v3** to request a one-time verification token **each time** you click **Moderate**. That token is sent with the moderation request. Google may collect device and interaction signals per [Google’s Privacy Policy](https://policies.google.com/privacy) and [Terms](https://policies.google.com/terms). reCAPTCHA is **not** used when you moderate with your own saved Gemini key (BYOK).
 
 ### 4. Contact and invite (only when you use them)
 

@@ -32,7 +32,7 @@ assert.ok(htmlFiles.length > 0, 'expected synced HTML under public/extension');
 const aiHref = EXTENSION_AI_GENERATED_ANALYSIS_PATH.replace(/\//g, '\\/');
 
 /** Borderless pages (no extension guide chrome). */
-const BORDERLESS_EXTENSION_HTML = new Set(['invite-sample-report.html']);
+const BORDERLESS_EXTENSION_HTML = new Set(['invite-sample-report.html', 'recaptcha-bridge.html']);
 /** Documentation index lists all guides; no duplicate Related guides block. */
 const NO_RELATED_GUIDES_SECTION = new Set(['guides.html']);
 

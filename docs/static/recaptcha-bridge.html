@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>reCAPTCHA bridge</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        opacity: 0;
+      }
+    </style>
+    <script src="https://www.google.com/recaptcha/api.js?render=__RECAPTCHA_SITE_KEY__" async defer></script>
+  </head>
+  <body>
+    <script>
+      (function () {
+        var SITE_KEY = '__RECAPTCHA_SITE_KEY__';
+        var ALLOWED_EXTENSION_IDS = __RECAPTCHA_BRIDGE_EXTENSION_IDS_JSON__;
+        var pending = false;
+
+        function isAllowedExtensionOrigin(origin) {
+          if (typeof origin !== 'string' || !origin.startsWith('chrome-extension://')) {
+            return false;
+          }
+          var id = origin.slice('chrome-extension://'.length).replace(/\/$/, '');
+          if (!id) return false;
+          if (!Array.isArray(ALLOWED_EXTENSION_IDS) || ALLOWED_EXTENSION_IDS.length === 0) {
+            return false;
+          }
+          return ALLOWED_EXTENSION_IDS.indexOf(id) !== -1;
+        }
+
+        function postError(source, origin, message) {
+          if (!source || typeof source.postMessage !== 'function') return;
+          source.postMessage(
+            { type: 'recaptcha-token-error', message: message || 'Token request failed' },
+            origin,
+          );
+        }
+
+        window.addEventListener('message', function (event) {
+          if (!isAllowedExtensionOrigin(event.origin)) return;
+          var data = event.data;
+          if (!data || data.type !== 'recaptcha-token-request') return;
+          if (pending) {
+            postError(event.source, event.origin, 'Token request already in progress');
+            return;
+          }
+          var action = typeof data.action === 'string' && data.action.trim() ? data.action.trim() : 'moderate';
+          if (!SITE_KEY) {
+            postError(event.source, event.origin, 'reCAPTCHA site key is not configured');
+            return;
+          }
+          pending = true;
+          try {
+            var gr = window.grecaptcha;
+            if (!gr) {
+              postError(event.source, event.origin, 'reCAPTCHA not loaded');
+              pending = false;
+              return;
+            }
+            gr.ready(function () {
+              gr
+                .execute(SITE_KEY, { action: action })
+                .then(function (token) {
+                  event.source.postMessage({ type: 'recaptcha-token', token: token, action: action }, event.origin);
+                })
+                .catch(function (err) {
+                  postError(
+                    event.source,
+                    event.origin,
+                    err && err.message ? err.message : 'grecaptcha.execute failed',
+                  );
+                })
+                .finally(function () {
+                  pending = false;
+                });
+            });
+          } catch (err) {
+            pending = false;
+            postError(event.source, event.origin, err && err.message ? err.message : 'Bridge error');
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

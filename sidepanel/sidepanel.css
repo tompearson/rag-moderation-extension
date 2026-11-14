@@ -1047,3 +1047,13 @@ details summary {
   font-size: 0.88rem;
   line-height: 1.35;
 }
+
+.recaptcha-v3-notice {
+  margin: 6px 0 4px;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.recaptcha-v3-notice a {
+  color: var(--muted);
+}

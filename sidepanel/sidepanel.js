@@ -36,6 +36,10 @@ import {
   formatApiProfileUiLabel,
 } from '../lib/envProfiles.js';
 import {
+  fetchRecaptchaTokenFromBridge,
+  warmupRecaptchaBridge,
+} from '../lib/recaptchaBridge.js';
+import {
   byokQuotaWithSharedPoolHint,
   hasSavedGeminiKey,
   isByokConfigured,
@@ -835,6 +839,10 @@ async function refreshByokBadge(settingsIn) {
   }
   await refreshModerateToolbarButton(settings);
   await refreshSharedPoolQuotaLine(settings);
+  const recaptchaNotice = document.getElementById('recaptcha-notice');
+  if (recaptchaNotice instanceof HTMLElement) {
+    recaptchaNotice.hidden = isByokConfigured(settings);
+  }
 }
 
 async function handleByokBadgeClick() {
@@ -1874,6 +1882,23 @@ async function handleModerateButtonClick() {
   startModerationProgress(timeoutSec);
   setStatus('Moderating…');
 
+  /** @type {string | undefined} */
+  let recaptchaToken;
+  if (!isByokConfigured(settings)) {
+    try {
+      recaptchaToken = await fetchRecaptchaTokenFromBridge(api.apiOrigin, 'moderate');
+    } catch (verifyErr) {
+      stopModerationProgress();
+      activeModerationRequestId = null;
+      const msg =
+        verifyErr instanceof Error
+          ? verifyErr.message
+          : 'Verification failed. Click Moderate again.';
+      setStatus(msg, true);
+      return;
+    }
+  }
+
   try {
     const response = await chrome.runtime.sendMessage({
       type: 'MODERATE',
@@ -1883,6 +1908,7 @@ async function handleModerateButtonClick() {
         postContext,
         analysisType,
         badWordsEnabled,
+        ...(recaptchaToken ? { recaptchaToken } : {}),
       },
     });
 
@@ -2334,6 +2360,13 @@ navigateToNextdoorFeedOnPanelOpen();
 requestDismissStalePickModes();
 restoreLastSuccessfulModerationKeyFromSession()
   .then(() => refreshConnectionBadge())
+  .then(async () => {
+    const s = await loadSettings();
+    const api = resolveSettingsApiConfig(s, isStoreBuild());
+    if (!isByokConfigured(s) && api.apiOrigin) {
+      warmupRecaptchaBridge(api.apiOrigin);
+    }
+  })
   .then(() => refreshSharedPoolStatusHint())
   .then(() => refreshModerateToolbarButton())
   .then(() => syncPickContentButton())

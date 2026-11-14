@@ -97,6 +97,8 @@ async function runModeration(settings, payload, requestId, signal) {
   const userApiKey = resolveUserApiKeyForModeration(settings);
   if (userApiKey) {
     body.userApiKey = userApiKey;
+  } else if (payload.recaptchaToken && String(payload.recaptchaToken).trim()) {
+    body.recaptchaToken = String(payload.recaptchaToken).trim();
   } else if (hasSavedGeminiKey(settings)) {
     throw new Error(
       'Saved Gemini key is missing or invalid. Open Options → Save key again or Remove key.',
