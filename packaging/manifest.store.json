@@ -17,6 +17,14 @@
     "scripting",
     "contextMenus"
   ],
+  "host_permissions": ["https://nextdoor.com/*", "https://*.nextdoor.com/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://nextdoor.com/*", "https://*.nextdoor.com/*"],
+      "js": ["content/nextdoorModerationQueueObserver.js"],
+      "run_at": "document_idle"
+    }
+  ],
   "optional_host_permissions": [
     "https://www.airesearchdog.net/*",
     "http://*/*",

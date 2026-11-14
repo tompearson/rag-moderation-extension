@@ -69,7 +69,12 @@ import { GET_GEMINI_API_KEY_GUIDE_EXTENSION_URL } from '../lib/geminiKeyUserHelp
 import { isStoreBuild } from '../lib/buildConfig.js';
 import { formatExtensionVersionLabel, getExtensionVersion } from '../lib/extensionVersion.js';
 import { STORAGE_KEYS } from '../lib/userSettings.js';
-import { openNextdoorNewsFeedForModeration } from '../lib/nextdoorFeedNav.js';
+import {
+  isNextdoorNewsFeedUrl,
+  navigateWatchTabToModerationFeed,
+  openNextdoorNewsFeedForModeration,
+} from '../lib/nextdoorFeedNav.js';
+import { peekNextdoorModerationQueueCount } from '../lib/peekNextdoorModerationQueue.js';
 import { ensureHostPermission } from '../lib/permissions.js';
 import { postExtensionContact } from '../lib/extensionContactClient.js';
 import { buildExtensionContactOptionsSnapshot } from '../lib/extensionContactSettingsSnapshot.js';
@@ -87,7 +92,18 @@ import {
 } from '../lib/pendingModerationDraft.js';
 import { prepareTabCaptureFromSidePanel } from '../lib/prepareTabCapture.js';
 import { DISMISS_STALE_PICK_MODES, tearDownPickModeOnTab } from '../lib/pickMode.js';
-import { isReadablePageUrl } from '../lib/pageAccess.js';
+import {
+  AUTO_MODERATE_DISMISSED_SESSION_KEY,
+  AUTO_NAV_WATCH_TAB_SESSION_KEY,
+  PENDING_AUTO_MODERATE_COUNT_SESSION_KEY,
+  isReadablePageUrl,
+} from '../lib/pageAccess.js';
+import {
+  MODERATION_QUEUE_COUNT_SESSION_KEY,
+  MODERATION_QUEUE_PATH_SESSION_KEY,
+  MODERATION_QUEUE_UPDATED_SESSION_KEY,
+  moderationQueueCountFromSession,
+} from '../lib/nextdoorModerationQueueSession.js';
 import {
   isFocusedTabNextdoorInPanelWindow,
   NEXTDOOR_REQUIRED_MSG,
@@ -114,6 +130,15 @@ const nextdoorNavigateClose = document.getElementById('nextdoor-navigate-close')
 
 /** @type {((choice: 'navigate' | 'cancel') => void) | null} */
 let nextdoorNavigateDialogResolve = null;
+
+const moderationQueueModal = document.getElementById('moderation-queue-modal');
+const moderationQueueModalDesc = document.getElementById('moderation-queue-modal-desc');
+const moderationQueueGo = document.getElementById('moderation-queue-go');
+const moderationQueueStay = document.getElementById('moderation-queue-stay');
+const moderationQueueClose = document.getElementById('moderation-queue-close');
+
+/** @type {((choice: 'go' | 'stay') => void) | null} */
+let moderationQueueDialogResolve = null;
 
 const modal = document.getElementById('location-modal');
 const modalError = document.getElementById('modal-error');
@@ -376,7 +401,10 @@ function syncMainPanelBlocked() {
   const contactOpen = extensionContactModal && !extensionContactModal.classList.contains('hidden');
   const nextdoorNavOpen =
     nextdoorNavigateModal && !nextdoorNavigateModal.classList.contains('hidden');
-  const blocked = locationOpen || emailOpen || reviewOpen || contactOpen || nextdoorNavOpen;
+  const moderationQueueOpen =
+    moderationQueueModal && !moderationQueueModal.classList.contains('hidden');
+  const blocked =
+    locationOpen || emailOpen || reviewOpen || contactOpen || nextdoorNavOpen || moderationQueueOpen;
   mainPanel.classList.toggle('blocked', blocked);
   mainPanel.setAttribute('aria-hidden', blocked ? 'true' : 'false');
 }
@@ -818,12 +846,170 @@ async function refreshModerateToolbarButton(settingsIn) {
   }
 }
 
+function delayMs(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * @returns {Promise<number | null>}
+ */
+async function resolveNewsFeedTabIdForAutoModerate() {
+  /** @type {number[]} */
+  const candidateIds = [];
+
+  const stored = await chrome.storage.session.get(AUTO_NAV_WATCH_TAB_SESSION_KEY);
+  const storedId = stored[AUTO_NAV_WATCH_TAB_SESSION_KEY];
+  if (typeof storedId === 'number') candidateIds.push(storedId);
+
+  for (const query of [
+    { active: true, lastFocusedWindow: true },
+    { active: true, currentWindow: true },
+  ]) {
+    const [active] = await chrome.tabs.query(query);
+    if (active?.id != null && !candidateIds.includes(active.id)) candidateIds.push(active.id);
+  }
+
+  for (const id of candidateIds) {
+    const tab = await chrome.tabs.get(id).catch(() => null);
+    if (tab?.id != null && isNextdoorNewsFeedUrl(tab.url)) return tab.id;
+  }
+  return null;
+}
+
+/**
+ * @param {number | undefined} tabId
+ * @param {string | undefined} tabUrl
+ * @returns {Promise<number | null>}
+ */
+async function resolveModerationQueueCount(tabId, tabUrl) {
+  const session = await chrome.storage.session.get([
+    PENDING_AUTO_MODERATE_COUNT_SESSION_KEY,
+    MODERATION_QUEUE_COUNT_SESSION_KEY,
+    MODERATION_QUEUE_PATH_SESSION_KEY,
+    MODERATION_QUEUE_UPDATED_SESSION_KEY,
+  ]);
+
+  const pending = session[PENDING_AUTO_MODERATE_COUNT_SESSION_KEY];
+  if (typeof pending === 'number' && pending > 0) return pending;
+
+  if (tabUrl) {
+    const fromObserver = moderationQueueCountFromSession(tabUrl, session);
+    if (fromObserver != null) return fromObserver;
+  }
+
+  if (tabId != null) return peekNextdoorModerationQueueCount(tabId);
+  return null;
+}
+
+let autoModerateOfferInFlight = false;
+
+async function runAutoModerateOfferCheck() {
+  if (autoModerateOfferInFlight) return;
+  if (moderationQueueModal && !moderationQueueModal.classList.contains('hidden')) return;
+  autoModerateOfferInFlight = true;
+  try {
+    const settings = await loadSettings();
+    const tabId = await resolveNewsFeedTabIdForAutoModerate();
+    const tab = tabId != null ? await chrome.tabs.get(tabId).catch(() => null) : null;
+    await maybeOfferModerationQueuePrompt(settings, tabId ?? undefined, tab?.url);
+  } finally {
+    autoModerateOfferInFlight = false;
+  }
+}
+
+/**
+ * @param {number} count
+ * @returns {string}
+ */
+function moderationQueuePromptMessage(count) {
+  const noun = count === 1 ? 'post' : 'posts';
+  return `Nextdoor shows ${count} reported ${noun} waiting for your review and vote. Open the moderation feed to work through the queue, or stay on the news feed.`;
+}
+
+/** @returns {Promise<'go' | 'stay'>} */
+function promptModerationQueueDialog(count) {
+  if (!moderationQueueModal) return Promise.resolve('stay');
+  if (moderationQueueModalDesc) {
+    moderationQueueModalDesc.textContent = moderationQueuePromptMessage(count);
+  }
+  moderationQueueModal.classList.remove('hidden');
+  syncMainPanelBlocked();
+  moderationQueueGo?.focus();
+  return new Promise((resolve) => {
+    moderationQueueDialogResolve = resolve;
+  });
+}
+
+function hideModerationQueueDialog() {
+  moderationQueueModal?.classList.add('hidden');
+  syncMainPanelBlocked();
+}
+
+function finishModerationQueueDialog(/** @type {'go' | 'stay'} */ choice) {
+  hideModerationQueueDialog();
+  const resolve = moderationQueueDialogResolve;
+  moderationQueueDialogResolve = null;
+  resolve?.(choice);
+}
+
+moderationQueueGo?.addEventListener('click', () => finishModerationQueueDialog('go'));
+moderationQueueStay?.addEventListener('click', () => finishModerationQueueDialog('stay'));
+moderationQueueClose?.addEventListener('click', () => finishModerationQueueDialog('stay'));
+
+/**
+ * @param {Awaited<ReturnType<typeof loadSettings>>} settings
+ * @param {number} [tabIdHint]
+ * @param {string} [tabUrlHint]
+ */
+async function maybeOfferModerationQueuePrompt(settings, tabIdHint, tabUrlHint) {
+  if (!settings.autoModerateEnabled) return;
+  if (pickModeInProgress) return;
+  if (moderationQueueModal && !moderationQueueModal.classList.contains('hidden')) return;
+  const draft = await peekPendingModerationDraft();
+  if (draft) return;
+  const dismissed = await chrome.storage.session.get(AUTO_MODERATE_DISMISSED_SESSION_KEY);
+  if (dismissed[AUTO_MODERATE_DISMISSED_SESSION_KEY]) return;
+
+  const tabId = tabIdHint ?? (await resolveNewsFeedTabIdForAutoModerate());
+  let tabUrl = tabUrlHint;
+  if (!tabUrl && tabId != null) {
+    const tab = await chrome.tabs.get(tabId).catch(() => null);
+    tabUrl = tab?.url;
+  }
+
+  let count = await resolveModerationQueueCount(tabId ?? undefined, tabUrl);
+  if (count == null) {
+    await delayMs(600);
+    count = await resolveModerationQueueCount(tabId ?? undefined, tabUrl);
+  }
+  if (count == null) return;
+
+  const choice = await promptModerationQueueDialog(count);
+  await chrome.storage.session.remove([PENDING_AUTO_MODERATE_COUNT_SESSION_KEY]);
+  if (choice === 'go') {
+    const targetTabId = tabId ?? (await resolveNewsFeedTabIdForAutoModerate());
+    if (targetTabId != null) {
+      await navigateWatchTabToModerationFeed(targetTabId);
+      await syncFocusedTabModerationPolicy();
+    }
+  } else {
+    await chrome.storage.session.set({ [AUTO_MODERATE_DISMISSED_SESSION_KEY]: true });
+  }
+}
+
 async function navigateToNextdoorFeedOnPanelOpen() {
   if (pickModeInProgress) return;
   const draft = await peekPendingModerationDraft();
   if (draft) return;
   const settings = await loadSettings();
-  openNextdoorNewsFeedForModeration({ enabled: settings.autoNavEnabled }).catch(() => {});
+  let tabId;
+  try {
+    const openResult = await openNextdoorNewsFeedForModeration({ enabled: settings.autoNavEnabled });
+    tabId = openResult.tabId ?? (await resolveNewsFeedTabIdForAutoModerate()) ?? undefined;
+  } catch {
+    tabId = (await resolveNewsFeedTabIdForAutoModerate()) ?? undefined;
+  }
+  await runAutoModerateOfferCheck();
 }
 
 async function refreshSharedPoolStatusHint() {
@@ -2444,7 +2630,8 @@ document.addEventListener('visibilitychange', () => {
     return;
   }
   if (document.visibilityState === 'visible') {
-    navigateToNextdoorFeedOnPanelOpen();
+    navigateToNextdoorFeedOnPanelOpen().catch(() => {});
+    void runAutoModerateOfferCheck();
     requestDismissStalePickModes();
     syncSidePanelFromStorage().catch(() => {});
     syncFocusedTabModerationPolicy().catch(() => {});
@@ -2469,7 +2656,13 @@ byokBadge?.addEventListener('click', (e) => {
 });
 
 syncMainPanelBlocked();
-navigateToNextdoorFeedOnPanelOpen();
+navigateToNextdoorFeedOnPanelOpen().catch(() => {});
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== 'session') return;
+  if (changes[PENDING_AUTO_MODERATE_COUNT_SESSION_KEY] || changes[MODERATION_QUEUE_COUNT_SESSION_KEY]) {
+    void runAutoModerateOfferCheck();
+  }
+});
 requestDismissStalePickModes();
 restoreLastSuccessfulModerationKeyFromSession()
   .then(() => refreshConnectionBadge())

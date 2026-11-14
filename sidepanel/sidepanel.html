@@ -28,6 +28,26 @@
       </div>
     </div>
 
+    <div
+      id="moderation-queue-modal"
+      class="modal hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="moderation-queue-modal-title"
+    >
+      <div class="modal-card">
+        <div class="modal-card-header">
+          <h2 id="moderation-queue-modal-title">Reports waiting for review</h2>
+          <button type="button" id="moderation-queue-close" class="modal-close" aria-label="Close">×</button>
+        </div>
+        <p id="moderation-queue-modal-desc" class="muted"></p>
+        <div class="modal-actions">
+          <button type="button" id="moderation-queue-go" class="primary">Go to moderation feed</button>
+          <button type="button" id="moderation-queue-stay" class="secondary">Stay on news feed</button>
+        </div>
+      </div>
+    </div>
+
     <div id="location-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div class="modal-card">
         <h2 id="modal-title">Confirm feed location</h2>

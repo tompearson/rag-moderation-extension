@@ -252,6 +252,25 @@
         </div>
 
         <div class="options-advanced-subsection">
+          <h3 class="options-subsection-title">Auto Moderate</h3>
+          <div class="row checkbox-row">
+            <input id="auto-moderate-enabled" type="checkbox" checked />
+            <label for="auto-moderate-enabled"
+              >On the news feed, when Nextdoor shows reported posts waiting for your vote, offer to open the
+              moderation feed (once per session if you stay on the news feed)</label
+            >
+          </div>
+          <p class="muted">Saves when you toggle. Not included in settings export.</p>
+          <button type="button" id="auto-moderate-reset-prompt" class="secondary">
+            Reset Auto Moderate prompt
+          </button>
+          <p class="muted">
+            Clears this session’s “stay on news feed” choice so the offer can show again (refresh the news feed tab,
+            then open the side panel).
+          </p>
+        </div>
+
+        <div class="options-advanced-subsection">
           <h3 class="options-subsection-title">Platform intelligence</h3>
           <p class="muted">Same as Universal’s first two providers. Saves when you change the selection.</p>
           <label for="rag-provider">Provider</label>

@@ -9,7 +9,12 @@ import {
   assertCanUseSharedPoolForModeration,
   recordSharedPoolModerationSuccessIfApplicable,
 } from '../lib/sharedPoolQuota.js';
-import { MODERATION_TARGET_TAB_SESSION_KEY, moderationCaptureTabId } from '../lib/pageAccess.js';
+import {
+  AUTO_MODERATE_DISMISSED_SESSION_KEY,
+  MODERATION_TARGET_TAB_SESSION_KEY,
+  PENDING_AUTO_MODERATE_COUNT_SESSION_KEY,
+  moderationCaptureTabId,
+} from '../lib/pageAccess.js';
 import {
   DISMISS_STALE_PICK_MODES,
   dismissStalePickOverlaysForAllTabs,
@@ -32,6 +37,9 @@ function onInstalled() {
 chrome.runtime.onInstalled.addListener(() => {
   onInstalled();
   dismissStalePickOverlaysForAllTabs().catch(() => {});
+  chrome.storage.session
+    .remove([AUTO_MODERATE_DISMISSED_SESSION_KEY, PENDING_AUTO_MODERATE_COUNT_SESSION_KEY])
+    .catch(() => {});
 });
 registerModerationContextMenu();
 registerAutoNavMonitor();

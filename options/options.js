@@ -17,6 +17,10 @@ import { createStatePicker } from '../lib/statePicker.js';
 import { parseModerateTimeoutSec } from '../lib/moderationTimeout.js';
 import { factoryResetExtension } from '../lib/factoryReset.js';
 import { closeOptionsPageIfOpen } from '../lib/optionsPage.js';
+import {
+  AUTO_MODERATE_DISMISSED_SESSION_KEY,
+  PENDING_AUTO_MODERATE_COUNT_SESSION_KEY,
+} from '../lib/pageAccess.js';
 import { normalizeReportEmail, isValidReportEmail } from '../lib/validateReportEmail.js';
 import { fillRagProviderSelect, DEFAULT_RAG_PROVIDER } from '../lib/ragProviders.js';
 import { postExtensionContact } from '../lib/extensionContactClient.js';
@@ -108,6 +112,10 @@ const reportEmailEnabled = /** @type {HTMLInputElement} */ (document.getElementB
 const autoNavEnabled = /** @type {HTMLInputElement | null} */ (
   document.getElementById('auto-nav-enabled')
 );
+const autoModerateEnabled = /** @type {HTMLInputElement | null} */ (
+  document.getElementById('auto-moderate-enabled')
+);
+const autoModerateResetPrompt = document.getElementById('auto-moderate-reset-prompt');
 const geminiApiKeyInput = /** @type {HTMLInputElement} */ (
   document.getElementById('gemini-api-key-input')
 );
@@ -1277,6 +1285,9 @@ async function syncEnvFromStorage() {
   if (autoNavEnabled) {
     autoNavEnabled.checked = s.autoNavEnabled;
   }
+  if (autoModerateEnabled) {
+    autoModerateEnabled.checked = s.autoModerateEnabled;
+  }
   await refreshPermissionStatus();
 }
 
@@ -1287,6 +1298,25 @@ async function persistAutoNav(showFeedback = false) {
   if (settings.autoNavEnabled === next) return;
   await saveSettingsPatch({ autoNavEnabled: next });
   if (showFeedback) setStatus('Auto Nav saved.');
+}
+
+async function resetAutoModeratePromptSession() {
+  await chrome.storage.session.remove([
+    AUTO_MODERATE_DISMISSED_SESSION_KEY,
+    PENDING_AUTO_MODERATE_COUNT_SESSION_KEY,
+  ]);
+}
+
+async function persistAutoModerate(showFeedback = false) {
+  if (!autoModerateEnabled) return;
+  const settings = await loadSettings();
+  const next = autoModerateEnabled.checked;
+  if (settings.autoModerateEnabled === next) return;
+  await saveSettingsPatch({ autoModerateEnabled: next });
+  if (next) {
+    await resetAutoModeratePromptSession();
+  }
+  if (showFeedback) setStatus('Auto Moderate saved.');
 }
 
 async function persistEnvProfile(showFeedback = false) {
@@ -1500,7 +1530,12 @@ optLocationPicker.onChange(async (selected) => {
 
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== 'local') return;
-  if (changes.envProfileId || changes.customApiOrigin || changes.autoNavEnabled) {
+  if (
+    changes.envProfileId ||
+    changes.customApiOrigin ||
+    changes.autoNavEnabled ||
+    changes.autoModerateEnabled
+  ) {
     if (skipEnvSettingsSync) return;
     syncEnvFromStorage().catch(() => {});
   }
@@ -1626,6 +1661,22 @@ autoNavEnabled?.addEventListener('change', () => {
   persistAutoNav(true).catch((err) => {
     setStatus(err instanceof Error ? err.message : String(err), true);
   });
+});
+
+autoModerateEnabled?.addEventListener('change', () => {
+  persistAutoModerate(true).catch((err) => {
+    setStatus(err instanceof Error ? err.message : String(err), true);
+  });
+});
+
+autoModerateResetPrompt?.addEventListener('click', () => {
+  resetAutoModeratePromptSession()
+    .then(() => {
+      setStatus('Auto Moderate prompt reset. Refresh the news feed tab, then open the side panel.');
+    })
+    .catch((err) => {
+      setStatus(err instanceof Error ? err.message : String(err), true);
+    });
 });
 
 moderateTimeoutSec.addEventListener('change', () => {
