@@ -22,7 +22,11 @@
         var SITE_KEY = '__RECAPTCHA_SITE_KEY__';
         var USE_LEGACY = __RECAPTCHA_USE_LEGACY__;
         var ALLOWED_EXTENSION_IDS = __RECAPTCHA_BRIDGE_EXTENSION_IDS_JSON__;
-        var pending = false;
+        var TOKEN_TIMEOUT_MS = 22000;
+        var requestQueue = [];
+        var processing = false;
+        var inflightTimer = null;
+        var activeJobId = 0;
 
         function grecaptchaClient() {
           var g = window.grecaptcha;
@@ -50,48 +54,86 @@
           );
         }
 
-        window.addEventListener('message', function (event) {
-          if (!isAllowedExtensionOrigin(event.origin)) return;
-          var data = event.data;
-          if (!data || data.type !== 'recaptcha-token-request') return;
-          if (pending) {
-            postError(event.source, event.origin, 'Token request already in progress');
+        function clearInflightTimer() {
+          if (inflightTimer) {
+            clearTimeout(inflightTimer);
+            inflightTimer = null;
+          }
+        }
+
+        function finishProcessing() {
+          clearInflightTimer();
+          processing = false;
+          if (requestQueue.length) {
+            processNextTokenRequest();
+          }
+        }
+
+        function processNextTokenRequest() {
+          if (processing || !requestQueue.length) return;
+          var job = requestQueue.shift();
+          if (!job || !job.source) {
+            finishProcessing();
             return;
           }
-          var action = typeof data.action === 'string' && data.action.trim() ? data.action.trim() : 'moderate';
+          var action =
+            typeof job.action === 'string' && job.action.trim() ? job.action.trim() : 'moderate';
           if (!SITE_KEY) {
-            postError(event.source, event.origin, 'reCAPTCHA site key is not configured');
+            postError(job.source, job.origin, 'reCAPTCHA site key is not configured');
+            finishProcessing();
             return;
           }
-          pending = true;
+          processing = true;
+          var jobId = ++activeJobId;
+          inflightTimer = setTimeout(function () {
+            if (jobId !== activeJobId) return;
+            postError(job.source, job.origin, 'Token request timed out');
+            finishProcessing();
+          }, TOKEN_TIMEOUT_MS);
           try {
             var gr = grecaptchaClient();
             if (!gr || !gr.execute) {
-              postError(event.source, event.origin, 'reCAPTCHA not loaded');
-              pending = false;
+              postError(job.source, job.origin, 'reCAPTCHA not loaded');
+              finishProcessing();
               return;
             }
             gr.ready(function () {
+              if (jobId !== activeJobId) return;
               gr
                 .execute(SITE_KEY, { action: action })
                 .then(function (token) {
-                  event.source.postMessage({ type: 'recaptcha-token', token: token, action: action }, event.origin);
+                  if (jobId !== activeJobId) return;
+                  job.source.postMessage(
+                    { type: 'recaptcha-token', token: token, action: action },
+                    job.origin,
+                  );
                 })
                 .catch(function (err) {
+                  if (jobId !== activeJobId) return;
                   postError(
-                    event.source,
-                    event.origin,
+                    job.source,
+                    job.origin,
                     err && err.message ? err.message : 'grecaptcha.execute failed',
                   );
                 })
                 .finally(function () {
-                  pending = false;
+                  if (jobId !== activeJobId) return;
+                  finishProcessing();
                 });
             });
           } catch (err) {
-            pending = false;
-            postError(event.source, event.origin, err && err.message ? err.message : 'Bridge error');
+            postError(job.source, job.origin, err && err.message ? err.message : 'Bridge error');
+            finishProcessing();
           }
+        }
+
+        window.addEventListener('message', function (event) {
+          if (!isAllowedExtensionOrigin(event.origin)) return;
+          var data = event.data;
+          if (!data || data.type !== 'recaptcha-token-request') return;
+          var action = typeof data.action === 'string' && data.action.trim() ? data.action.trim() : 'moderate';
+          requestQueue.push({ source: event.source, origin: event.origin, action: action });
+          processNextTokenRequest();
         });
       })();
     </script>

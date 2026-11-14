@@ -22,5 +22,7 @@ const template = readFileSync(join(extRoot, 'docs', 'static', 'recaptcha-bridge.
 assert.match(template, /recaptcha-token-request/, 'template handles token request');
 assert.match(template, /ALLOWED_EXTENSION_IDS/, 'template has allowlist');
 assert.doesNotMatch(template, /RECAPTCHA_SECRET/, 'template must not embed secret');
+assert.doesNotMatch(template, /Token request already in progress/, 'bridge queues instead of busy error');
+assert.match(template, /requestQueue/, 'bridge serializes token queue');
 
 console.log('test-recaptcha-bridge: ok');

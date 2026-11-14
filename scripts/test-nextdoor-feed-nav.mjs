@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {
   NEXTDOOR_NEWS_FEED_URL,
   isNextdoorHost,
+  isNextdoorModerationFeedUrl,
   isNextdoorNewsFeedUrl,
   shouldAutoOpenNextdoorNewsFeed,
   shouldNavigateTabToNewsFeed,
@@ -17,7 +18,11 @@ assert.equal(isNextdoorNewsFeedUrl('https://nextdoor.com/news_feed'), true);
 assert.equal(isNextdoorNewsFeedUrl('https://nextdoor.com/news_feed/'), true);
 assert.equal(isNextdoorNewsFeedUrl('https://nextdoor.com/p/abc'), false);
 
+assert.equal(isNextdoorModerationFeedUrl('https://nextdoor.com/moderation_feed/'), true);
+assert.equal(isNextdoorModerationFeedUrl('https://nextdoor.com/news_feed/'), false);
+
 assert.equal(shouldNavigateTabToNewsFeed('https://nextdoor.com/news_feed/'), false);
+assert.equal(shouldNavigateTabToNewsFeed('https://nextdoor.com/moderation_feed/'), false);
 assert.equal(shouldNavigateTabToNewsFeed('https://nextdoor.com/for_sale_and_free/'), true);
 assert.equal(shouldNavigateTabToNewsFeed('https://nextdoor.com/p/abc'), true);
 assert.equal(shouldNavigateTabToNewsFeed('https://www.google.com/'), true);

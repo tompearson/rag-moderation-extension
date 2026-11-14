@@ -37,6 +37,7 @@ import {
 } from '../lib/envProfiles.js';
 import {
   fetchRecaptchaTokenFromBridge,
+  isRecaptchaBridgeFetchInFlight,
   warmupRecaptchaBridge,
 } from '../lib/recaptchaBridge.js';
 import {
@@ -1970,28 +1971,36 @@ async function handleModerateButtonClick() {
     return;
   }
 
-  const timeoutSec = settings.moderateTimeoutSec;
-  const requestId = crypto.randomUUID();
-  activeModerationRequestId = requestId;
-  startModerationProgress(timeoutSec);
-  setStatus('Moderating…');
+  if (!isByokConfigured(settings) && isRecaptchaBridgeFetchInFlight()) {
+    setStatus('Verification in progress…', true);
+    return;
+  }
 
   /** @type {string | undefined} */
   let recaptchaToken;
   if (!isByokConfigured(settings)) {
+    moderateBtn.disabled = true;
+    moderateBtn.classList.add('moderate-toolbar-muted');
+    moderateBtn.classList.remove('moderate-toolbar-ready');
+    setStatus('Verifying…');
     try {
       recaptchaToken = await fetchRecaptchaTokenFromBridge(api.apiOrigin, 'moderate');
     } catch (verifyErr) {
-      stopModerationProgress();
-      activeModerationRequestId = null;
       const msg =
         verifyErr instanceof Error
           ? verifyErr.message
           : 'Verification failed. Click Moderate again.';
       setStatus(msg, true);
+      refreshModerateToolbarButton().catch(() => {});
       return;
     }
   }
+
+  const timeoutSec = settings.moderateTimeoutSec;
+  const requestId = crypto.randomUUID();
+  activeModerationRequestId = requestId;
+  startModerationProgress(timeoutSec);
+  setStatus('Moderating…');
 
   try {
     const response = await chrome.runtime.sendMessage({
