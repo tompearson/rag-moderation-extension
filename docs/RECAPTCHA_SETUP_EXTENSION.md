@@ -23,6 +23,8 @@ Secrets and Google Cloud setup live in **Moderation-Tool-Universal**, not in thi
 - BYOK moderators (user API key in Options) skip extension-side captcha; server may still skip verify when a forwarded key is present.
 - The extension never stores `RECAPTCHA_SECRET_KEY` or `RECAPTCHA_ENTERPRISE_API_KEY`.
 
+**Sideload vs Web Store IDs:** unpacked installs often get a **different ID per machine/path**; the store listing gives **one ID for all users**. See [EXTENSION_IDS_SIDELOAD_VS_STORE.md](./EXTENSION_IDS_SIDELOAD_VS_STORE.md) before adding IDs or planning the store launch.
+
 ## Bridge deploy checklist (shared-pool Moderate) {#bridge-deploy}
 
 | Step | Where | Who |
@@ -34,12 +36,7 @@ Secrets and Google Cloud setup live in **Moderation-Tool-Universal**, not in thi
 | 5. Ship HTML | **From `Moderation-Tool-Universal`:** `npm run deploy:prod` | Agent / you |
 | 6. Sanity URL | View source: `https://www.airesearchdog.net/extension/recaptcha-bridge.html` — real site key, non-empty `ALLOWED_EXTENSION_IDS`, `enterprise.js` when Enterprise env is set | Browser |
 
-Unpacked IDs depend on the **folder you load** (hash of absolute path). Common paths on this machine:
-
-- `…/rag-moderation-extension` → `afbocecefdmhofeahodpcpeebbmbjlnf`
-- `…/rag-moderation-extension/dist/store` → `jagdbbhecefdgkpjinahcojiilcgempg`
-
-If Moderate still times out, your ID is different — paste it into `lib/recaptcha-bridge-extension-ids.json`, re-sync, redeploy.
+Unpacked IDs depend on the **folder you load** (see [EXTENSION_IDS_SIDELOAD_VS_STORE.md](./EXTENSION_IDS_SIDELOAD_VS_STORE.md)). If Moderate fails with **unregistered extension ID** or times out, copy the ID from `chrome://extensions`, add it to `lib/recaptcha-bridge-extension-ids.json`, re-sync, redeploy — or use **BYOK**.
 
 ## After Universal / Vercel key changes {#after-universal-vercel}
 
@@ -77,7 +74,7 @@ For `gcloud`, Vercel env, CreateAssessment, and production log strings, use the 
 | Next | `RECAPTCHA_MODE_RERUN=log` — confirm `[recaptcha] rerun: ok score=…` on report rerun |
 | Tune | Review scores; adjust `RECAPTCHA_MIN_SCORE` (default `0.5`) before any enforce |
 | Enforce (order matters) | `RECAPTCHA_MODE_DISCUSS=enforce` → then **rerun** → **moderate last** |
-| Store / new unpacked ID | Add ID → `lib/recaptcha-bridge-extension-ids.json` → `npm run sync:recaptcha-bridge` → `npm run deploy:prod` |
+| Store ID (once listed) or new unpacked ID | Add ID → `lib/recaptcha-bridge-extension-ids.json` → `npm run sync:recaptcha-bridge` → `npm run deploy:prod` — [store vs sideload](./EXTENSION_IDS_SIDELOAD_VS_STORE.md#chrome-web-store) |
 | Fail-open | Keep `RECAPTCHA_FAIL_OPEN=true` unless you accept blocking all public AI when Google verify is down |
 
 Do not skip **log** mode on a surface until Vercel shows healthy `ok score=` lines for that route (incognito / shared pool as appropriate).

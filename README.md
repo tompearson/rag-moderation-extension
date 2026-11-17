@@ -75,7 +75,7 @@ Full stack: Universal `npm run test:rag-smoke` then manual matrix in [docs/SMOKE
 
 **GitHub Releases:** [latest tagged ZIP](https://github.com/tompearson/rag-moderation-extension/releases/latest)
 
-Install: [developer install guide](https://www.airesearchdog.net/extension/install-chrome-extension-developer). **Maintainers:** start with [docs/EXTENSION_BUILD_AND_RELEASE_OVERVIEW.md](./docs/EXTENSION_BUILD_AND_RELEASE_OVERVIEW.md) (maps to [RELEASE.md](./docs/RELEASE.md), [STORE_PACKAGING.md](./docs/STORE_PACKAGING.md), and related docs).
+Install: [developer install guide](https://www.airesearchdog.net/extension/install-chrome-extension-developer). **Maintainers:** start with [docs/EXTENSION_BUILD_AND_RELEASE_OVERVIEW.md](./docs/EXTENSION_BUILD_AND_RELEASE_OVERVIEW.md) (maps to [RELEASE.md](./docs/RELEASE.md), [STORE_PACKAGING.md](./docs/STORE_PACKAGING.md), [EXTENSION_IDS_SIDELOAD_VS_STORE.md](./docs/EXTENSION_IDS_SIDELOAD_VS_STORE.md), and related docs).
 
 ## Store / production
 

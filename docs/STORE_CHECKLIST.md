@@ -57,6 +57,12 @@ RAG-backed community post moderation for moderators (side panel: paste content, 
 - Same ZIP → [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole)
 - Same ZIP → Edge Partner Center (rebrand copy — see [EDGE_PORT.md](./EDGE_PORT.md))
 
+## Extension ID and reCAPTCHA (shared pool)
+
+- **Sideload QA** (unpacked `dist/store/` or release ZIP): extension ID is **path-specific** — allowlist per tester machine or use BYOK. Do not expect one ZIP download to work for shared-pool Moderate on every PC without allowlist updates.
+- **Web Store listing:** after upload, copy the dashboard **extension ID** and add it **once** to `lib/recaptcha-bridge-extension-ids.json`, then `npm run sync:recaptcha-bridge` and Universal `npm run deploy:prod`. All store installs then pass the reCAPTCHA bridge for shared-pool Moderate.
+- Details: [EXTENSION_IDS_SIDELOAD_VS_STORE.md](./EXTENSION_IDS_SIDELOAD_VS_STORE.md) · bridge steps: [RECAPTCHA_SETUP_EXTENSION.md](./RECAPTCHA_SETUP_EXTENSION.md)
+
 ## Pre-submit smoke
 
-Follow [SMOKE_TEST.md](./SMOKE_TEST.md) on **production** profile after auth spike is done.
+Follow [SMOKE_TEST.md](./SMOKE_TEST.md) on **production** profile after auth spike is done. For shared-pool **Moderate**, prefer an **unlisted store install** (real store ID) over unpacked sideload when validating reCAPTCHA end-to-end.

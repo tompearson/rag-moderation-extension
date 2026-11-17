@@ -19,6 +19,12 @@ You may get email from **info@airesearchdog.net** when a new **sideload** build 
 3. Chrome cannot install the `.zip` directly — continue below with **Part 1**, then choose that **unzipped folder** when you click **Load unpacked**.
 4. After install, run **[How to test the extension](https://www.airesearchdog.net/extension/how-to-test-extension)** (QA), then use **[How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts)** for workflow.
 
+### Shared-pool Moderate on sideload (reCAPTCHA)
+
+**Load unpacked** gives this browser a unique **extension ID** (not the same as a future **Chrome Web Store** install). If **Moderate** says the extension is not authorized for reCAPTCHA, either ask the maintainer to allowlist your ID from `chrome://extensions`, or set a **Gemini API key** in Options (**BYOK**) to skip reCAPTCHA. Store installs will use one shared ID for everyone — no per-user allowlist.
+
+Maintainers: [EXTENSION_IDS_SIDELOAD_VS_STORE.md](./EXTENSION_IDS_SIDELOAD_VS_STORE.md).
+
 ## Part 1 — Enable an unpacked extension {#developer}
 
 1. **Open the Chrome menu**  

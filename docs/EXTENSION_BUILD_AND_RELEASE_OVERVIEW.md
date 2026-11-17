@@ -23,6 +23,8 @@ This page is the **maintainer map** for how RAG Moderation Assistant moves from 
 | **Sideload (testers)** | Unzipped **store-shaped** build | Production only (locked) | [RELEASE.md](./RELEASE.md), [install (developer)](https://www.airesearchdog.net/extension/install-chrome-extension-developer) |
 | **Store (future)** | Same ZIP as sideload, installed from Chrome / Edge stores | Production | [STORE_CHECKLIST.md](./STORE_CHECKLIST.md), [STORE_PACKAGING.md](./STORE_PACKAGING.md) |
 
+**Extension IDs:** sideload = often **one ID per machine/path** (reCAPTCHA allowlist or BYOK); store = **one ID for all users** (allowlist once). [EXTENSION_IDS_SIDELOAD_VS_STORE.md](./EXTENSION_IDS_SIDELOAD_VS_STORE.md)
+
 Sideload and store builds share one packager: **`npm run package:store`**. That command is the hinge for almost every ZIP you ship.
 
 ---
@@ -174,6 +176,7 @@ flowchart TB
 | Tag releases, tester install, on-site deploy commands | [RELEASE.md](./RELEASE.md) |
 | What the ZIP contains, packager inputs, local QA | [STORE_PACKAGING.md](./STORE_PACKAGING.md) |
 | Web Store listing checklist, URLs, permissions | [STORE_CHECKLIST.md](./STORE_CHECKLIST.md) |
+| Extension IDs: sideload vs store, reCAPTCHA allowlist | [EXTENSION_IDS_SIDELOAD_VS_STORE.md](./EXTENSION_IDS_SIDELOAD_VS_STORE.md) |
 | Public download page (markdown source) | [GET_LATEST_EXTENSION.md](./GET_LATEST_EXTENSION.md) |
 | Preview `/extension/*` on :3000 | [DEV_WEB_DOCS.md](./DEV_WEB_DOCS.md) |
 | End-to-end moderation smoke | [SMOKE_TEST.md](./SMOKE_TEST.md) |

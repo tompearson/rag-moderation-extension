@@ -29,4 +29,4 @@ Use it when you are testing an unpacked install in Chrome or Edge — not for th
 | [Get a Gemini API key](/extension/get-gemini-api-key) | Optional BYOK (non-RAG provider) |
 | [Important — AI-generated analysis](/extension/important-ai-generated-analysis) | Read before acting on moderation suggestions |
 
-Maintainers: run `npm run package:store` in the extension repo (copies the ZIP here), then `npm run deploy:prod` in Moderation-Tool-Universal so production serves the fresh download. See [RELEASE.md](https://github.com/tompearson/rag-moderation-extension/blob/master/docs/RELEASE.md).
+Maintainers: run `npm run package:store` in the extension repo (copies the ZIP here), then `npm run deploy:prod` in Moderation-Tool-Universal so production serves the fresh download. See [RELEASE.md](https://github.com/tompearson/rag-moderation-extension/blob/master/docs/RELEASE.md). Sideload vs store extension IDs and reCAPTCHA: [EXTENSION_IDS_SIDELOAD_VS_STORE.md](./EXTENSION_IDS_SIDELOAD_VS_STORE.md).

@@ -52,7 +52,11 @@ Chrome and Edge cannot install a `.zip` directly in developer mode; the folder a
 
 ### Extension ID note
 
-Unpacked `dist/store/` gets a **different extension ID** than a store install unless you pack with a fixed key. When production OAuth is wired ([PROD_AUTH_SPIKE.md](./PROD_AUTH_SPIKE.md)), register redirect URLs for both IDs or test auth on an unlisted store build.
+Unpacked `dist/store/` gets a **different extension ID** than a **Chrome Web Store** install of the same ZIP. Sideload testers need their ID on the reCAPTCHA allowlist (or BYOK); store users share **one** ID after listing.
+
+Full write-up: [EXTENSION_IDS_SIDELOAD_VS_STORE.md](./EXTENSION_IDS_SIDELOAD_VS_STORE.md).
+
+When production OAuth is wired ([PROD_AUTH_SPIKE.md](./PROD_AUTH_SPIKE.md)), register redirect URLs for the **store ID** plus any unpacked QA IDs, or test auth on an unlisted store build only.
 
 ## What the packager changes
 
