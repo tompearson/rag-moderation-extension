@@ -22,7 +22,7 @@
         var SITE_KEY = '__RECAPTCHA_SITE_KEY__';
         var USE_LEGACY = __RECAPTCHA_USE_LEGACY__;
         var ALLOWED_EXTENSION_IDS = __RECAPTCHA_BRIDGE_EXTENSION_IDS_JSON__;
-        var TOKEN_TIMEOUT_MS = 22000;
+        var TOKEN_TIMEOUT_MS = 35000;
         var requestQueue = [];
         var processing = false;
         var inflightTimer = null;
@@ -127,8 +127,41 @@
           }
         }
 
+        function notifyBridgeReady() {
+          try {
+            if (window.parent && window.parent !== window) {
+              window.parent.postMessage({ type: 'recaptcha-bridge-ready' }, '*');
+            }
+          } catch (e) {
+            /* ignore */
+          }
+        }
+
+        try {
+          var grBoot = grecaptchaClient();
+          if (grBoot && grBoot.ready) {
+            grBoot.ready(notifyBridgeReady);
+          } else {
+            window.addEventListener('load', function () {
+              var grLate = grecaptchaClient();
+              if (grLate && grLate.ready) grLate.ready(notifyBridgeReady);
+            });
+          }
+        } catch (e) {
+          /* ignore */
+        }
+
         window.addEventListener('message', function (event) {
-          if (!isAllowedExtensionOrigin(event.origin)) return;
+          if (!isAllowedExtensionOrigin(event.origin)) {
+            if (typeof event.origin === 'string' && event.origin.startsWith('chrome-extension://')) {
+              postError(
+                event.source,
+                event.origin,
+                'This extension is not authorized for reCAPTCHA (unregistered extension ID). Use BYOK or add the ID to the bridge allowlist.',
+              );
+            }
+            return;
+          }
           var data = event.data;
           if (!data || data.type !== 'recaptcha-token-request') return;
           var action = typeof data.action === 'string' && data.action.trim() ? data.action.trim() : 'moderate';

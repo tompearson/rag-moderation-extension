@@ -24,5 +24,11 @@ assert.match(template, /ALLOWED_EXTENSION_IDS/, 'template has allowlist');
 assert.doesNotMatch(template, /RECAPTCHA_SECRET/, 'template must not embed secret');
 assert.doesNotMatch(template, /Token request already in progress/, 'bridge queues instead of busy error');
 assert.match(template, /requestQueue/, 'bridge serializes token queue');
+assert.match(
+  template,
+  /not authorized for reCAPTCHA/,
+  'bridge rejects unknown extension IDs with error',
+);
+assert.match(template, /recaptcha-bridge-ready/, 'bridge signals ready to parent');
 
 console.log('test-recaptcha-bridge: ok');
