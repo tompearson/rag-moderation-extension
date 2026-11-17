@@ -175,7 +175,7 @@ flowchart TB
 |-------|----------|
 | Tag releases, tester install, on-site deploy commands | [RELEASE.md](./RELEASE.md) |
 | What the ZIP contains, packager inputs, local QA | [STORE_PACKAGING.md](./STORE_PACKAGING.md) |
-| Web Store listing checklist, URLs, permissions | [STORE_CHECKLIST.md](./STORE_CHECKLIST.md) |
+| Web Store listing checklist, dashboard click path, permissions | [STORE_CHECKLIST.md](./STORE_CHECKLIST.md) |
 | Extension IDs: sideload vs store, reCAPTCHA allowlist | [EXTENSION_IDS_SIDELOAD_VS_STORE.md](./EXTENSION_IDS_SIDELOAD_VS_STORE.md) |
 | Public download page (markdown source) | [GET_LATEST_EXTENSION.md](./GET_LATEST_EXTENSION.md) |
 | Preview `/extension/*` on :3000 | [DEV_WEB_DOCS.md](./DEV_WEB_DOCS.md) |

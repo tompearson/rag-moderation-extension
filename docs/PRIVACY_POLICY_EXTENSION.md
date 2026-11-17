@@ -1,6 +1,6 @@
 # Privacy Policy — RAG Moderation Assistant (Chrome / Edge extension)
 
-**Last updated:** November 13, 2026  
+**Last updated:** November 17, 2026  
 **Operator:** airesearchdog (“we,” “us”)  
 **Contact:** [admin@airesearchdog.net](mailto:admin@airesearchdog.net) (privacy). Other addresses: [Contact page](https://www.airesearchdog.net/extension/contact).  
 
@@ -102,6 +102,8 @@ When **no** Gemini key is saved, moderations use the **shared pool** described u
 ### 3b. Google reCAPTCHA (shared pool only)
 
 When you use the **shared pool** (no saved Gemini key), the extension may load a small **hidden page** on **airesearchdog.net** that runs **Google reCAPTCHA v3** to request a one-time verification token **each time** you click **Moderate**. That token is sent with the moderation request. Google may collect device and interaction signals per [Google’s Privacy Policy](https://policies.google.com/privacy) and [Terms](https://policies.google.com/terms). reCAPTCHA is **not** used when you moderate with your own saved Gemini key (BYOK).
+
+**Chrome Web Store User Data Policy (Limited Use).** Where the extension receives information through Google APIs (for example Gemini key validation in BYOK mode or signals processed through reCAPTCHA), our use of that information adheres to the [Chrome Web Store Developer Program Policies](https://developer.chrome.com/docs/webstore/program-policies), including the [Limited Use](https://developer.chrome.com/docs/webstore/program-policies/policies#limited-use) requirements. We use such data only to provide or improve the extension’s disclosed moderation features, not to sell it, serve unrelated ads, or transfer it for purposes unrelated to that single purpose.
 
 ### 4. Contact and invite (only when you use them)
 
