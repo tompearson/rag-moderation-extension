@@ -69,4 +69,4 @@ Dev tree keeps [manifest.json](../manifest.json) and [lib/buildConfig.js](../lib
 
 ## Before public listing
 
-See [STORE_CHECKLIST.md](./STORE_CHECKLIST.md) and [PROD_AUTH_SPIKE.md](./PROD_AUTH_SPIKE.md). Packaging can ship before auth is done; do not publish publicly until production auth smoke passes.
+See [STORE_CHECKLIST.md](./STORE_CHECKLIST.md) ([Prepare your extension](https://developer.chrome.com/docs/webstore/prepare) mapping) and [PROD_AUTH_SPIKE.md](./PROD_AUTH_SPIKE.md). Packaging can ship before auth is done; do not publish publicly until production auth smoke passes.

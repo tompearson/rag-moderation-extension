@@ -5,6 +5,7 @@
 ## Table of contents
 
 - [Program policies pre-review (read first)](#program-policies-pre-review-read-first)
+- [Prepare your extension (official guide)](#prepare-your-extension-official-guide)
 - [Chrome Web Store dashboard (click path)](#chrome-web-store-dashboard-click-path)
 - [Single purpose](#single-purpose)
 - [Build and local QA](#build-and-local-qa)
@@ -76,11 +77,35 @@ Google reviews against the full **[Developer Program Policies](https://developer
 4. **Technical Requirements** — MV3 + Code Readability.  
 5. [Publish](https://developer.chrome.com/docs/webstore/publish) — how dashboard maps to policy attestations.
 
-Then continue to [Chrome Web Store dashboard (click path)](#chrome-web-store-dashboard-click-path).
+Then continue to [Prepare your extension](#prepare-your-extension-official-guide) and [Chrome Web Store dashboard (click path)](#chrome-web-store-dashboard-click-path).
 
 #### Limited Use disclosure {#limited-use-disclosure-gap}
 
 Policy requires a **public** Limited Use statement when the product uses Google-related user data (e.g. Gemini BYOK validation, reCAPTCHA). **Done** in [PRIVACY_POLICY_EXTENSION.md](./PRIVACY_POLICY_EXTENSION.md) after **Google reCAPTCHA** — sync with `npm run sync:privacy-policy` (or `npm run sync:public-guides`) and `deploy:prod` before store submission.
+
+---
+
+## Prepare your extension (official guide) {#prepare-your-extension-official-guide}
+
+Google’s short pre-upload checklist: [Prepare your extension before submitting](https://developer.chrome.com/docs/webstore/prepare). How **RAG Moderation Assistant** maps to it.
+
+| [Prepare](https://developer.chrome.com/docs/webstore/prepare) step | Requirement | Our repo / status |
+|------|-------------|-------------------|
+| **Test in production** | Feature-complete build tested before upload | **From `rag-moderation-extension`:** `npm run package:store` → Load unpacked **`dist/store/`** (not repo root) → [SMOKE_TEST.md](./SMOKE_TEST.md). Store build locks **Production** API ([STORE_PACKAGING.md](./STORE_PACKAGING.md)). |
+| **Review manifest** | `name`, `version`, `icons`, `description` (≤132 chars); dashboard **cannot** edit these after upload — fix source, bump version, new ZIP | Edit [`packaging/manifest.store.json`](../packaging/manifest.store.json); packager writes `dist/store/manifest.json`. Current description is **67 / 132** chars. Typos post-upload require **Upload new package** with higher `version`. |
+| **Version numbering** | Each upload must be **greater** than the previous; Google often suggests a low first version (e.g. `0.0.0.1`) | We use semver (`0.2.12` today). Fine for first store item; only **increase** on every re-upload. Override at package time: `RELEASE_VERSION=X.Y.Z npm run package:store`. |
+| **Valid manifest JSON** | No comments; parse errors block upload | Store manifest is strict JSON (no `//` comments). “Cannot parse manifest” → validate `packaging/manifest.store.json`. |
+| **Zip layout** | `manifest.json` at **root** of archive, not inside a subfolder | `dist/rag-moderation-assistant.zip` from `npm run package:store`; optional `npm run verify:store-zip`. |
+| **Listing content** | Long description, screenshots, promo images beyond manifest | Fill **Store listing** in dashboard ([Phase D](#phase-d--left-sidebar-tabs-fill-in-order)). Asset tips: [Create a great listing page](https://developer.chrome.com/docs/webstore/best-listing). Host help URLs on airesearchdog.net (already synced). **Screenshots** — capture from store build (side panel, Moderate result, Options); not shipped in the ZIP. |
+
+### Pre-upload checklist (Prepare doc only)
+
+- [ ] `npm test` → `npm run package:store` → `npm run verify:store-zip` (optional).
+- [ ] Smoke **`dist/store/`** on Production ([SMOKE_TEST.md](./SMOKE_TEST.md)).
+- [ ] Manifest fields final: `name`, `version`, `description` ≤132, icons 16/48/128 present in output.
+- [ ] Program policies + privacy aligned ([pre-review](#program-policies-pre-review-read-first)).
+- [ ] Listing screenshots and long description drafted (dashboard, not manifest).
+- [ ] Upload `dist/rag-moderation-assistant.zip` → then [dashboard phases](#chrome-web-store-dashboard-click-path).
 
 ---
 
@@ -112,7 +137,7 @@ Use this **after** `npm test` and `npm run package:store`, with [local QA on `di
    - **ZIP too large** — must be under 2GB (not an issue for this extension).
 4. When validation passes, the item appears in your list — open it. The left sidebar shows tabs below.
 
-### Phase D — Left sidebar tabs (fill in order)
+### Phase D — Left sidebar tabs (fill in order) {#phase-d--left-sidebar-tabs-fill-in-order}
 
 Work through each section. **Save** as you go. Tab names match [Google’s publish doc](https://developer.chrome.com/docs/webstore/publish); minor UI renames are possible.
 
