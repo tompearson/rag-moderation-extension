@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Render docs/NEXTDOOR_POLICY_COMPLIANCE_MATRIX.md → Universal public/extension/nextdoor-policy-compliance-matrix.html
- * Copy docs/assets/Nextdoor_Policy_Compliance_Matrix-v2.pdf → Universal public/extension/downloads/
+ * Copy docs/assets/Nextdoor_Policy_Compliance_Matrix-v3.pdf → Universal public/extension/downloads/
  */
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -14,11 +14,11 @@ const universalDir = resolve(
     join(extRoot, '..', 'community-moderation-tool', 'Moderation-Tool-Universal'),
 );
 const mdPath = join(extRoot, 'docs', 'NEXTDOOR_POLICY_COMPLIANCE_MATRIX.md');
-const pdfSrc = join(extRoot, 'docs', 'assets', 'Nextdoor_Policy_Compliance_Matrix-v2.pdf');
+const pdfSrc = join(extRoot, 'docs', 'assets', 'Nextdoor_Policy_Compliance_Matrix-v3.pdf');
 const outDir = join(universalDir, 'public', 'extension');
 const downloadsDir = join(outDir, 'downloads');
 const outPath = join(outDir, 'nextdoor-policy-compliance-matrix.html');
-const pdfDest = join(downloadsDir, 'Nextdoor_Policy_Compliance_Matrix-v2.pdf');
+const pdfDest = join(downloadsDir, 'Nextdoor_Policy_Compliance_Matrix-v3.pdf');
 
 function preprocessMarkdown(raw) {
   return raw.replace(/^## Related guides \{#related\}/m, '## Related guides');
