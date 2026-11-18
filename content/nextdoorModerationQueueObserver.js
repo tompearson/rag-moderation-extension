@@ -126,10 +126,21 @@
     return path === '/news_feed' ? path : null;
   }
 
+  /** @returns {chrome.storage.SessionStorageArea | null} */
+  function sessionArea() {
+    const area = chrome.storage?.session;
+    return area && typeof area.get === 'function' && typeof area.set === 'function'
+      ? area
+      : null;
+  }
+
   function publishSession() {
+    const session = sessionArea();
+    if (!session) return;
+
     const path = newsFeedPathname();
     if (!path) {
-      chrome.storage.session.remove([COUNT_KEY, PATH_KEY, UPDATED_KEY, PENDING_KEY]);
+      session.remove([COUNT_KEY, PATH_KEY, UPDATED_KEY, PENDING_KEY]);
       return;
     }
 
@@ -137,7 +148,7 @@
 
     chrome.storage.local.get({ [AUTO_MODERATE_LOCAL_KEY]: true }, (local) => {
       const autoModerateOn = local[AUTO_MODERATE_LOCAL_KEY] !== false;
-      chrome.storage.session.get([DISMISS_KEY], (sess) => {
+      session.get([DISMISS_KEY], (sess) => {
         const dismissed = !!sess[DISMISS_KEY];
         /** @type {Record<string, unknown>} */
         const payload = {
@@ -148,7 +159,7 @@
         if (autoModerateOn && !dismissed && n != null && n > 0) {
           payload[PENDING_KEY] = n;
         }
-        chrome.storage.session.set(payload);
+        session.set(payload);
       });
     });
   }
