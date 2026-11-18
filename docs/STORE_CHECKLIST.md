@@ -6,6 +6,7 @@
 
 - [Program policies pre-review (read first)](#program-policies-pre-review-read-first)
 - [Prepare your extension (official guide)](#prepare-your-extension-official-guide)
+- [Publish your extension (official guide)](#publish-your-extension-official-guide)
 - [Chrome Web Store dashboard (click path)](#chrome-web-store-dashboard-click-path)
 - [Single purpose](#single-purpose)
 - [Build and local QA](#build-and-local-qa)
@@ -75,9 +76,9 @@ Google reviews against the full **[Developer Program Policies](https://developer
 2. **Protecting User Privacy** — all subsections (your main review time).  
 3. **Building Quality Products** — Quality Guidelines, Listing Requirements, Minimum Functionality.  
 4. **Technical Requirements** — MV3 + Code Readability.  
-5. [Publish](https://developer.chrome.com/docs/webstore/publish) — how dashboard maps to policy attestations.
+5. [Prepare](https://developer.chrome.com/docs/webstore/prepare) · [Publish](https://developer.chrome.com/docs/webstore/publish) — pre-upload and first-submit flow (mapped below).
 
-Then continue to [Prepare your extension](#prepare-your-extension-official-guide) and [Chrome Web Store dashboard (click path)](#chrome-web-store-dashboard-click-path).
+Then continue to [Prepare your extension](#prepare-your-extension-official-guide), [Publish your extension](#publish-your-extension-official-guide), and [Chrome Web Store dashboard (click path)](#chrome-web-store-dashboard-click-path).
 
 #### Limited Use disclosure {#limited-use-disclosure-gap}
 
@@ -105,7 +106,35 @@ Google’s short pre-upload checklist: [Prepare your extension before submitting
 - [ ] Manifest fields final: `name`, `version`, `description` ≤132, icons 16/48/128 present in output.
 - [ ] Program policies + privacy aligned ([pre-review](#program-policies-pre-review-read-first)).
 - [ ] Listing screenshots and long description drafted (dashboard, not manifest).
-- [ ] Upload `dist/rag-moderation-assistant.zip` → then [dashboard phases](#chrome-web-store-dashboard-click-path).
+- [ ] Upload `dist/rag-moderation-assistant.zip` → then [Publish flow](#publish-your-extension-official-guide) and [dashboard phases](#chrome-web-store-dashboard-click-path).
+
+---
+
+## Publish your extension (official guide) {#publish-your-extension-official-guide}
+
+First-time submit walkthrough: [Publish in the Chrome Web Store](https://developer.chrome.com/docs/webstore/publish). Use with [Prepare](#prepare-your-extension-official-guide) and the [dashboard click path](#chrome-web-store-dashboard-click-path) below.
+
+| [Publish](https://developer.chrome.com/docs/webstore/publish) section | What Google says | Our mapping |
+|--------|------------------|-------------|
+| **Upload** | Dashboard → **Add new item** → ZIP ≤2GB; valid manifest to edit listing | [Phase C](#phase-c--new-item--upload): `dist/rag-moderation-assistant.zip` |
+| **Item limits** | **New publishers:** up to **two published extensions** (limit shown in dashboard). Request increase if at cap; themes exempt | Before first **public** publish, check dashboard limit. RAG Moderation Assistant is likely your **first** listing — OK. Second extension later (e.g. Edge-only fork is still one Chrome item) counts toward the cap. |
+| **Sidebar tabs** | **Package** (read-only at first) · **Store listing** · **Privacy** (single purpose + data) · **Distribution** · **Test instructions** (optional) | [Phase D](#phase-d--left-sidebar-tabs-fill-in-order). UI may say **Privacy practices** — same tab; detail: [cws-dashboard-privacy](https://developer.chrome.com/docs/webstore/cws-dashboard-privacy). |
+| **Submit for review** | Fix errors, then **Submit for review** | [Phase F](#phase-f--submit-for-review) |
+| **Deferred publish** | Uncheck auto-publish to release manually after approval; or **Defer publish** from item menu later | Prefer defer for first item until [SMOKE_TEST.md](./SMOKE_TEST.md) on store install + reCAPTCHA allowlist ([Phase E](#phase-e--after-first-upload-maintainer-not-in-dashboard)) |
+| **30-day publish window** | After review completes, you have **up to 30 days** to publish; then staged submission reverts to **draft** (must re-submit for review) | Watch **staged item status** in dashboard; publish before expiry |
+| **Cancel review** | If you find a bug after submit, **cancel review** → upload fixed ZIP → submit again | Bump `version` in `packaging/manifest.store.json`, `package:store`, re-upload **Package** |
+| **Review process** | Timing varies by item; takedown/rejection emails on by default | [Understanding the review process](https://developer.chrome.com/docs/webstore/review-process) |
+| **Account notifications** | Optional email when item is **published** or **staged** | Developer dashboard **Account** page → enable publish/staged notifications (takedown emails default on) |
+| **Updates** | Later versions: new ZIP via dashboard update flow | [Phase G](#phase-g--after-approval); [Update your Chrome Web Store item](https://developer.chrome.com/docs/webstore/update) |
+
+### Publish checklist (from official doc)
+
+- [ ] Prepare + policies done ([Prepare](#prepare-your-extension-official-guide), [pre-review](#program-policies-pre-review-read-first)).
+- [ ] Publisher **extension limit** OK (or increase requested).
+- [ ] All sidebar tabs saved; Package shows expected version.
+- [ ] **Submit for review** with chosen auto-publish vs defer.
+- [ ] After approval: publish within **30 days** (if deferred); run smoke + allowlist store ID.
+- [ ] Account email settings: can receive rejection/takedown; optional staged/published alerts.
 
 ---
 
@@ -127,6 +156,8 @@ Use this **after** `npm test` and `npm run package:store`, with [local QA on `di
 2. Sign in with the Google account that will **own** the listing.
 3. If prompted, **pay the one-time developer registration fee** and accept developer terms.
 4. *(Optional, account-level)* Under developer account settings, ensure your **privacy policy** URL for the publisher matches [extension/privacy](https://www.airesearchdog.net/extension/privacy) if the dashboard asks at account level.
+5. Check **published extension limit** for new publishers ([publish § Item limits](https://developer.chrome.com/docs/webstore/publish#item-limits)) — default **2**; request increase if needed.
+6. **Account** page: enable email when item is **published** or **staged** if you want those alerts ([publish § review process](https://developer.chrome.com/docs/webstore/publish#the-review-process)).
 
 ### Phase C — New item + upload
 
@@ -156,9 +187,9 @@ Work through each section. **Save** as you go. Tab names match [Google’s publi
 
 Manifest already ships **name**, **short description** (≤132 chars), and **icons** — listing copy can expand, but should not contradict the manifest.
 
-#### Privacy practices
+#### Privacy / Privacy practices
 
-Use [Privacy practices tab guidance](https://developer.chrome.com/docs/webstore/cws-dashboard-privacy).
+Google’s [publish](https://developer.chrome.com/docs/webstore/publish) doc calls this the **Privacy** tab; the form is documented as [Privacy practices](https://developer.chrome.com/docs/webstore/cws-dashboard-privacy).
 
 - [ ] **Single purpose** — paste or adapt:
 
@@ -201,15 +232,17 @@ Details: [EXTENSION_IDS_SIDELOAD_VS_STORE.md](./EXTENSION_IDS_SIDELOAD_VS_STORE.
 1. Resolve any **errors** or **warnings** on the item (red/yellow indicators in the sidebar).
 2. Click **Submit for review** (top or item toolbar).
 3. In the confirmation dialog:
-   - [ ] **Publish timing** — consider **unchecking** “publish automatically after review” so you can **manually publish** after you read approval email (or use **Defer publish** later per [publish doc](https://developer.chrome.com/docs/webstore/publish)).
-4. Wait for review (days to weeks). Use **Cancel review** only if you must upload a fixed ZIP before review completes.
+   - [ ] **Publish timing** — consider **unchecking** “publish automatically after review” so you can **manually publish** after you read approval email (or use **Defer publish** from the item menu later — [publish § Deferred publishing](https://developer.chrome.com/docs/webstore/publish#deferred-publishing-option)).
+4. Wait for review (days to weeks). See [Understanding the review process](https://developer.chrome.com/docs/webstore/review-process).
+5. **Cancel review** if you must ship a fixed ZIP before review ends — then bump version, `package:store`, re-upload, submit again ([publish § Deferred publishing](https://developer.chrome.com/docs/webstore/publish#deferred-publishing-option)).
 
 ### Phase G — After approval
 
-- [ ] Publish (if you deferred).
+- [ ] Publish within **30 days** if deferred ([publish](https://developer.chrome.com/docs/webstore/publish): staged submission otherwise reverts to draft).
+- [ ] Complete [Phase E](#phase-e--after-first-upload-maintainer-not-in-dashboard) (store ID + reCAPTCHA) before public shared-pool Moderate.
 - [ ] Run production [SMOKE_TEST.md](./SMOKE_TEST.md) on the **store-installed** extension.
 - [ ] Update public install copy if the live store URL differs from placeholders in [INSTALL_RAG_MODERATION_EXTENSION_CHROME.md](./INSTALL_RAG_MODERATION_EXTENSION_CHROME.md) (sync guides + `deploy:prod` when the listing URL is final).
-- [ ] Future updates: bump `packaging/manifest.store.json` version → `npm run package:store` → dashboard → **Package** → **Upload new package** → fill changelog if asked → **Submit for review**.
+- [ ] Future updates: bump `packaging/manifest.store.json` version → `npm run package:store` → dashboard → **Package** → **Upload new package** → fill changelog if asked → **Submit for review** ([Update your item](https://developer.chrome.com/docs/webstore/update)).
 
 ---
 

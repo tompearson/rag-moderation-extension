@@ -10,7 +10,7 @@
   const AUTO_MODERATE_LOCAL_KEY = 'autoModerateEnabled';
   const READ_MSG = 'READ_MODERATION_QUEUE_COUNT';
 
-  /** @type {ReturnType<typeof setInterval> | null} */
+  /** @type {number|null} */
   let pollInterval = null;
 
   function extensionContextLive() {
@@ -33,10 +33,7 @@
     return msg.includes('Extension context invalidated');
   }
 
-  /**
-   * @param {() => void} fn
-   * @returns {boolean} false when context is dead or call threw invalidated
-   */
+  /** Run fn when the extension context is still valid; stop polling on invalidated errors. */
   function safeChromeCall(fn) {
     if (!extensionContextLive()) {
       stopPolling();
@@ -134,7 +131,6 @@
     return null;
   }
 
-  /** @param {Node} node @param {ParentNode[]} roots */
   function collectDocumentRoots(node, roots) {
     if (node instanceof Document) {
       roots.push(node);
@@ -167,7 +163,6 @@
     return path === '/news_feed' ? path : null;
   }
 
-  /** @returns {chrome.storage.SessionStorageArea | null} */
   function sessionArea() {
     const area = chrome.storage?.session;
     return area && typeof area.get === 'function' && typeof area.set === 'function'
@@ -208,7 +203,6 @@
               return;
             }
             const dismissed = !!sess[DISMISS_KEY];
-            /** @type {Record<string, unknown>} */
             const payload = {
               [COUNT_KEY]: n ?? 0,
               [PATH_KEY]: path,
