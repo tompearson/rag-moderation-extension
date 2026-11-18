@@ -33,6 +33,7 @@ const EXTENSION_PATHS = [
   '/extension/visual-moderation-step-by-step',
   '/extension/contact',
   '/extension/get-latest-extension',
+  '/extension/nextdoor-policy-compliance-matrix',
   '/extension/invite-sample-report',
 ];
 

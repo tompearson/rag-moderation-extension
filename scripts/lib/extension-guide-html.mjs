@@ -9,6 +9,9 @@ export const EXTENSION_GUIDE_FOOTER_PATHS = {
 /** Linked from Related guides sections in extension docs. */
 export const EXTENSION_AI_GENERATED_ANALYSIS_PATH = '/extension/important-ai-generated-analysis';
 
+/** Policy compliance matrix (HTML + PDF under /extension/downloads/). */
+export const EXTENSION_POLICY_COMPLIANCE_MATRIX_PATH = '/extension/nextdoor-policy-compliance-matrix';
+
 /** Top-level documentation index (public/extension/index.html). */
 export const EXTENSION_DOCS_HOME_PATH = '/extension/guides';
 
@@ -31,6 +34,7 @@ export const EXTENSION_GUIDE_SITEMAP = [
   { href: '/extension/visual-moderation-step-by-step', label: 'Visual walkthrough' },
   { href: '/extension/get-gemini-api-key', label: 'Gemini API key' },
   { href: '/extension/important-ai-generated-analysis', label: 'AI-generated notice' },
+  { href: EXTENSION_POLICY_COMPLIANCE_MATRIX_PATH, label: 'Policy compliance matrix' },
   { href: '/extension/contact', label: 'Contact' },
   { href: '/extension/privacy', label: 'Privacy policy' },
   { href: '/extension/terms', label: 'Terms of use' },

@@ -28,8 +28,10 @@ This page is the **top-level home** for all public **RAG Moderation Assistant** 
 
 8. **[Important — AI-generated analysis](https://www.airesearchdog.net/extension/important-ai-generated-analysis)** — Read before acting on moderation suggestions.
 
-9. **[Contact](https://www.airesearchdog.net/extension/contact)** — Email addresses (info, help, admin) and what each is for.
+9. **[Nextdoor Policy Compliance Matrix](https://www.airesearchdog.net/extension/nextdoor-policy-compliance-matrix)** — Structured guidelines reference (downloadable PDF v2).
 
-10. **[Privacy policy](https://www.airesearchdog.net/extension/privacy)** — Data the extension sends and how BYOK works.
+10. **[Contact](https://www.airesearchdog.net/extension/contact)** — Email addresses (info, help, admin) and what each is for.
 
-11. **[Terms of use](https://www.airesearchdog.net/extension/terms)** — Rules for using the extension and site.
+11. **[Privacy policy](https://www.airesearchdog.net/extension/privacy)** — Data the extension sends and how BYOK works.
+
+12. **[Terms of use](https://www.airesearchdog.net/extension/terms)** — Rules for using the extension and site.

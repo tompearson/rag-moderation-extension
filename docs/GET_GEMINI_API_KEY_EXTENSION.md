@@ -85,3 +85,4 @@ For **RAG Moderation Assistant**: the key stays in **this browser only**; it is 
 | [Install RAG Moderation Assistant in Chrome](https://www.airesearchdog.net/extension/install-chrome-extension) | Web Store install and pin |
 | [How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts) | Side panel workflow |
 | [Important — AI-generated analysis](https://www.airesearchdog.net/extension/important-ai-generated-analysis) | Read before acting on moderation suggestions |
+| [Nextdoor Policy Compliance Matrix](https://www.airesearchdog.net/extension/nextdoor-policy-compliance-matrix) | Printable guidelines reference (PDF) |

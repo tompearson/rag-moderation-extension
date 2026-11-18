@@ -156,6 +156,7 @@ We may update this policy when the extension or API behavior changes. We will po
 | [How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts) | Side panel workflow |
 | [Get a Gemini API key](https://www.airesearchdog.net/extension/get-gemini-api-key) | Optional BYOK |
 | [Important — AI-generated analysis](https://www.airesearchdog.net/extension/important-ai-generated-analysis) | Read before acting on moderation suggestions |
+| [Nextdoor Policy Compliance Matrix](https://www.airesearchdog.net/extension/nextdoor-policy-compliance-matrix) | Printable guidelines reference (PDF) |
 | [Contact](https://www.airesearchdog.net/extension/contact) | **info@**, **help@**, and **admin@** — when to use each |
 
 ## Contact

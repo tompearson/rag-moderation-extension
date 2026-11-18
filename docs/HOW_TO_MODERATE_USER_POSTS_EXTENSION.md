@@ -163,3 +163,4 @@ Move to the next post by capturing new text with paste, pick mode, or the contex
 | [Install RAG Moderation Assistant in Chrome](https://www.airesearchdog.net/extension/install-chrome-extension) | First-time Web Store install and pin |
 | [Get a Gemini API key](https://www.airesearchdog.net/extension/get-gemini-api-key) | Optional BYOK for regular volume |
 | [Important — AI-generated analysis](https://www.airesearchdog.net/extension/important-ai-generated-analysis) | Required reading before acting on suggestions |
+| [Nextdoor Policy Compliance Matrix](https://www.airesearchdog.net/extension/nextdoor-policy-compliance-matrix) | Printable guidelines reference (PDF) |

@@ -62,6 +62,7 @@ The extension includes a small number of **free moderations** on shared capacity
 | [How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts) | Side panel workflow after install |
 | [Install (developer / unpacked)](https://www.airesearchdog.net/extension/install-chrome-extension-developer) | Load unpacked or test `dist/store/` |
 | [Important — AI-generated analysis](https://www.airesearchdog.net/extension/important-ai-generated-analysis) | Read before acting on moderation suggestions |
+| [Nextdoor Policy Compliance Matrix](https://www.airesearchdog.net/extension/nextdoor-policy-compliance-matrix) | Printable guidelines reference (PDF) |
 
 ---
 

@@ -65,6 +65,7 @@ With current tooling, use the same **clean paths** as production (no `.html` in 
 | Privacy | http://127.0.0.1:3000/extension/privacy |
 | Terms | http://127.0.0.1:3000/extension/terms |
 | Important — AI-generated analysis | http://127.0.0.1:3000/extension/important-ai-generated-analysis |
+| Nextdoor Policy Compliance Matrix | http://127.0.0.1:3000/extension/nextdoor-policy-compliance-matrix |
 | How to moderate user posts | http://127.0.0.1:3000/extension/how-to-moderate-user-posts |
 | How to test the extension | http://127.0.0.1:3000/extension/how-to-test-extension |
 | Visual moderation step by step | http://127.0.0.1:3000/extension/visual-moderation-step-by-step |

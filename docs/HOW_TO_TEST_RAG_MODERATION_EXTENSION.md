@@ -232,6 +232,7 @@ This page reuses the [visual walkthrough](https://www.airesearchdog.net/extensio
 | [How to moderate user posts](https://www.airesearchdog.net/extension/how-to-moderate-user-posts) | Moderator workflow (not QA) |
 | [Visual moderation step by step](https://www.airesearchdog.net/extension/visual-moderation-step-by-step) | Picture walkthrough |
 | [Important — AI-generated analysis](https://www.airesearchdog.net/extension/important-ai-generated-analysis) | Liability / limits |
+| [Nextdoor Policy Compliance Matrix](https://www.airesearchdog.net/extension/nextdoor-policy-compliance-matrix) | Printable guidelines reference (PDF) |
 | [Maintainer smoke matrix (GitHub)](https://github.com/tompearson/rag-moderation-extension/blob/master/docs/SMOKE_TEST.md) | Local dev, curl, BYOK depth |
 
 ---
