@@ -2,9 +2,9 @@
 
 Reference matrix for **Nextdoor Community Guidelines** — structured moderation and governance topics (Main Feed vs Groups, civility, commerce, safety, and related exceptions). It is aligned with the **airesearchdog** RAG guideline corpus and verified against live Nextdoor Help Center documentation.
 
-**Download (PDF, v3):** [Nextdoor_Policy_Compliance_Matrix-v3.pdf](https://www.airesearchdog.net/extension/downloads/Nextdoor_Policy_Compliance_Matrix-v3.pdf)
+**Download (PDF, v4):** [Nextdoor_Policy_Compliance_Matrix-v4.pdf](https://www.airesearchdog.net/extension/downloads/Nextdoor_Policy_Compliance_Matrix-v4.pdf)
 
-v3 adds an intentional blank **page 5**, then **section 5** — unavailable Help URLs and live **`Guideline-*-*`** replacements (Nov 2026 hub migration).
+v4 (Nov 2026) keeps the v2 matrix plus an intentional blank **page 5** and **section 5** — unavailable Help URLs and live **`Guideline-*-*`** replacements. Bookmarks to **v3** PDF redirect to v4 on the documentation site.
 
 Use this document when you want a **single printable reference** alongside the extension. It does not replace human judgment or platform policy. Before acting on any AI suggestion, read [Important — AI-generated analysis](https://www.airesearchdog.net/extension/important-ai-generated-analysis).
 
