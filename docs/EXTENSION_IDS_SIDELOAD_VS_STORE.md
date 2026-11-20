@@ -83,6 +83,7 @@ Example IDs on known maintainer paths (for debugging only — **your** path may 
 | `…/rag-moderation-extension` (repo root) | `afbocecefdmhofeahodpcpeebbmbjlnf` |
 | `…/rag-moderation-extension/dist/store` | `jagdbbhecefdgkpjinahcojiilcgempg` |
 | Separate Windows box (sideload ZIP) | `kjfknniomfjfiajamckpiohcgdpeedba` |
+| i7-games (sideload ZIP) | `eamajlnamlngfooejbjjadgcfpeehnin` |
 | Chromite (unpacked sideload) | `efbpgaeohniogdfhpbdnfciijinbaajf` |
 
 Canonical list in git: `lib/recaptcha-bridge-extension-ids.json`.
