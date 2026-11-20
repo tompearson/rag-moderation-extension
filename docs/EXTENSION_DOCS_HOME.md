@@ -28,7 +28,7 @@ This page is the **top-level home** for all public **RAG Moderation Assistant** 
 
 8. **[Important — AI-generated analysis](https://www.airesearchdog.net/extension/important-ai-generated-analysis)** — Read before acting on moderation suggestions.
 
-9. **[Nextdoor Policy Compliance Matrix](https://www.airesearchdog.net/extension/nextdoor-policy-compliance-matrix)** — Structured guidelines reference (downloadable PDF v4).
+9. **[Nextdoor Policy Compliance Matrix](https://www.airesearchdog.net/extension/nextdoor-policy-compliance-matrix)** — Structured guidelines reference (downloadable PDF v5).
 
 10. **[Contact](https://www.airesearchdog.net/extension/contact)** — Email addresses (info, help, admin) and what each is for.
 
