@@ -109,6 +109,11 @@ import {
   NEXTDOOR_REQUIRED_MSG,
 } from '../lib/moderationDomain.js';
 import {
+  getAutoBehaviorsTrialOfferSeen,
+  markAutoBehaviorsTrialOfferSeen,
+  shouldShowAutoBehaviorsTrialOffer,
+} from '../lib/autoBehaviorsTrialOffer.js';
+import {
   decisionClass,
   formatReportCategory,
   renderRagSourcesFoldHtml,
@@ -130,6 +135,14 @@ const nextdoorNavigateClose = document.getElementById('nextdoor-navigate-close')
 
 /** @type {((choice: 'navigate' | 'cancel') => void) | null} */
 let nextdoorNavigateDialogResolve = null;
+
+const autoBehaviorsTrialModal = document.getElementById('auto-behaviors-trial-modal');
+const autoBehaviorsTrialKeep = document.getElementById('auto-behaviors-trial-keep');
+const autoBehaviorsTrialDisable = document.getElementById('auto-behaviors-trial-disable');
+const autoBehaviorsTrialClose = document.getElementById('auto-behaviors-trial-close');
+
+/** @type {((choice: 'keep' | 'disable') => void) | null} */
+let autoBehaviorsTrialDialogResolve = null;
 
 const moderationQueueModal = document.getElementById('moderation-queue-modal');
 const moderationQueueModalDesc = document.getElementById('moderation-queue-modal-desc');
@@ -406,8 +419,16 @@ function syncMainPanelBlocked() {
     nextdoorNavigateModal && !nextdoorNavigateModal.classList.contains('hidden');
   const moderationQueueOpen =
     moderationQueueModal && !moderationQueueModal.classList.contains('hidden');
+  const autoBehaviorsTrialOpen =
+    autoBehaviorsTrialModal && !autoBehaviorsTrialModal.classList.contains('hidden');
   const blocked =
-    locationOpen || emailOpen || reviewOpen || contactOpen || nextdoorNavOpen || moderationQueueOpen;
+    locationOpen ||
+    emailOpen ||
+    reviewOpen ||
+    contactOpen ||
+    nextdoorNavOpen ||
+    moderationQueueOpen ||
+    autoBehaviorsTrialOpen;
   mainPanel.classList.toggle('blocked', blocked);
   mainPanel.setAttribute('aria-hidden', blocked ? 'true' : 'false');
 }
@@ -904,6 +925,52 @@ async function resolveModerationQueueCount(tabId, tabUrl) {
   return null;
 }
 
+function hideAutoBehaviorsTrialDialog() {
+  autoBehaviorsTrialModal?.classList.add('hidden');
+  syncMainPanelBlocked();
+}
+
+function finishAutoBehaviorsTrialDialog(/** @type {'keep' | 'disable'} */ choice) {
+  hideAutoBehaviorsTrialDialog();
+  const resolve = autoBehaviorsTrialDialogResolve;
+  autoBehaviorsTrialDialogResolve = null;
+  resolve?.(choice);
+}
+
+/** @returns {Promise<'keep' | 'disable'>} */
+function promptAutoBehaviorsTrialDialog() {
+  if (!autoBehaviorsTrialModal) return Promise.resolve('keep');
+  autoBehaviorsTrialModal.classList.remove('hidden');
+  syncMainPanelBlocked();
+  autoBehaviorsTrialKeep?.focus();
+  return new Promise((resolve) => {
+    autoBehaviorsTrialDialogResolve = resolve;
+  });
+}
+
+autoBehaviorsTrialKeep?.addEventListener('click', () => finishAutoBehaviorsTrialDialog('keep'));
+autoBehaviorsTrialDisable?.addEventListener('click', () => finishAutoBehaviorsTrialDialog('disable'));
+autoBehaviorsTrialClose?.addEventListener('click', () => finishAutoBehaviorsTrialDialog('keep'));
+
+/**
+ * Once per install on shared pool (no saved key): offer to disable Auto Nav and Auto Moderate.
+ * @param {Awaited<ReturnType<typeof loadSettings>>} settings
+ * @returns {Promise<Awaited<ReturnType<typeof loadSettings>>>}
+ */
+async function maybeAutoBehaviorsTrialOffer(settings) {
+  const seen = await getAutoBehaviorsTrialOfferSeen();
+  if (!shouldShowAutoBehaviorsTrialOffer(settings, seen)) return settings;
+
+  const choice = await promptAutoBehaviorsTrialDialog();
+  await markAutoBehaviorsTrialOfferSeen();
+
+  if (choice === 'disable') {
+    await saveSettingsPatch({ autoNavEnabled: false, autoModerateEnabled: false });
+    return { ...settings, autoNavEnabled: false, autoModerateEnabled: false };
+  }
+  return settings;
+}
+
 let autoModerateOfferInFlight = false;
 
 async function runAutoModerateOfferCheck() {
@@ -1004,7 +1071,8 @@ async function navigateToNextdoorFeedOnPanelOpen() {
   if (pickModeInProgress) return;
   const draft = await peekPendingModerationDraft();
   if (draft) return;
-  const settings = await loadSettings();
+  let settings = await loadSettings();
+  settings = await maybeAutoBehaviorsTrialOffer(settings);
   let tabId;
   try {
     const openResult = await openNextdoorNewsFeedForModeration({ enabled: settings.autoNavEnabled });

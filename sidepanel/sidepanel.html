@@ -29,6 +29,33 @@
     </div>
 
     <div
+      id="auto-behaviors-trial-modal"
+      class="modal hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="auto-behaviors-trial-modal-title"
+    >
+      <div class="modal-card">
+        <div class="modal-card-header">
+          <h2 id="auto-behaviors-trial-modal-title">Automatic Nextdoor helpers</h2>
+          <button type="button" id="auto-behaviors-trial-close" class="modal-close" aria-label="Close">
+            ×
+          </button>
+        </div>
+        <p id="auto-behaviors-trial-modal-desc" class="muted">
+          While you use the free shared trial (no Gemini key), <strong>Auto Nav</strong> can open the
+          Nextdoor news feed when you open this panel and close the panel if that tab leaves Nextdoor.
+          <strong>Auto Moderate</strong> can offer to open the moderation feed when reported posts are
+          waiting. You can turn both off in Options anytime. Turn them off now?
+        </p>
+        <div class="modal-actions">
+          <button type="button" id="auto-behaviors-trial-keep" class="primary">Keep enabled</button>
+          <button type="button" id="auto-behaviors-trial-disable" class="secondary">Yes, turn off</button>
+        </div>
+      </div>
+    </div>
+
+    <div
       id="moderation-queue-modal"
       class="modal hidden"
       role="dialog"
