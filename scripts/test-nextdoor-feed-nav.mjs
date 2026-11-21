@@ -7,6 +7,7 @@ import {
   shouldAutoOpenNextdoorNewsFeed,
   shouldNavigateTabToNewsFeed,
 } from '../lib/nextdoorFeedNav.js';
+import { NEXTDOOR_REASONS_FOR_REPORTING_URL } from '../lib/nextdoorHelpUrls.js';
 
 assert.equal(NEXTDOOR_NEWS_FEED_URL, 'https://nextdoor.com/news_feed/');
 
@@ -33,5 +34,10 @@ assert.equal(shouldAutoOpenNextdoorNewsFeed('https://nextdoor.com/for_sale_and_f
 assert.equal(shouldAutoOpenNextdoorNewsFeed('https://nextdoor.com/p/abc'), false);
 assert.equal(shouldAutoOpenNextdoorNewsFeed('https://www.google.com/'), true);
 assert.equal(shouldAutoOpenNextdoorNewsFeed('chrome://newtab'), false);
+
+assert.equal(
+  NEXTDOOR_REASONS_FOR_REPORTING_URL,
+  'https://help.nextdoor.com/s/article/reasons-for-reporting-content?language=en_US',
+);
 
 console.log('OK — nextdoor feed nav tests passed');

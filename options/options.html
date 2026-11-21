@@ -13,36 +13,70 @@
         <h1>Options</h1>
         <p id="extension-version-label" class="extension-version muted" hidden></p>
       </div>
-      <button type="button" class="close-options secondary header-btn">Close</button>
+      <button type="button" class="close-options header-btn">Close Options</button>
     </header>
-    <nav class="options-guide-pills" aria-label="Extension guides and policies">
-      <a
-        id="extension-docs-home-link"
-        class="options-guide-pill"
-        href="#"
-        target="_blank"
-        rel="noopener noreferrer"
-        >All guides</a
-      ><a
-        id="extension-how-to-guide-link"
-        class="options-guide-pill"
-        href="#"
-        target="_blank"
-        rel="noopener noreferrer"
-        hidden
-        >How to moderate</a
-      ><a
-        id="extension-privacy-link"
-        class="options-guide-pill"
-        href="#"
-        target="_blank"
-        rel="noopener noreferrer"
-        >Privacy policy</a
-      ><a id="extension-terms-link" class="options-guide-pill" href="#" target="_blank" rel="noopener noreferrer"
-        >Terms of use</a
-      ><button type="button" id="options-extension-contact-open" class="options-guide-pill options-guide-pill--button">
-        Contact
-      </button>
+    <nav class="options-guide-pill-groups" aria-label="Guides and policies">
+      <div class="options-guide-pill-group" role="group" aria-labelledby="options-guide-group-nextdoor">
+        <span id="options-guide-group-nextdoor" class="options-guide-pill-group-label">Nextdoor</span>
+        <div class="options-guide-pills">
+          <a
+            id="extension-policy-matrix-pdf-link"
+            class="options-guide-pill"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Policy matrix</a
+          ><a
+            id="nextdoor-reasons-for-reporting-link"
+            class="options-guide-pill"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Reasons to report</a
+          >
+        </div>
+      </div>
+      <div class="options-guide-pill-group" role="group" aria-labelledby="options-guide-group-extension">
+        <span id="options-guide-group-extension" class="options-guide-pill-group-label">Extension</span>
+        <div class="options-guide-pills">
+          <a
+            id="extension-docs-home-link"
+            class="options-guide-pill"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+            >All guides</a
+          ><a
+            id="extension-how-to-guide-link"
+            class="options-guide-pill"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+            hidden
+            >How to moderate</a
+          ><a
+            id="extension-privacy-link"
+            class="options-guide-pill"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Privacy policy</a
+          ><a
+            id="extension-terms-link"
+            class="options-guide-pill"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Terms of use</a
+          ><button
+            type="button"
+            id="options-extension-contact-open"
+            class="options-guide-pill options-guide-pill--button"
+          >
+            Contact
+          </button>
+        </div>
+      </div>
     </nav>
 
     <main class="options-main">
@@ -60,6 +94,9 @@
       </div>
       <p class="muted">To move or recover all preferences, use <strong>Backup settings</strong> below.</p>
       <p id="save-status" class="status muted" aria-live="polite"></p>
+      <div class="options-close-row">
+        <button type="button" class="close-options header-btn">Close Options</button>
+      </div>
     </section>
 
     <section class="options-section">
@@ -77,6 +114,9 @@
         Default 45. Saved when you change this field. The side panel stops waiting at this limit; use
         <strong>Stop</strong> to cancel sooner.
       </p>
+      <div class="options-close-row">
+        <button type="button" class="close-options header-btn">Close Options</button>
+      </div>
     </section>
 
     <section class="options-section">
@@ -86,6 +126,9 @@
       <div class="row checkbox-row">
         <input id="report-email-enabled" type="checkbox" checked />
         <label for="report-email-enabled">Enable “Email report” on results</label>
+      </div>
+      <div class="options-close-row">
+        <button type="button" class="close-options header-btn">Close Options</button>
       </div>
     </section>
 
@@ -146,6 +189,9 @@
         <button type="button" id="gemini-byok-turn-on" class="primary">Turn on</button>
         <button type="button" id="gemini-byok-turn-on-dismiss" class="secondary">Not now</button>
       </div>
+      <div class="options-close-row">
+        <button type="button" class="close-options header-btn">Close Options</button>
+      </div>
     </section>
 
     <section id="section-invite-friend" class="options-section">
@@ -184,6 +230,9 @@
         <button type="button" id="invite-friend-send" class="primary">Send invite</button>
       </div>
       <p id="invite-friend-status" class="status muted hidden" aria-live="polite"></p>
+      <div class="options-close-row">
+        <button type="button" class="close-options header-btn">Close Options</button>
+      </div>
     </section>
 
     <section id="section-backup-settings" class="options-section">
@@ -205,6 +254,9 @@
           tabindex="-1"
         />
       </div>
+      <div class="options-close-row">
+        <button type="button" class="close-options header-btn">Close Options</button>
+      </div>
     </section>
 
     <section class="options-section options-section--danger">
@@ -215,6 +267,9 @@
         (<strong>up to 5</strong> without your own key) is <strong>not</strong> reset.
       </p>
       <button type="button" id="factory-reset" class="danger">Reset to clean state…</button>
+      <div class="options-close-row">
+        <button type="button" class="close-options header-btn">Close Options</button>
+      </div>
     </section>
 
     <details class="options-advanced-panel" id="section-environment">
@@ -290,10 +345,13 @@
           <input id="device-id" type="text" />
         </div>
       </div>
+      <div class="options-close-row">
+        <button type="button" class="close-options header-btn">Close Options</button>
+      </div>
     </details>
 
-    <div class="options-close-row">
-      <button type="button" class="close-options secondary">Close</button>
+    <div class="options-close-row options-close-row--section">
+      <button type="button" class="close-options header-btn">Close Options</button>
     </div>
     </main>
 

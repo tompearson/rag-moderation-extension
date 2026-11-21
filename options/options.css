@@ -47,11 +47,36 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
+.options-guide-pill-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 0 var(--section-gap);
+}
+
+.options-guide-pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+}
+
+.options-guide-pill-group-label {
+  flex: 0 0 auto;
+  min-width: 4.75rem;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
 .options-guide-pills {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 0 0 var(--section-gap);
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 a.options-guide-pill,
@@ -157,16 +182,47 @@ button.header-btn {
   flex-shrink: 0;
 }
 
+/* Matches side panel header Options button (options-toggle-btn). */
+button.close-options {
+  display: inline-block;
+  margin-top: 0;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  width: auto;
+  flex-shrink: 0;
+  color: var(--fg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--fg) 5%, transparent);
+  cursor: pointer;
+}
+
+button.close-options:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+button.close-options:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 .options-close-row {
-  margin: 4px 0 0;
-  padding-top: 4px;
+  margin: 12px 0 0;
+  padding-top: 0;
   display: flex;
   justify-content: flex-end;
 }
 
-.options-close-row .close-options {
-  margin-top: 0;
-  min-width: 6.5rem;
+.options-close-row--section {
+  margin: 0 0 var(--section-gap);
+}
+
+.options-advanced-panel > .options-close-row {
+  padding: 0 14px 14px;
 }
 
 .state-picker-host {

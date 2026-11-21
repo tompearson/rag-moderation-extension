@@ -181,6 +181,35 @@ button.header-btn {
   font-size: 12px;
 }
 
+button.options-toggle-btn {
+  display: inline-block;
+  margin-top: 0;
+  font-weight: 600;
+  line-height: 1.35;
+  width: auto;
+  color: var(--fg);
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--fg) 5%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  button.options-toggle-btn {
+    background: #1e293b;
+  }
+}
+
+button.options-toggle-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+button.options-toggle-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 .badge {
   display: inline-block;
   font-size: 12px;

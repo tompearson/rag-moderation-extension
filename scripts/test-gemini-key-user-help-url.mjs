@@ -9,6 +9,7 @@ import {
   EXTENSION_TERMS_URL,
   EXTENSION_CONTACT_URL,
   EXTENSION_HOW_TO_MODERATE_URL,
+  EXTENSION_POLICY_COMPLIANCE_MATRIX_PDF_URL,
 } from '../lib/geminiKeyUserHelp.js';
 
 assert.equal(
@@ -47,6 +48,10 @@ assert.equal(
 assert.equal(
   EXTENSION_HOW_TO_MODERATE_URL,
   'https://www.airesearchdog.net/extension/how-to-moderate-user-posts',
+);
+assert.equal(
+  EXTENSION_POLICY_COMPLIANCE_MATRIX_PDF_URL,
+  'https://www.airesearchdog.net/extension/downloads/Nextdoor_Policy_Compliance_Matrix-v5.pdf',
 );
 
 console.log('test-gemini-key-user-help-url: ok');
