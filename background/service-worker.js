@@ -27,6 +27,7 @@ import {
   handleModerationContextMenuClick,
 } from '../lib/contextMenu.js';
 import { EXTENSION_UI_SYNC } from '../lib/extensionUiSync.js';
+import { registerCloseOptionsWhenSidePanelCloses } from '../lib/sidePanelOptionsCompanion.js';
 import { registerAutoNavMonitor } from '../lib/autoNav.js';
 
 function onInstalled() {
@@ -43,6 +44,7 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 registerModerationContextMenu();
 registerAutoNavMonitor();
+registerCloseOptionsWhenSidePanelCloses();
 
 dismissStalePickOverlaysForAllTabs().catch(() => {});
 

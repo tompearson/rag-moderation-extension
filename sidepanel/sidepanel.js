@@ -84,6 +84,7 @@ import {
   serializeLastModerationReportForContact,
 } from '../lib/lastModerationContactContext.js';
 import { openOptionsPage, toggleOptionsPage } from '../lib/optionsPage.js';
+import { connectSidePanelLifecyclePort } from '../lib/sidePanelOptionsCompanion.js';
 import { BYOK_CONTINUE_SHARED_POOL, EXTENSION_UI_SYNC } from '../lib/extensionUiSync.js';
 import {
   PENDING_DRAFT_SESSION_KEY,
@@ -2718,6 +2719,8 @@ chrome.runtime.onMessage.addListener((message) => {
   }
   return false;
 });
+
+connectSidePanelLifecyclePort();
 
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden' && pickModeInProgress) {
