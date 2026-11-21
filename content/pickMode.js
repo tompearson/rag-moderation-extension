@@ -180,8 +180,14 @@
 
     const sel = window.getSelection();
     if (!sel) return;
+    const extract = /** @type {typeof window.__ragPageTextExtract | undefined} */ (
+      window.__ragPageTextExtract
+    );
+    const appliedRange = extract?.expandRangeForInlineLinks
+      ? extract.expandRangeForInlineLinks(range)
+      : range;
     sel.removeAllRanges();
-    sel.addRange(range);
+    sel.addRange(appliedRange);
   }
 
   /**

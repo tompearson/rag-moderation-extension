@@ -459,6 +459,102 @@
   }
 
   /**
+   * @param {Range} range
+   * @param {Node} node
+   * @returns {boolean}
+   */
+  function rangeIntersectsNode(range, node) {
+    if (typeof range.intersectsNode === 'function') {
+      try {
+        return range.intersectsNode(node);
+      } catch {
+        return false;
+      }
+    }
+    const nodeRange = document.createRange();
+    try {
+      nodeRange.selectNodeContents(node);
+    } catch {
+      return false;
+    }
+    return (
+      range.compareBoundaryPoints(Range.END_TO_START, nodeRange) < 0 &&
+      range.compareBoundaryPoints(Range.START_TO_END, nodeRange) > 0
+    );
+  }
+
+  /**
+   * When a drag selection spans text before and after a link, browsers often skip the
+   * anchor in getSelection().toString() / the highlight. Widen the range to full <a> nodes.
+   * @param {Range} range
+   * @returns {Range}
+   */
+  function expandRangeForInlineLinks(range) {
+    const container = range.commonAncestorContainer;
+    let root = container instanceof HTMLElement ? container : container.parentElement;
+    if (!root?.querySelectorAll) return range;
+
+    for (
+      let parent = root.parentElement;
+      parent && parent !== document.body;
+      parent = parent.parentElement
+    ) {
+      const parentAnchors = parent.querySelectorAll('a[href]').length;
+      const rootAnchors = root.querySelectorAll('a[href]').length;
+      if (parentAnchors > rootAnchors) {
+        root = parent;
+      }
+    }
+
+    const expanded = range.cloneRange();
+    for (const a of root.querySelectorAll('a[href]')) {
+      const href = a.getAttribute('href') ?? '';
+      if (href.startsWith('#') || href.startsWith('javascript:')) continue;
+
+      const anchorRange = document.createRange();
+      try {
+        anchorRange.selectNodeContents(a);
+      } catch {
+        continue;
+      }
+
+      const endpointsSpanAnchor =
+        expanded.compareBoundaryPoints(Range.START_TO_START, anchorRange) <= 0 &&
+        expanded.compareBoundaryPoints(Range.END_TO_END, anchorRange) >= 0;
+      if (!endpointsSpanAnchor && !rangeIntersectsNode(expanded, a)) continue;
+
+      try {
+        if (expanded.compareBoundaryPoints(Range.START_TO_START, anchorRange) > 0) {
+          expanded.setStartBefore(a);
+        }
+        if (expanded.compareBoundaryPoints(Range.END_TO_END, anchorRange) < 0) {
+          expanded.setEndAfter(a);
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    return expanded;
+  }
+
+  /**
+   * @param {Range} range
+   * @returns {string}
+   */
+  function textFromSelectionRange(range) {
+    const expanded = expandRangeForInlineLinks(range);
+    const fragment = expanded.cloneContents();
+    let out = '';
+    if (fragment) {
+      out = walkCaptureTextFromRoot(fragment);
+      if (!out.trim()) {
+        out = fragment.textContent?.trim() ?? '';
+      }
+    }
+    return out.trim();
+  }
+
+  /**
    * @param {HTMLElement | null | undefined} captureRoot
    * @returns {string}
    */
@@ -478,13 +574,18 @@
    */
   function selectionTextWithLinks() {
     const sel = global.getSelection?.();
-    let text = sel?.toString?.()?.trim() ?? '';
-    if (!text || !sel?.rangeCount) return text;
+    if (!sel?.rangeCount) return '';
 
     const range = sel.getRangeAt(0);
+    let text = textFromSelectionRange(range);
+    if (!text) {
+      text = sel.toString?.()?.trim() ?? '';
+    }
+    if (!text) return '';
+
     let node = range.commonAncestorContainer;
     if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
-    if (!(node instanceof HTMLElement)) return text;
+    if (!(node instanceof HTMLElement)) return sanitizePickedModerationText(text);
 
     const enrichRoot = urlEnrichmentRoot(node) ?? node;
     return sanitizePickedModerationText(mergeAnchorHrefsIntoText(enrichRoot, text));
@@ -517,6 +618,8 @@
 
   global.__ragPageTextExtract = {
     mergeAnchorHrefsIntoText,
+    expandRangeForInlineLinks,
+    textFromSelectionRange,
     selectionTextWithLinks,
     elementTextWithLinks,
     extractCaptureTextFromRoot,

@@ -294,6 +294,9 @@ const resultsEl = document.getElementById('results');
 let moderationElapsedTimer = null;
 /** @type {string | null} */
 let activeModerationRequestId = null;
+/** After Moderate: scroll to bottom when the pointer re-enters from outside the panel. */
+let pendingResultsFocusOnReenter = false;
+let sidePanelPointerInside = true;
 
 /** @type {{
  *   moderationHistoryId: string | null;
@@ -1481,9 +1484,35 @@ function scrollModerationProgressIntoView() {
   });
 }
 
+/** Side panel body scroll — results and status live at the bottom. */
+function scrollPanelFocusToBottom() {
+  const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+  requestAnimationFrame(() => {
+    const scrollEl = document.scrollingElement ?? document.documentElement;
+    scrollEl.scrollTo({ top: scrollEl.scrollHeight, behavior });
+  });
+}
+
+function onSidePanelPointerEnter() {
+  const wasOutside = !sidePanelPointerInside;
+  sidePanelPointerInside = true;
+  if (!wasOutside || !pendingResultsFocusOnReenter) return;
+  scrollPanelFocusToBottom();
+  if (activeModerationRequestId == null) {
+    pendingResultsFocusOnReenter = false;
+  }
+}
+
+/** @param {PointerEvent} e */
+function onSidePanelPointerLeave(e) {
+  if (e.relatedTarget != null) return;
+  sidePanelPointerInside = false;
+}
+
 function startModerationProgress(timeoutSec) {
   abortPickMode();
   stopModerateBtnPrompt();
+  pendingResultsFocusOnReenter = true;
   moderationProgress.classList.remove('hidden');
   scrollModerationProgressIntoView();
   moderationLimit.textContent = `/ ${timeoutSec}s max`;
@@ -2291,6 +2320,7 @@ function clearModerationContentFields() {
   postContextInput.value = '';
   void persistLastSuccessfulModerationKey(null);
   resultsEl.classList.add('hidden');
+  pendingResultsFocusOnReenter = false;
   stopModerateBtnPrompt();
   setStatus('');
   hideModerateBlockedHint();
@@ -2654,6 +2684,9 @@ byokBadge?.addEventListener('click', (e) => {
     setStatus(err instanceof Error ? err.message : String(err), true);
   });
 });
+
+document.documentElement.addEventListener('pointerenter', onSidePanelPointerEnter);
+document.documentElement.addEventListener('pointerleave', onSidePanelPointerLeave);
 
 syncMainPanelBlocked();
 navigateToNextdoorFeedOnPanelOpen().catch(() => {});
