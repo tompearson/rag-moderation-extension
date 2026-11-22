@@ -9,6 +9,7 @@ Secrets and Google Cloud setup live in **Moderation-Tool-Universal**, not in thi
 ## On this page {#toc}
 
 - [What the extension does](#what-the-extension-does)
+- [Where keys live](#where-keys-live)
 - [Bridge deploy checklist](#bridge-deploy)
 - [After Universal / Vercel key changes](#after-universal-vercel)
 - [Local stack](#local-stack)
@@ -24,6 +25,22 @@ Secrets and Google Cloud setup live in **Moderation-Tool-Universal**, not in thi
 - The extension never stores `RECAPTCHA_SECRET_KEY` or `RECAPTCHA_ENTERPRISE_API_KEY`.
 
 **Sideload vs Web Store IDs:** unpacked installs often get a **different ID per machine/path**; the store listing gives **one ID for all users**. See [EXTENSION_IDS_SIDELOAD_VS_STORE.md](./EXTENSION_IDS_SIDELOAD_VS_STORE.md) before adding IDs or planning the store launch.
+
+## Where keys live {#where-keys-live}
+
+Nothing in this repo should hold **reCAPTCHA secrets** or **`RAG_SERVICE_SECRET`**. Use Universal + Vercel for server keys; the bridge sync only needs the **public** site key at build/sync time.
+
+| Secret or credential | Stored where | In git? |
+|----------------------|--------------|---------|
+| `RECAPTCHA_SECRET_KEY`, `RECAPTCHA_ENTERPRISE_API_KEY` | Vercel production env; Universal `.env.local` | No |
+| `RECAPTCHA_SITE_KEY`, `VITE_RECAPTCHA_SITE_KEY` | Same as above (used when syncing bridge HTML) | No — but the **public** site key is embedded in deployed `recaptcha-bridge.html` on purpose (normal for reCAPTCHA v3 clients) |
+| Optional user **Gemini** key (BYOK) | `chrome.storage.local` on the moderator’s machine | No |
+| Extension **IDs** (bridge allowlist) | `lib/recaptcha-bridge-extension-ids.json` | Yes — identifiers, not API keys |
+| Bridge **template** | `docs/static/recaptcha-bridge.html` | Yes — placeholders only (`__RECAPTCHA_SITE_KEY__`, etc.) |
+
+**Sync on Windows:** `npm run sync:recaptcha-bridge` reads `RECAPTCHA_SITE_KEY` or `VITE_RECAPTCHA_SITE_KEY` from **Universal** `.env.local` (override path with `SYNC_UNIVERSAL_DIR`). If those are missing, the script falls back to the last good `public/extension/recaptcha-bridge.html` in Universal git and **exits with an error** instead of writing `missing-site-key`. Match `.env.local` to Vercel before running `sync:public-guides` or `publish:latest-sideload`.
+
+After sync, ship **`public/extension/recaptcha-bridge.html`** with Universal **`npm run deploy:prod`** — extension `git push` alone does not update the live bridge.
 
 ## Bridge deploy checklist (shared-pool Moderate) {#bridge-deploy}
 
