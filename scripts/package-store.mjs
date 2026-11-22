@@ -21,8 +21,8 @@ function readIncludeDirs() {
   const listPath = path.join(ROOT, 'packaging', 'store-include.txt');
   const text = fs.readFileSync(listPath, 'utf8');
   return text
-    .split('\n')
-    .map((line) => line.replace(/#.*$/, '').trim())
+    .split(/\r?\n/)
+    .map((line) => line.replace(/^\s*#.*$/, '').trim())
     .filter(Boolean);
 }
 
@@ -138,10 +138,19 @@ function writeZip(outDir, zipPath) {
   if (fs.existsSync(zipPath)) {
     fs.unlinkSync(zipPath);
   }
-  execFileSync('zip', ['-r', zipPath, '.'], {
-    cwd: outDir,
-    stdio: 'inherit',
-  });
+  try {
+    execFileSync('zip', ['-r', zipPath, '.'], {
+      cwd: outDir,
+      stdio: 'inherit',
+    });
+  } catch (err) {
+    if (err?.code !== 'ENOENT') {
+      throw err;
+    }
+    execFileSync('tar', ['-a', '-c', '-f', zipPath, '-C', outDir, '.'], {
+      stdio: 'inherit',
+    });
+  }
 }
 
 function main() {
