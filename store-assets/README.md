@@ -34,18 +34,34 @@ Older guide captures: `docs/images/how-to-moderate-walkthrough-*.png` (smaller; 
 
 | File | Scene |
 |------|--------|
-| `00-full-screen-no-panel-ready.jpg` | Moderation feed, panel closed (optional hero) |
-| `01-side-panel-ready.jpg` | Side panel open, ready to moderate |
-| `02-pick-mode.jpg` | Pick mode on post text |
-| `03-content-ready.jpg` | Content captured in panel |
-| `04-moderation-pending.jpg` | During / just before results |
-| `05-moderation-results.jpg` | Decision + breakdown |
+| `00-full-screen-no-panel-ready.png` | Moderation feed, panel closed (optional hero) |
+| `01-side-panel-ready.png` | Side panel open, ready to moderate |
+| `02-pick-mode.png` | Pick mode on post text |
+| `03-content-ready.png` | Content captured in panel |
+| `04-moderation-pending.png` | During / just before results |
+| `05-moderation-results.png` | Decision + breakdown |
 
-Captures are ~**1365×768** or **1413×752** JPEG (~1.78–1.88 aspect). Chrome asks for **1280×800** or **640×400** (1.6); upload as-is if the dashboard accepts, or export a **1280×800** crop for each file before upload.
+Captures are PNG (~**1365×768** or **1413×752**, ~1.78–1.88 aspect). Chrome asks for **1280×800** or **640×400** (1.6); upload as-is if the dashboard accepts, or export a **1280×800** crop for each file before upload.
 
 **Listing upload:** usually **3–5** of `01`–`05` (skip `00` if you want fewer tiles). Add an **Options** shot later if the dashboard has room.
 
 **Policy:** avoid graphic slurs in store graphics ([STORE_CHECKLIST](../docs/STORE_CHECKLIST.md)); use bland sample text if a re-capture is needed for review.
+
+### Small promo tile (`promo/`)
+
+| Spec | Detail |
+|------|--------|
+| Canvas | **440×280** |
+| Format | **4-bit PNG**, no alpha (indexed palette) |
+| File | `small-promo-tile-440x280.png` |
+
+Mimics the side panel **pick** control (`button.pick-btn` in `sidepanel/sidepanel.css`): blue `#2563eb`, 8px corners, bold white label. Copy matches the side panel pick button (`sidepanel/sidepanel.html`).
+
+Re-render after copy or color tweaks:
+
+```bash
+python scripts/render-small-promo-tile.py
+```
 
 ## Icons in the CRX vs dashboard
 
