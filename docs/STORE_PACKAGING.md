@@ -9,6 +9,7 @@ Develop on the repo root (`Load unpacked` as today). When you are ready to QA or
 ## Table of contents
 
 - [Build](#build)
+- [ZIP tooling (Windows vs Linux)](#zip-tooling-windows-vs-linux)
 - [Local QA workflow](#local-qa-workflow)
   - [Extension ID note](#extension-id-note)
 - [What the packager changes](#what-the-packager-changes)
@@ -39,6 +40,21 @@ npm run verify:store-zip
 ```
 
 `dist/` is gitignored; rebuild before each release.
+
+## ZIP tooling (Windows vs Linux) {#zip-tooling-windows-vs-linux}
+
+`package:store` and `verify:store-zip` use the same fallbacks in [scripts/package-store.mjs](../scripts/package-store.mjs) and [scripts/verify-store-zip.mjs](../scripts/verify-store-zip.mjs):
+
+| Step | Preferred tool | Fallback (command missing on `PATH`) |
+|------|----------------|--------------------------------------|
+| Create ZIP | `zip -r` | Windows **bsdtar**: `tar -a -c -f …` |
+| Verify ZIP | `unzip` | **`tar -xf`** (extract to temp dir, then compare SHA256 to `dist/store/`) |
+
+**Linux / Mint (typical dev):** `zip` and `unzip` from `apt install zip unzip` — scripts use the primary path only; behavior is unchanged from before the Windows fallbacks.
+
+**Windows:** Git Bash / many dev boxes lack `zip` / `unzip`; **bsdtar** (bundled with Windows 10+) handles create and verify. Mint CI or minimal images without `unzip` can still verify if `tar` reads `.zip` (recent GNU or libarchive tar).
+
+**CRLF:** `store-include.txt` is parsed with `\r?\n` and line-leading `#` comments so Windows checkouts do not break `package:store`.
 
 ## Local QA workflow
 

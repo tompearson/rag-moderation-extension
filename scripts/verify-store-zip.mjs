@@ -31,6 +31,17 @@ function sha256(filePath) {
   return hash.digest('hex');
 }
 
+function extractZip(zipPath, destDir) {
+  try {
+    execFileSync('unzip', ['-q', zipPath, '-d', destDir], { stdio: 'inherit' });
+  } catch (err) {
+    if (err?.code !== 'ENOENT') {
+      throw err;
+    }
+    execFileSync('tar', ['-xf', zipPath, '-C', destDir], { stdio: 'inherit' });
+  }
+}
+
 function main() {
   if (!fs.existsSync(OUT_DIR)) {
     throw new Error(`Missing ${OUT_DIR} — run npm run package:store first`);
@@ -41,7 +52,7 @@ function main() {
 
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'rag-mod-store-zip-'));
   try {
-    execFileSync('unzip', ['-q', ZIP_PATH, '-d', tmp], { stdio: 'inherit' });
+    extractZip(ZIP_PATH, tmp);
 
     const dirFiles = walkFiles(OUT_DIR);
     const zipFiles = walkFiles(tmp);
