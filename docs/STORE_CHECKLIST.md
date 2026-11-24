@@ -105,7 +105,7 @@ Google’s short pre-upload checklist: [Prepare your extension before submitting
 - [ ] Smoke **`dist/store/`** on Production ([SMOKE_TEST.md](./SMOKE_TEST.md)).
 - [ ] Manifest fields final: `name`, `version`, `description` ≤132, icons 16/48/128 present in output.
 - [ ] Program policies + privacy aligned ([pre-review](#program-policies-pre-review-read-first)).
-- [ ] Listing screenshots and long description drafted (dashboard, not manifest).
+- [ ] Listing screenshots and long description drafted (dashboard, not manifest). PNGs: [store-assets/](../store-assets/README.md) (`screenshots/`, 1280×800 or 640×400).
 - [ ] Upload `dist/rag-moderation-assistant.zip` → then [Publish flow](#publish-your-extension-official-guide) and [dashboard phases](#chrome-web-store-dashboard-click-path).
 
 ---

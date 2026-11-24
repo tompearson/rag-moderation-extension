@@ -66,6 +66,8 @@ npm run verify:store-zip
 
 Chrome and Edge cannot install a `.zip` directly in developer mode; the folder and ZIP are the same tree by design.
 
+**Store listing graphics** (screenshots, optional promo): maintain under [store-assets/](../store-assets/README.md) — not part of the CRX/ZIP.
+
 ### Extension ID note
 
 Unpacked `dist/store/` gets a **different extension ID** than a **Chrome Web Store** install of the same ZIP. Sideload testers need their ID on the reCAPTCHA allowlist (or BYOK); store users share **one** ID after listing.
