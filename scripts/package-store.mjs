@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
+import { writeStoreZip } from './lib/storeZip.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -133,26 +134,6 @@ function scanForSecrets(outDir) {
   }
 }
 
-function writeZip(outDir, zipPath) {
-  fs.mkdirSync(path.dirname(zipPath), { recursive: true });
-  if (fs.existsSync(zipPath)) {
-    fs.unlinkSync(zipPath);
-  }
-  try {
-    execFileSync('zip', ['-r', zipPath, '.'], {
-      cwd: outDir,
-      stdio: 'inherit',
-    });
-  } catch (err) {
-    if (err?.code !== 'ENOENT') {
-      throw err;
-    }
-    execFileSync('tar', ['-a', '-c', '-f', zipPath, '-C', outDir, '.'], {
-      stdio: 'inherit',
-    });
-  }
-}
-
 function main() {
   const includeDirs = readIncludeDirs();
   rmrf(OUT_DIR);
@@ -185,7 +166,7 @@ function main() {
   assertNoForbiddenPaths(OUT_DIR);
   validateManifest(OUT_DIR);
   scanForSecrets(OUT_DIR);
-  writeZip(OUT_DIR, ZIP_PATH);
+  writeStoreZip(OUT_DIR, ZIP_PATH);
 
   const fileCount = walkFiles(OUT_DIR).length;
   console.log(`Store package ready: ${OUT_DIR} (${fileCount} files)`);

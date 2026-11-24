@@ -5,6 +5,7 @@ import os from 'node:os';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
+import { assertZipHasRootManifest } from './lib/storeZip.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -49,6 +50,8 @@ function main() {
   if (!fs.existsSync(ZIP_PATH)) {
     throw new Error(`Missing ${ZIP_PATH} — run npm run package:store first`);
   }
+
+  assertZipHasRootManifest(ZIP_PATH);
 
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'rag-mod-store-zip-'));
   try {

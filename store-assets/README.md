@@ -18,9 +18,9 @@ Checklist context: [docs/STORE_CHECKLIST.md](../docs/STORE_CHECKLIST.md) (Prepar
 2. Chrome → **Load unpacked** → `dist/store/` (not repo root).
 3. Options → **Production** profile; pin toolbar icon.
 4. Capture with a clean window; avoid real PII, slurs, or graphic reported content in frame.
-5. Save PNGs into `screenshots/` using the naming pattern below.
+5. Save into `screenshots/` (PNG or JPEG).
 
-Reference shots for *workflow* (older size) live under `docs/images/how-to-moderate-walkthrough-*.png` — replace with new exports here.
+Older guide captures: `docs/images/how-to-moderate-walkthrough-*.png` (smaller; superseded by `screenshots/` here).
 
 ## Screenshot specs (Chrome Web Store)
 
@@ -30,15 +30,22 @@ Reference shots for *workflow* (older size) live under `docs/images/how-to-moder
 | Format | PNG or JPEG (PNG preferred) |
 | Count | At least **1**; typically **3–5** for a strong listing |
 
-Suggested set (rename as you add files):
+### Current listing set (`screenshots/`)
 
-| Suggested filename | What to show |
-|--------------------|--------------|
-| `01-side-panel-ready.png` | Side panel open, empty or pasted content ready |
-| `02-pick-mode.png` | Pick mode or content captured (optional) |
-| `03-content-ready.png` | Content field filled before Moderate |
-| `04-moderation-results.png` | Decision + breakdown after Moderate |
-| `05-options-production.png` | Options: Production, feed location, legal links |
+| File | Scene |
+|------|--------|
+| `00-full-screen-no-panel-ready.jpg` | Moderation feed, panel closed (optional hero) |
+| `01-side-panel-ready.jpg` | Side panel open, ready to moderate |
+| `02-pick-mode.jpg` | Pick mode on post text |
+| `03-content-ready.jpg` | Content captured in panel |
+| `04-moderation-pending.jpg` | During / just before results |
+| `05-moderation-results.jpg` | Decision + breakdown |
+
+Captures are ~**1365×768** or **1413×752** JPEG (~1.78–1.88 aspect). Chrome asks for **1280×800** or **640×400** (1.6); upload as-is if the dashboard accepts, or export a **1280×800** crop for each file before upload.
+
+**Listing upload:** usually **3–5** of `01`–`05` (skip `00` if you want fewer tiles). Add an **Options** shot later if the dashboard has room.
+
+**Policy:** avoid graphic slurs in store graphics ([STORE_CHECKLIST](../docs/STORE_CHECKLIST.md)); use bland sample text if a re-capture is needed for review.
 
 ## Icons in the CRX vs dashboard
 

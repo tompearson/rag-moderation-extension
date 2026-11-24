@@ -47,12 +47,12 @@ npm run verify:store-zip
 
 | Step | Preferred tool | Fallback (command missing on `PATH`) |
 |------|----------------|--------------------------------------|
-| Create ZIP | `zip -r` | Windows **bsdtar**: `tar -a -c -f …` |
+| Create ZIP | `zip -r` | **Windows:** PowerShell `Compress-Archive` (Chrome-safe paths). **Other:** `tar -a -c -f …` |
 | Verify ZIP | `unzip` | **`tar -xf`** (extract to temp dir, then compare SHA256 to `dist/store/`) |
 
 **Linux / Mint (typical dev):** `zip` and `unzip` from `apt install zip unzip` — scripts use the primary path only; behavior is unchanged from before the Windows fallbacks.
 
-**Windows:** Git Bash / many dev boxes lack `zip` / `unzip`; **bsdtar** (bundled with Windows 10+) handles create and verify. Mint CI or minimal images without `unzip` can still verify if `tar` reads `.zip` (recent GNU or libarchive tar).
+**Windows:** Git Bash / many dev boxes lack `zip` / `unzip`. Do **not** use bare **bsdtar** for the upload ZIP: it emits `./manifest.json`, and the Chrome dashboard rejects the package (“No manifest found in package”). `package:store` uses PowerShell `Compress-Archive` instead. `verify:store-zip` also asserts a root-level `manifest.json` entry. Mint CI or minimal images without `unzip` can still verify if `tar` reads `.zip` (recent GNU or libarchive tar).
 
 **CRLF:** `store-include.txt` is parsed with `\r?\n` and line-leading `#` comments so Windows checkouts do not break `package:store`.
 

@@ -164,6 +164,7 @@ Use this **after** `npm test` and `npm run package:store`, with [local QA on `di
 1. On the dashboard home, click **New item** / **Add new item** (wording may vary).
 2. **Choose file** → select **`dist/rag-moderation-assistant.zip`** → **Upload**.
 3. If upload fails:
+   - **No manifest found in package** — upload **`dist/rag-moderation-assistant.zip`** only (not a hand-zipped `store` folder, not repo root). On Windows, re-run `npm run package:store` so the ZIP uses a root `manifest.json` entry ([STORE_PACKAGING.md](./STORE_PACKAGING.md#zip-tooling-windows-vs-linux)).
    - **Cannot parse manifest** — usually invalid JSON; store manifest has no comments ([prepare guide](https://developer.chrome.com/docs/webstore/prepare)).
    - **ZIP too large** — must be under 2GB (not an issue for this extension).
 4. When validation passes, the item appears in your list — open it. The left sidebar shows tabs below.
