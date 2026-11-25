@@ -36,6 +36,7 @@ Load unpacked extension: Chrome/Edge → **this folder** (repo root).
 - **Release steps:** [docs/RELEASE.md](docs/RELEASE.md)
 - **Chrome Web Store checklist:** [docs/STORE_CHECKLIST.md](docs/STORE_CHECKLIST.md)
 - **Sideload download page:** [get-latest-extension](https://www.airesearchdog.net/extension/get-latest-extension) — SHA256 must match `docs/data/latest-release.json` after `package:store` + deploy.
+- **Store publisher:** [info@airesearchdog.net](mailto:info@airesearchdog.net) · **Support dashboard (Google Group):** [research-dog-publishers](https://groups.google.com/g/research-dog-publishers) — see [STORE_CHECKLIST.md](docs/STORE_CHECKLIST.md#chrome-web-store-publisher--item), [CONTACT_EXTENSION.md](docs/CONTACT_EXTENSION.md).
 
 When packaging for users: `npm test` → `npm run package:store` → commit `docs/data/latest-release.json` with the change → deploy sideload (`npm run publish:latest-sideload` unless user asked local-only). Do **not** treat extension `git push` alone as updating the public ZIP.
 

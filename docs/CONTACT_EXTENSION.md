@@ -11,11 +11,22 @@ Use the addresses below for **questions about the extension, this website, or ou
 
 ## On this page {#toc}
 
+- [Google Group (research-dog-publishers)](#google-group)
 - [Outside the extension](#scope)
 - [info@airesearchdog.net](#info)
 - [help@airesearchdog.net](#help)
 - [admin@airesearchdog.net](#admin)
 - [Related guides](#related)
+
+---
+
+## Google Group (research-dog-publishers) {#google-group}
+
+**[research-dog-publishers](https://groups.google.com/g/research-dog-publishers)** is our **support dashboard** on Google Groups for **RAG Moderation Assistant**: release notes, Chrome Web Store updates, moderator questions, and publisher coordination. Join with a Google account.
+
+The **Chrome Web Store publisher** for this extension is registered under **[info@airesearchdog.net](mailto:info@airesearchdog.net)** (general operator contact — see [info@](#info) below).
+
+For **individual support**, privacy, or legal topics, still email the addresses below (**help@**, **admin@**). Do not post neighbor post text or other people’s private content to the group.
 
 ---
 
@@ -32,7 +43,7 @@ For those topics, **searching the web** for your exact error message or symptom 
 
 ## info@airesearchdog.net {#info}
 
-**General information** about RAG Moderation Assistant and airesearchdog.
+**General information** about RAG Moderation Assistant and airesearchdog. This address is also the **Google Chrome Web Store developer / publisher account** for the extension listing.
 
 **Examples — good fits for info@**
 
@@ -84,3 +95,4 @@ For those topics, **searching the web** for your exact error message or symptom 
 | [Privacy policy](https://www.airesearchdog.net/extension/privacy) | Data use and BYOK |
 | [Important — AI-generated analysis](https://www.airesearchdog.net/extension/important-ai-generated-analysis) | Read before acting on moderation suggestions |
 | [Nextdoor Policy Compliance Matrix](https://www.airesearchdog.net/extension/nextdoor-policy-compliance-matrix) | Printable guidelines reference (PDF) |
+| [Google Group: research-dog-publishers](https://groups.google.com/g/research-dog-publishers) | Community support and extension announcements |

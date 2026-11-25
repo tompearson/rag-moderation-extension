@@ -28,10 +28,12 @@ Maintainer reference (not shipped in the CRX).
 | | |
 |---|---|
 | **Publisher ID** | `bb82e6dd-78ee-44d3-8bcf-c04973e46d5c` |
+| **Publisher account (Chrome)** | [info@airesearchdog.net](mailto:info@airesearchdog.net) — Google account on the developer registration / dashboard |
 | **Developer dashboard** | [devconsole](https://chrome.google.com/webstore/devconsole/bb82e6dd-78ee-44d3-8bcf-c04973e46d5c) |
 | **RAG Moderation Assistant (listing)** | Extension ID `bbonemfjjakfkiogdhnplmbdbggbkjmc` · [edit item](https://chrome.google.com/webstore/devconsole/bb82e6dd-78ee-44d3-8bcf-c04973e46d5c/bbonemfjjakfkiogdhnplmbdbggbkjmc/edit) |
+| **Support dashboard (Google Group)** | [research-dog-publishers](https://groups.google.com/g/research-dog-publishers) — our group hub for extension support, announcements, and publisher coordination (optional in **Store listing**; day-to-day install help: [extension/contact](https://www.airesearchdog.net/extension/contact) / **help@**) |
 
-**Publisher ID** = your developer account in the dashboard URL. **Extension ID** = per-item ID from `chrome://extensions` on a store install; add it to `lib/recaptcha-bridge-extension-ids.json` before shared-pool **Moderate** from the listing ([Phase E](#phase-e--after-first-upload-maintainer-not-in-dashboard)).
+**Publisher ID** = developer account segment in the devconsole URL (not the extension ID). **Extension ID** = per listing install ID from `chrome://extensions`; add it to `lib/recaptcha-bridge-extension-ids.json` before shared-pool **Moderate** from the store build ([Phase E](#phase-e--after-first-upload-maintainer-not-in-dashboard)).
 
 ---
 
@@ -199,7 +201,7 @@ Work through each section. **Save** as you go. Tab names match [Google’s publi
 - [ ] **Language** — English (add others later if needed).
 - [ ] **Graphic assets** — screenshots of side panel + Options; use manifest icons where the form allows.
 - [ ] **Official URL / homepage** (if offered) — `https://www.airesearchdog.net/extension/guides` or moderation docs home.
-- [ ] **Support / contact** — `https://www.airesearchdog.net/extension/contact` or `help@airesearchdog.net`.
+- [ ] **Support / contact** — `https://www.airesearchdog.net/extension/contact` or `help@airesearchdog.net`; publisher account **info@airesearchdog.net**; support hub: [research-dog-publishers](https://groups.google.com/g/research-dog-publishers).
 
 Manifest already ships **name**, **short description** (≤132 chars), and **icons** — listing copy can expand, but should not contradict the manifest.
 
