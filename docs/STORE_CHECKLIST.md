@@ -7,6 +7,7 @@
 - [Program policies pre-review (read first)](#program-policies-pre-review-read-first)
 - [Prepare your extension (official guide)](#prepare-your-extension-official-guide)
 - [Publish your extension (official guide)](#publish-your-extension-official-guide)
+- [Chrome Web Store publisher & item](#chrome-web-store-publisher--item)
 - [Chrome Web Store dashboard (click path)](#chrome-web-store-dashboard-click-path)
 - [Single purpose](#single-purpose)
 - [Build and local QA](#build-and-local-qa)
@@ -17,6 +18,20 @@
 - [Pre-submit smoke](#pre-submit-smoke)
 
 Official reference: [Program policies](https://developer.chrome.com/docs/webstore/program-policies/policies) · [Publish](https://developer.chrome.com/docs/webstore/publish) · [Privacy practices tab](https://developer.chrome.com/docs/webstore/cws-dashboard-privacy) · [MV3 requirements](https://developer.chrome.com/docs/webstore/program-policies/mv3-requirements) · [Prepare your extension](https://developer.chrome.com/docs/webstore/prepare)
+
+---
+
+## Chrome Web Store publisher & item {#chrome-web-store-publisher--item}
+
+Maintainer reference (not shipped in the CRX).
+
+| | |
+|---|---|
+| **Publisher ID** | `bb82e6dd-78ee-44d3-8bcf-c04973e46d5c` |
+| **Developer dashboard** | [devconsole](https://chrome.google.com/webstore/devconsole/bb82e6dd-78ee-44d3-8bcf-c04973e46d5c) |
+| **RAG Moderation Assistant (listing)** | Extension ID `bbonemfjjakfkiogdhnplmbdbggbkjmc` · [edit item](https://chrome.google.com/webstore/devconsole/bb82e6dd-78ee-44d3-8bcf-c04973e46d5c/bbonemfjjakfkiogdhnplmbdbggbkjmc/edit) |
+
+**Publisher ID** = your developer account in the dashboard URL. **Extension ID** = per-item ID from `chrome://extensions` on a store install; add it to `lib/recaptcha-bridge-extension-ids.json` before shared-pool **Moderate** from the listing ([Phase E](#phase-e--after-first-upload-maintainer-not-in-dashboard)).
 
 ---
 
@@ -192,9 +207,7 @@ Manifest already ships **name**, **short description** (≤132 chars), and **ico
 
 Google’s [publish](https://developer.chrome.com/docs/webstore/publish) doc calls this the **Privacy** tab; the form is documented as [Privacy practices](https://developer.chrome.com/docs/webstore/cws-dashboard-privacy).
 
-- [ ] **Single purpose** — paste or adapt:
-
-  > RAG Moderation Assistant helps community moderators review user posts: capture or paste post text in a side panel, send it to a moderation API, and show an AI-assisted keep/remove suggestion with retrieved policy excerpts. It does not browse the web on its own; the moderator chooses what text to moderate.
+- [ ] **Single purpose** — paste the [detailed statement](#single-purpose-dashboard) into the Privacy practices field (trim if the form enforces a character cap).
 
 - [ ] **Permission justifications** — for each permission Chrome lists, paste from the [table below](#permissions-justification) (edit wording to fit each field’s size).
 - [ ] **Remote code** — select **No, I am not using remote code** for the store build (logic is bundled; API calls are network requests, not executed remote script — [MV3 policy](https://developer.chrome.com/docs/webstore/program-policies/mv3-requirements)).
@@ -251,6 +264,22 @@ Details: [EXTENSION_IDS_SIDELOAD_VS_STORE.md](./EXTENSION_IDS_SIDELOAD_VS_STORE.
 
 RAG-backed community post moderation for moderators (side panel: paste content, get decision + retrieved guidelines).
 
+### Single purpose (dashboard) {#single-purpose-dashboard}
+
+Paste into **Privacy practices → Single purpose** (detailed primary functionality):
+
+```text
+RAG Moderation Assistant has one purpose: to help volunteer and staff community moderators decide whether reported user-generated content should stay on a platform or be removed, using AI-assisted analysis grounded in retrieved community-guideline excerpts.
+
+Primary functionality (all in the side panel):
+• The moderator supplies the text under review by pasting, clicking Paste, right-clicking a page selection, or using pick mode to capture only the text they click or drag-select—never automatic whole-page scraping.
+• They optionally add post context, set feed location and analysis options in Options, then click Moderate.
+• The extension sends only that user-chosen content (and related moderation settings) to the Community Moderation Tool API on https://www.airesearchdog.net, or to Google Gemini when the moderator enables bring-your-own-key (BYOK). The API returns a suggested outcome (keep, remove, or maybe), explanation, and citations from retrieved policy material.
+• Optional Nextdoor-oriented helpers (e.g. queue awareness, navigation to a moderation feed) exist only to reach the same moderation workflow faster; they do not change the single purpose.
+
+The extension does not serve ads, sell data, provide unrelated browsing tools, or perform background surveillance. It does not run remote code; logic is bundled in the package. Every network transfer of content is initiated by the moderator’s explicit action to moderate specific text they chose to review.
+```
+
 ## Build and local QA
 
 - `npm run package:store` → `dist/store/` (Load unpacked) + `dist/rag-moderation-assistant.zip` (upload).
@@ -277,6 +306,8 @@ RAG-backed community post moderation for moderators (side panel: paste content, 
 
 ## Permissions justification
 
+Dashboard: **Privacy practices** tab — paste each block into the matching justification field, then **Save draft**. Short table for skim; full copy in [Privacy practices justifications (paste)](#privacy-practices-justifications-paste).
+
 | Permission | Why |
 |------------|-----|
 | `storage` | Persist feed location, environment profile |
@@ -287,6 +318,78 @@ RAG-backed community post moderation for moderators (side panel: paste content, 
 | `tabs` | Resolve active tab; open side panel from context menu |
 | `clipboardRead` | Paste button reads clipboard into content field (user click) |
 | Optional host origins | Moderation API (local + production); **`https://*/*`** / **`http://*/*`** granted on demand when moderator uses **Click on Text to Moderate** |
+
+### Privacy practices justifications (paste) {#privacy-practices-justifications-paste}
+
+**activeTab**
+
+```text
+Required for pick mode: when the moderator clicks “Click here to select text you want to moderate” on the open tab, the extension may read only the text they click or drag-select on that tab to fill the moderation draft. Used with a user gesture on the active tab only—not for background tab monitoring or full-page scraping.
+```
+
+**clipboardRead**
+
+```text
+The side panel and Options include a Paste button. clipboardRead is used only after the moderator clicks Paste, to read clipboard text into “Content to moderate” or the optional Gemini API key field. The clipboard is not read on install, on a timer, or without that click.
+```
+
+**contextMenus**
+
+```text
+Registers one context-menu item, “Send selection to RAG Moderation,” when the user has highlighted text on a page. If they choose it, only that selection is copied into the side panel draft for review. No other menu entries or page modifications.
+```
+
+**scripting**
+
+```text
+Injects bundled, one-shot scripts on the active tab when the moderator starts pick mode, or (on Nextdoor moderation pages) when optional queue helpers need to read queue UI the moderator enabled in Options. Scripts capture only user-directed text or queue indicators for the moderation workflow; they are not persistent trackers and do not load remote code.
+```
+
+**sidePanel**
+
+```text
+The side panel is the extension’s only UI surface for moderation: enter or capture post text, add context, run Moderate, view keep/remove/maybe results and policy citations, and open help links. Without sidePanel the extension cannot perform its single purpose.
+```
+
+**storage**
+
+```text
+Saves moderator settings locally in chrome.storage (feed location, analysis type, BYOK Gemini key if provided, shared-pool trial counter, optional auto-nav preferences). Session storage holds short-lived pick-mode state. Data stays on the device in the user’s browser profile; it is not sold or used for ads.
+```
+
+**tabs**
+
+```text
+Identifies the active tab and window when the moderator uses pick mode, the “Send selection to RAG Moderation” context menu, or optional navigation helpers to the moderation feed. Opens or focuses the side panel in the correct window. Does not read page content except together with activeTab/scripting and an explicit moderator action.
+```
+
+**Host permission use** (if the form has one combined host field)
+
+```text
+https://nextdoor.com and https://*.nextdoor.com: Declared host access runs a bundled content script on Nextdoor only, for optional moderation-queue awareness and navigation helpers the moderator can disable in Options—all in service of reaching reported posts to moderate.
+
+Optional origins (requested only when needed): https://www.airesearchdog.net for the Production moderation API, reCAPTCHA bridge page, and hosted help/legal pages; http://*/* and https://*/* when pick mode or API/BYOK setup requires temporary access to the tab’s origin or the user’s chosen API host. The moderator can deny optional hosts; capture and Moderate may not work on that site until granted.
+
+No host access is used to build browsing profiles or to collect data unrelated to user-initiated moderation.
+```
+
+**https://nextdoor.com/*** and **https://\*.nextdoor.com/*** (if listed separately)
+
+```text
+Nextdoor is where moderators review neighborhood content. Host permission allows a bundled, Nextdoor-only content script for optional queue detection and feed navigation the moderator enables in Options. It does not read posts except as part of user-directed capture (pick mode/selection) for moderation.
+```
+
+**https://www.airesearchdog.net/*** (optional host)
+
+```text
+Store builds use Production only. This origin is the moderation API (HTTPS), reCAPTCHA bridge iframe, and static help/privacy pages. Moderation text and settings are sent here only when the moderator clicks Moderate (shared pool). Granted on first API use or as shown in the permission prompt.
+```
+
+**http://*/* ** and **https://*/*** (optional host)
+
+```text
+Pick mode may run on community sites beyond a fixed allowlist. These optional patterns are requested only when the moderator starts capture on a tab, so the extension can inject the bundled pick overlay on that page origin. Access is limited to user-initiated capture—not background crawling. The moderator may decline; pick mode on that site will not work until they allow.
+```
 
 ## Dual publish
 
