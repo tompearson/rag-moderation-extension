@@ -308,7 +308,7 @@ The extension does not serve ads, sell data, provide unrelated browsing tools, o
 
 ## Permissions justification
 
-Dashboard: **Privacy practices** tab — paste each block into the matching justification field, then **Save draft**. Short table for skim; full copy in [Privacy practices justifications (paste)](#privacy-practices-justifications-paste).
+Dashboard: **Privacy practices** tab — paste each block into the matching justification field, then **Save draft**. **Easiest lookup:** open plain-text [STORE_DASHBOARD_PASTE.txt](./STORE_DASHBOARD_PASTE.txt) in the editor and Ctrl+F the field name (e.g. `storage`). Markdown copies below: [Privacy practices justifications (paste)](#privacy-practices-justifications-paste).
 
 | Permission | Why |
 |------------|-----|
