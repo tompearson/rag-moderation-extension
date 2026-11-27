@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 /**
- * Copy agent policy article HTML mirrors + agent PDF into Universal public/extension.
+ * Copy agent policy article HTML mirrors + matrix PDFs into Universal public/extension.
  *
  * Sources (first-rag-system):
  *   docs/agent-mirrors/*.html
- *   docs/guides/Nextdoor_Policy_Compliance_Matrix-agent-v{N}.pdf
+ *   docs/guides/Nextdoor_Policy_Compliance_Matrix-v{N}.pdf          (public printable)
+ *   docs/guides/Nextdoor_Policy_Compliance_Matrix-agent-v{N}.pdf    (legacy agent PDF)
  *
  * Env:
  *   SYNC_UNIVERSAL_DIR — override Universal repo path
@@ -71,37 +72,35 @@ const ragRepo = resolveRagRepo();
 const agentVersion = resolveAgentVersion(ragRepo);
 
 const mirrorsSrc = join(ragRepo, 'docs', 'agent-mirrors');
-const pdfSrc = join(
-  ragRepo,
-  'docs',
-  'guides',
-  `Nextdoor_Policy_Compliance_Matrix-agent-v${agentVersion}.pdf`,
-);
-const pdfAssetDest = join(
-  extRoot,
-  'docs',
-  'assets',
-  `Nextdoor_Policy_Compliance_Matrix-agent-v${agentVersion}.pdf`,
-);
+const guidesDir = join(ragRepo, 'docs', 'guides');
+const publicPdfName = `Nextdoor_Policy_Compliance_Matrix-v${agentVersion}.pdf`;
+const agentPdfName = `Nextdoor_Policy_Compliance_Matrix-agent-v${agentVersion}.pdf`;
+const publicPdfSrc = join(guidesDir, publicPdfName);
+const agentPdfSrc = join(guidesDir, agentPdfName);
+const publicPdfAssetDest = join(extRoot, 'docs', 'assets', publicPdfName);
+const agentPdfAssetDest = join(extRoot, 'docs', 'assets', agentPdfName);
 
 const outDir = join(universalDir, 'public', 'extension');
 const articlesDir = join(outDir, 'policy-articles');
 const downloadsDir = join(outDir, 'downloads');
-const pdfDest = join(
-  downloadsDir,
-  `Nextdoor_Policy_Compliance_Matrix-agent-v${agentVersion}.pdf`,
-);
+const publicPdfDest = join(downloadsDir, publicPdfName);
+const agentPdfDest = join(downloadsDir, agentPdfName);
 
-if (!existsSync(pdfSrc)) {
-  throw new Error(`Missing agent PDF: ${pdfSrc}`);
+if (!existsSync(publicPdfSrc)) {
+  throw new Error(`Missing public matrix PDF: ${publicPdfSrc}`);
+}
+if (!existsSync(agentPdfSrc)) {
+  throw new Error(`Missing agent PDF: ${agentPdfSrc}`);
 }
 
 mkdirSync(articlesDir, { recursive: true });
 mkdirSync(downloadsDir, { recursive: true });
-mkdirSync(dirname(pdfAssetDest), { recursive: true });
+mkdirSync(dirname(publicPdfAssetDest), { recursive: true });
 
-copyFileSync(pdfSrc, pdfAssetDest);
-copyFileSync(pdfSrc, pdfDest);
+copyFileSync(publicPdfSrc, publicPdfAssetDest);
+copyFileSync(publicPdfSrc, publicPdfDest);
+copyFileSync(agentPdfSrc, agentPdfAssetDest);
+copyFileSync(agentPdfSrc, agentPdfDest);
 
 const htmlFiles = readdirSync(mirrorsSrc).filter((name) => name.endsWith('.html'));
 if (!htmlFiles.length) {
@@ -117,14 +116,17 @@ writeFileSync(
   join(articlesDir, 'README.txt'),
   [
     'Plain HTML policy article mirrors for chat tools / agents.',
-    'Agent matrix (HTML): /extension/policy-articles/Nextdoor_Policy_Compliance_Matrix-agent',
+    'Agent matrix (HTML): /extension/policy-articles/Nextdoor_Policy_Compliance_Matrix-agent.html',
+    `Public matrix PDF: /extension/downloads/Nextdoor_Policy_Compliance_Matrix-v${agentVersion}.pdf`,
     `Agent PDF (legacy): /extension/downloads/Nextdoor_Policy_Compliance_Matrix-agent-v${agentVersion}.pdf`,
-    'Built from first-rag-system docs/agent-mirrors/',
+    'Built from first-rag-system docs/agent-mirrors/ + docs/guides/',
     '',
   ].join('\n'),
   'utf8',
 );
 
 console.log(`Wrote ${htmlFiles.length} HTML files -> ${articlesDir}`);
-console.log(`Wrote ${pdfDest}`);
-console.log(`Wrote ${pdfAssetDest}`);
+console.log(`Wrote ${publicPdfDest}`);
+console.log(`Wrote ${publicPdfAssetDest}`);
+console.log(`Wrote ${agentPdfDest}`);
+console.log(`Wrote ${agentPdfAssetDest}`);
