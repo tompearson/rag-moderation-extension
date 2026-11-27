@@ -117,7 +117,8 @@ writeFileSync(
   join(articlesDir, 'README.txt'),
   [
     'Plain HTML policy article mirrors for chat tools / agents.',
-    `Agent PDF: /extension/downloads/Nextdoor_Policy_Compliance_Matrix-agent-v${agentVersion}.pdf`,
+    'Agent matrix (HTML): /extension/policy-articles/Nextdoor_Policy_Compliance_Matrix-agent',
+    `Agent PDF (legacy): /extension/downloads/Nextdoor_Policy_Compliance_Matrix-agent-v${agentVersion}.pdf`,
     'Built from first-rag-system docs/agent-mirrors/',
     '',
   ].join('\n'),
