@@ -5,7 +5,7 @@
  * Sources (first-rag-system):
  *   docs/agent-mirrors/*.html
  *   docs/guides/Nextdoor_Policy_Compliance_Matrix-v{N}.pdf          (public printable)
- *   docs/guides/Nextdoor_Policy_Compliance_Matrix-agent-v{N}.pdf    (legacy agent PDF)
+ *   docs/guides/Nextdoor_Policy_Compliance_Matrix-agent-v{N}.pdf    (agent PDF)
  *
  * Env:
  *   SYNC_UNIVERSAL_DIR — override Universal repo path
@@ -118,7 +118,7 @@ writeFileSync(
     'Plain HTML policy article mirrors for chat tools / agents.',
     'Agent matrix (HTML): /extension/policy-articles/Nextdoor_Policy_Compliance_Matrix-agent.html',
     `Public matrix PDF: /extension/downloads/Nextdoor_Policy_Compliance_Matrix-v${agentVersion}.pdf`,
-    `Agent PDF (legacy): /extension/downloads/Nextdoor_Policy_Compliance_Matrix-agent-v${agentVersion}.pdf`,
+    `Agent PDF: /extension/downloads/Nextdoor_Policy_Compliance_Matrix-agent-v${agentVersion}.pdf`,
     'Built from first-rag-system docs/agent-mirrors/ + docs/guides/',
     '',
   ].join('\n'),
